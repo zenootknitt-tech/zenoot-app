@@ -79,7 +79,17 @@ async function loadProduk() {
   tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat data...</td></tr>';
   try {
     const data = await dbGet('produk');
-    _produkData = data || [];
+    // Supabase kadang return object error bukan array
+    if (!Array.isArray(data)) {
+      const msg = data?.message || data?.hint || JSON.stringify(data);
+      tbody.innerHTML = `<tr><td colspan="5" style="color:var(--danger)">
+        ⚠️ Tabel <b>produk</b> belum ada di Supabase.<br>
+        <span style="font-size:12px;color:var(--ink3)">Buat dulu di Supabase → Table Editor → New Table → nama: <b>produk</b><br>
+        Kolom: id (int8 PK), katalog (text), sku_variasi (text), hpp (int8), boss (text), created_at (timestamptz default now())</span>
+      </td></tr>`;
+      return;
+    }
+    _produkData = data;
     renderProduk(_produkData);
   } catch(err) {
     tbody.innerHTML = `<tr><td colspan="5" style="color:var(--danger)">Error: ${err.message}</td></tr>`;

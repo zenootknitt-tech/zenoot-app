@@ -13,7 +13,11 @@ async function dbGet(table, filter = '') {
       'Authorization': 'Bearer ' + SUPABASE_KEY
     }
   });
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.message || data?.hint || `Tabel "${table}" error (${res.status})`);
+  }
+  return Array.isArray(data) ? data : [];
 }
 
 // Helper: insert data ke tabel
