@@ -166,8 +166,12 @@
       window.gotoPage = function(page, btn) {
         origGotoPage(page, btn);
         setTimeout(() => {
+          // re-sketch nav
           document.querySelectorAll('.nav-item').forEach(el => sketchNavItem(el));
-        }, 10);
+          // sketch tombol & card di halaman yang baru aktif (sebelumnya display:none)
+          const activePage = document.getElementById('page-' + page);
+          if (activePage) rerenderUI(activePage);
+        }, 30);
       };
     }
 
