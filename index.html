@@ -4,14 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Zenoot — Buku Bisnis</title>
-
-<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ede7d9">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Zenoot">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Handlee&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -19,15 +16,11 @@
 </head>
 <body>
 
-<!-- HAMBURGER (mobile only) -->
 <button class="hamburger" id="btn-hamburger" onclick="toggleSidebar()" aria-label="Menu">
   <i class="ti ti-menu-2"></i>
 </button>
-
-<!-- SIDEBAR OVERLAY (mobile) -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-<!-- SPIRAL BINDING -->
 <div class="spiral" aria-hidden="true">
   <div class="hole"></div><div class="hole"></div><div class="hole"></div>
   <div class="hole"></div><div class="hole"></div><div class="hole"></div>
@@ -36,14 +29,13 @@
   <div class="hole"></div><div class="hole"></div>
 </div>
 
-<!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <div class="logo-block">
     <div class="logo-name">zenoot</div>
     <span class="logo-tag">~ buku bisnis ku ~</span>
   </div>
 
-  <!-- GROUP: OPERASIONAL -->
+  <!-- OPERASIONAL -->
   <div class="nav-group" id="group-ops">
     <div class="nav-group-header" onclick="toggleNavGroup('group-ops')">
       <span class="nav-group-label">⚙ Operasional</span>
@@ -51,32 +43,15 @@
     </div>
     <div class="nav-group-body">
       <button class="nav-item active" onclick="gotoPage('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
-      <button class="nav-item" onclick="gotoPage('produk',this)"><i class="ti ti-box"></i>Kelola Produk</button>
       <button class="nav-item" onclick="gotoPage('stok',this)"><i class="ti ti-package"></i>Stok Produk</button>
       <button class="nav-item" onclick="gotoPage('restock',this)"><i class="ti ti-refresh"></i>Re-Stock</button>
       <button class="nav-item" onclick="gotoPage('kas',this)"><i class="ti ti-cash"></i>Kas & Jurnal</button>
       <button class="nav-item" onclick="gotoPage('jurnal-penjualan',this)"><i class="ti ti-receipt"></i>Jurnal Penjualan</button>
-      <button class="nav-item" onclick="gotoPage('beban-operasional',this)"><i class="ti ti-chart-pie"></i>Beban Operasional</button>
       <button class="nav-item" onclick="gotoPage('price-list',this)"><i class="ti ti-tag"></i>Price List</button>
     </div>
   </div>
 
-  <!-- GROUP: CHANNEL OPERASIONAL -->
-  <div class="nav-group" id="group-ch-ops">
-    <div class="nav-group-header" onclick="toggleNavGroup('group-ch-ops')">
-      <span class="nav-group-label">📡 Channel Ops</span>
-      <span class="nav-group-arrow">▾</span>
-    </div>
-    <div class="nav-group-body">
-      <div class="ch-sidebar-section" id="ch-ops-list"></div>
-      <div class="ch-sidebar-actions">
-        <button class="ch-mini-btn" onclick="openModalAdd('ops')">+ tambah</button>
-        <button class="ch-mini-btn" onclick="openModalEdit('ops')">✎ edit</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- GROUP: TOKO -->
+  <!-- TOKO -->
   <div class="nav-group" id="group-toko">
     <div class="nav-group-header" onclick="toggleNavGroup('group-toko')">
       <span class="nav-group-label">🛒 Toko</span>
@@ -85,29 +60,25 @@
     <div class="nav-group-body">
       <button class="nav-item" onclick="gotoPage('dataorder',this)"><i class="ti ti-shopping-cart"></i>Data Order</button>
       <button class="nav-item" onclick="gotoPage('rekap',this)"><i class="ti ti-chart-bar"></i>Rekap & P&L</button>
-      <button class="nav-item" onclick="gotoPage('hpp',this)"><i class="ti ti-calculator"></i>HPP Produk</button>
     </div>
   </div>
 
-  <!-- GROUP: CHANNEL TOKO -->
-  <div class="nav-group" id="group-ch-toko">
-    <div class="nav-group-header" onclick="toggleNavGroup('group-ch-toko')">
-      <span class="nav-group-label">📡 Channel Toko</span>
+  <!-- DATABASE -->
+  <div class="nav-group" id="group-db">
+    <div class="nav-group-header" onclick="toggleNavGroup('group-db')">
+      <span class="nav-group-label">🗄 Database</span>
       <span class="nav-group-arrow">▾</span>
     </div>
     <div class="nav-group-body">
-      <div class="ch-sidebar-section" id="ch-toko-list"></div>
-      <div class="ch-sidebar-actions">
-        <button class="ch-mini-btn" onclick="openModalAdd('toko')">+ tambah</button>
-        <button class="ch-mini-btn" onclick="openModalEdit('toko')">✎ edit</button>
-      </div>
+      <button class="nav-item" onclick="gotoPage('produk',this)"><i class="ti ti-box"></i>Kelola Produk</button>
+      <button class="nav-item" onclick="gotoPage('channel',this)"><i class="ti ti-antenna"></i>Channel</button>
+      <button class="nav-item" onclick="gotoPage('beban-operasional',this)"><i class="ti ti-chart-pie"></i>Beban Operasional</button>
     </div>
   </div>
 
   <div class="sticky" id="sticky-note">restock MAYRA_MAUVE<br>minggu ini!!</div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
   <div class="topbar">
     <div>
@@ -116,49 +87,22 @@
     </div>
     <div class="date-pill" id="topbar-date">—</div>
   </div>
-
   <div class="content">
     <div id="page-dashboard" class="page active"></div>
-    <div id="page-produk" class="page"></div>
     <div id="page-stok" class="page"></div>
     <div id="page-restock" class="page"></div>
     <div id="page-kas" class="page"></div>
     <div id="page-jurnal-penjualan" class="page"></div>
-    <div id="page-beban-operasional" class="page"></div>
     <div id="page-price-list" class="page"></div>
     <div id="page-dataorder" class="page"></div>
     <div id="page-rekap" class="page"></div>
-    <div id="page-hpp" class="page"></div>
+    <div id="page-produk" class="page"></div>
+    <div id="page-channel" class="page"></div>
+    <div id="page-beban-operasional" class="page"></div>
   </div>
 </div>
 
-<!-- MODAL: TAMBAH CHANNEL -->
-<div class="modal-overlay" id="modal-add">
-  <div class="modal">
-    <div class="modal-title" id="modal-add-title">Tambah Channel</div>
-    <div class="form-group" style="margin-bottom:12px">
-      <label>Nama Channel</label>
-      <input type="text" id="modal-add-input" placeholder="mis: Zenoot / BL-CS / Toko B">
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="confirmAdd()">Simpan</button>
-      <button class="btn" onclick="closeModal('modal-add')">Batal</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: EDIT/HAPUS CHANNEL -->
-<div class="modal-overlay" id="modal-edit">
-  <div class="modal">
-    <div class="modal-title" id="modal-edit-title">Edit Channel</div>
-    <div id="modal-edit-list" style="margin-bottom:12px"></div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal('modal-edit')">Tutup</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: KONFIRMASI HAPUS -->
+<!-- MODAL KONFIRMASI HAPUS -->
 <div class="modal-overlay" id="modal-confirm">
   <div class="modal">
     <div class="modal-title">Konfirmasi Hapus</div>
@@ -170,25 +114,22 @@
   </div>
 </div>
 
-<!-- DATA & LOGIC -->
 <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.min.js"></script>
 <script src="rough-ui.js?v=1"></script>
 <script src="supabase.js?v=2"></script>
-<script src="channels.js?v=2"></script>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 <script src="dashboard.js?v=2"></script>
 <script src="produk.js?v=2"></script>
 <script src="stok.js?v=2"></script>
 <script src="restock.js?v=2"></script>
 <script src="kas.js?v=2"></script>
 <script src="jurnal-penjualan.js?v=1"></script>
-<script src="beban-operasional.js?v=1"></script>
 <script src="price-list.js?v=1"></script>
 <script src="dataorder.js?v=2"></script>
 <script src="rekap.js?v=2"></script>
-<script src="hpp.js?v=2"></script>
+<script src="channel-master.js?v=1"></script>
+<script src="beban-operasional.js?v=1"></script>
 <script>
-  // Register service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
