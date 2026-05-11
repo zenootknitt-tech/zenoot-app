@@ -47,7 +47,7 @@ function renderSidebarChannels(type) {
 // ─── CHANNEL SWITCHER BAR ────────────────────────────────────
 function renderSwitchers() {
   const targets = {
-    ops:  ['dashboard','stok','restock','kas'],
+    ops:  ['dashboard','produk','stok','restock','kas'],
     toko: ['dataorder','rekap','hpp']
   };
   ['ops','toko'].forEach(type => {

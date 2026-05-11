@@ -47,8 +47,35 @@ document.getElementById('page-stok').innerHTML = `
   <div id="ops-switcher-stok" class="ch-switcher"></div>
   <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
     <button class="btn btn-sm btn-primary" onclick="showTambahStok()"><i class="ti ti-plus"></i> Tambah SKU</button>
+    <button class="btn btn-sm" onclick="showPasteStok()"><i class="ti ti-clipboard"></i> Paste Massal</button>
     <button class="btn btn-sm" onclick="loadStok()"><i class="ti ti-refresh"></i> Refresh</button>
     <button class="btn btn-sm" onclick="exportStok()"><i class="ti ti-download"></i> Export CSV</button>
+  </div>
+
+  <!-- MODAL PASTE MASSAL STOK -->
+  <div class="modal-overlay" id="modal-paste-stok">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-title"><i class="ti ti-clipboard"></i> Paste Massal Stok</div>
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:10px;line-height:1.6">
+        Copy dari Excel lalu paste di bawah.<br>
+        Urutan kolom: <b>SKU Variasi → Qty (stok masuk)</b>
+      </div>
+      <textarea id="paste-area-stok"
+        style="width:100%;height:160px;font-family:var(--f);font-size:13px;padding:8px;border:2px solid var(--ink);background:var(--cream);resize:vertical;outline:none"
+        placeholder="Paste di sini..."></textarea>
+      <div id="paste-stok-preview" style="margin-top:10px;display:none">
+        <div style="font-size:12px;font-weight:700;color:var(--ink3);margin-bottom:6px" id="paste-stok-count"></div>
+        <div class="tbl-wrap" style="max-height:140px;overflow-y:auto">
+          <table class="tbl"><thead><tr><th>SKU Variasi</th><th>Stok Masuk</th></tr></thead>
+          <tbody id="paste-stok-tbody"></tbody></table>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-sm" onclick="parsePasteStok()"><i class="ti ti-eye"></i> Preview</button>
+        <button class="btn btn-primary btn-sm" id="btn-simpan-paste-stok" onclick="simpanPasteStok()" style="display:none"><i class="ti ti-check"></i> Simpan Semua</button>
+        <button class="btn btn-sm" onclick="closeModal('modal-paste-stok')">Batal</button>
+      </div>
+    </div>
   </div>
 
   <!-- FORM TAMBAH/EDIT SKU -->
@@ -164,6 +191,75 @@ async function exportStok() {
     });
     exportCSV('zenoot-stok.csv', headers, rows);
   } catch(err) { alert('Gagal export: ' + err.message); }
+}
+
+// ─── PASTE MASSAL STOK ────────────────────────────────────────
+function showPasteStok() {
+  document.getElementById('paste-area-stok').value = '';
+  document.getElementById('paste-stok-preview').style.display = 'none';
+  document.getElementById('btn-simpan-paste-stok').style.display = 'none';
+  document.getElementById('modal-paste-stok').classList.add('open');
+  setTimeout(() => document.getElementById('paste-area-stok').focus(), 100);
+}
+
+let _parsedStok = [];
+
+function parsePasteStok() {
+  const raw = document.getElementById('paste-area-stok').value.trim();
+  if (!raw) { alert('Paste data dulu!'); return; }
+
+  _parsedStok = [];
+  const lines = raw.split('\n');
+
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const cols = line.split('\t').map(c => c.trim());
+    if (cols.length < 2) continue;
+
+    const sku = cols[0] || '';
+    const qty = parseInt((cols[1]||'').replace(/[^0-9]/g,'')) || 0;
+    if (!sku) continue;
+    _parsedStok.push({ sku_variasi: sku, stok_masuk: qty, stok_keluar: 0 });
+  }
+
+  if (_parsedStok.length === 0) {
+    alert('Tidak ada data yang terbaca. Pastikan format: SKU Variasi (tab) Qty');
+    return;
+  }
+
+  document.getElementById('paste-stok-count').textContent =
+    `✓ ${_parsedStok.length} SKU siap diimport`;
+  document.getElementById('paste-stok-tbody').innerHTML = _parsedStok.map(r => `
+    <tr>
+      <td>${r.sku_variasi}</td>
+      <td><b>${r.stok_masuk}</b></td>
+    </tr>`).join('');
+  document.getElementById('paste-stok-preview').style.display = 'block';
+  document.getElementById('btn-simpan-paste-stok').style.display = 'inline-block';
+}
+
+async function simpanPasteStok() {
+  if (_parsedStok.length === 0) return;
+  const btn = document.getElementById('btn-simpan-paste-stok');
+  btn.textContent = 'Menyimpan...';
+  btn.disabled = true;
+  try {
+    let ok = 0;
+    for (const row of _parsedStok) {
+      await dbInsert('stok', row);
+      ok++;
+      btn.textContent = `Menyimpan ${ok}/${_parsedStok.length}...`;
+    }
+    closeModal('modal-paste-stok');
+    loadStok();
+    loadDashboard();
+    alert(`✓ ${ok} SKU berhasil disimpan!`);
+  } catch(err) {
+    alert('Gagal simpan: ' + err.message);
+  } finally {
+    btn.textContent = 'Simpan Semua';
+    btn.disabled = false;
+  }
 }
 
 loadStok();
