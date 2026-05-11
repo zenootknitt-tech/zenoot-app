@@ -1,5 +1,28 @@
 // ─── APP.JS — navigasi, channel, sidebar mobile ────────────
 
+// ─── COLLAPSIBLE NAV GROUPS ──────────────────────────────────
+function toggleNavGroup(id) {
+  const group = document.getElementById(id);
+  group.classList.toggle('collapsed');
+  // persist state
+  try {
+    const s = JSON.parse(localStorage.getItem('zenoot_nav')||'{}');
+    s[id] = group.classList.contains('collapsed');
+    localStorage.setItem('zenoot_nav', JSON.stringify(s));
+  } catch(e){}
+}
+
+function restoreNavGroups() {
+  try {
+    const s = JSON.parse(localStorage.getItem('zenoot_nav')||'{}');
+    Object.entries(s).forEach(([id, collapsed]) => {
+      const el = document.getElementById(id);
+      if (el && collapsed) el.classList.add('collapsed');
+    });
+  } catch(e){}
+}
+restoreNavGroups();
+
 // ─── DATE ───────────────────────────────────────────────────
 const days   = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
