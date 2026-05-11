@@ -112,6 +112,9 @@ document.getElementById('page-stok').innerHTML = `
   </div>
 `;
 
+// render sketchy UI untuk halaman stok setelah innerHTML siap
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-stok')); }, 80);
+
 function showTambahStok() {
   document.getElementById('stok-form-title').innerHTML = '<i class="ti ti-plus"></i> Tambah SKU Baru';
   document.getElementById('inp-id').value = '';
@@ -122,6 +125,7 @@ function showTambahStok() {
   document.getElementById('inp-keluar').value = '';
   document.getElementById('inp-hpp').value = '';
   document.getElementById('form-tambah-stok').style.display = 'block';
+  sketchForm('form-tambah-stok');
 }
 
 function cancelStokForm() {

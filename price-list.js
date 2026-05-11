@@ -58,6 +58,9 @@ document.getElementById('page-price-list').innerHTML = `
   </div>
 `;
 
+// render sketchy UI untuk halaman page-price-list setelah innerHTML siap
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-price-list')); }, 80);
+
 // ─── CACHE ───────────────────────────────────────────────────
 let _plProdukData  = [];
 let _plBebanToko   = { total_beban: 0, total_npm: 0 };

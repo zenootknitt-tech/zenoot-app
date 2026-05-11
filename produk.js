@@ -72,6 +72,9 @@ document.getElementById('page-produk').innerHTML = `
   </div>
 `;
 
+// render sketchy UI untuk halaman produk setelah innerHTML siap
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-produk')); }, 80);
+
 let _produkData = [];
 
 async function loadProduk() {
@@ -134,6 +137,7 @@ function showFormProduk() {
   document.getElementById('prd-boss').value = '';
   document.getElementById('form-produk').style.display = 'block';
   document.getElementById('form-produk').scrollIntoView({behavior:'smooth'});
+  sketchForm('form-produk');
 }
 
 function cancelFormProduk() {

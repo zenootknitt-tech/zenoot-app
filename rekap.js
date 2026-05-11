@@ -28,3 +28,6 @@ document.getElementById('page-rekap').innerHTML = `
     </table>
   </div>
 `;
+
+// render sketchy UI untuk halaman page-rekap setelah innerHTML siap
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-rekap')); }, 80);

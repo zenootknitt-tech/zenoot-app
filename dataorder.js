@@ -42,6 +42,9 @@ document.getElementById('page-dataorder').innerHTML = `
   </div>
 `;
 
+// render sketchy UI untuk halaman page-dataorder setelah innerHTML siap
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-dataorder')); }, 80);
+
 // Drag & drop
 const zone = document.getElementById('upload-zone');
 zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.background='var(--cream3)'; });

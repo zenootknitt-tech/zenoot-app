@@ -118,6 +118,9 @@ document.getElementById('page-channel').innerHTML = `
   </div>
 `;
 
+// render sketchy UI untuk halaman page-channel setelah innerHTML siap
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-channel')); }, 80);
+
 // ─── LOAD SEMUA ──────────────────────────────────────────────
 async function loadChannelMaster() {
   await Promise.all([
@@ -159,6 +162,7 @@ function showFormChannel(kat) {
   document.getElementById('ch-nama-' + kat).value = '';
   document.getElementById('ch-ket-' + kat).value  = '';
   document.getElementById('form-channel-' + kat).style.display = 'block';
+  sketchForm('form-channel-' + kat);
   document.getElementById('form-channel-' + kat).scrollIntoView({behavior:'smooth'});
 }
 
@@ -176,6 +180,7 @@ async function editChannel(id, kat) {
     document.getElementById('ch-nama-' + kat).value = r.nama       || '';
     document.getElementById('ch-ket-' + kat).value  = r.keterangan || '';
     document.getElementById('form-channel-' + kat).style.display = 'block';
+  sketchForm('form-channel-' + kat);
     document.getElementById('form-channel-' + kat).scrollIntoView({behavior:'smooth'});
   } catch(err) { alert('Gagal load: ' + err.message); }
 }

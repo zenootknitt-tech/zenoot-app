@@ -107,6 +107,9 @@ document.getElementById('page-beban-operasional').innerHTML = `
   </div>
 `;
 
+// render sketchy UI untuk halaman page-beban-operasional setelah innerHTML siap
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-beban-operasional')); }, 80);
+
 // ─── LOAD DATA ───────────────────────────────────────────────
 async function loadBebanOperasional() {
   await Promise.all([
@@ -164,6 +167,7 @@ function showFormBeban(tipe) {
   document.getElementById('bo-persen-' + tipe).value = '';
   document.getElementById('bo-npm-' + tipe).value   = '';
   document.getElementById('form-beban-' + tipe).style.display = 'block';
+  sketchForm('form-beban-' + tipe);
   document.getElementById('form-beban-' + tipe).scrollIntoView({behavior:'smooth'});
 }
 
@@ -182,6 +186,7 @@ async function editBeban(id, tipe) {
     document.getElementById('bo-persen-' + tipe).value = r.beban_persen || '';
     document.getElementById('bo-npm-' + tipe).value    = r.npm_persen   || '';
     document.getElementById('form-beban-' + tipe).style.display = 'block';
+  sketchForm('form-beban-' + tipe);
     document.getElementById('form-beban-' + tipe).scrollIntoView({behavior:'smooth'});
   } catch(err) { alert('Gagal load: ' + err.message); }
 }

@@ -29,6 +29,9 @@ document.getElementById('page-dashboard').innerHTML = `
   </div>
 `;
 
+// render sketchy UI untuk halaman page-dashboard setelah innerHTML siap
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-dashboard')); }, 80);
+
 function statusBadgeDash(sisa) {
   if (sisa <= 0)  return '<span class="badge badge-crit">Habis!</span>';
   if (sisa <= 3)  return '<span class="badge badge-crit">Kritis!</span>';

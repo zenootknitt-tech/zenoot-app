@@ -144,6 +144,9 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
   </div>
 `;
 
+// render sketchy UI untuk halaman jurnal penjualan setelah innerHTML siap
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-jurnal-penjualan')); }, 80);
+
 // ─── DATA & SORT CACHE ───────────────────────────────────────
 let _jpAllData    = [];
 let _jpChannelMap = {}; // id -> {nama, kategori}
@@ -345,6 +348,7 @@ function showTambahJP() {
   document.getElementById('jp-catatan').value  = '';
   document.getElementById('form-jp').style.display = 'block';
   document.getElementById('form-jp').scrollIntoView({behavior:'smooth'});
+  sketchForm('form-jp');
 }
 
 function cancelFormJP() {

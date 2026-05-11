@@ -40,3 +40,6 @@ document.getElementById('page-restock').innerHTML = `
     </table>
   </div>
 `;
+
+// render sketchy UI untuk halaman page-restock setelah innerHTML siap
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-restock')); }, 80);

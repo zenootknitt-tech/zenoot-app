@@ -89,6 +89,9 @@ document.getElementById('page-kas').innerHTML = `
   </div>
 `;
 
+// render sketchy UI untuk halaman kas setelah innerHTML siap
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-kas')); }, 80);
+
 function showTambahJurnal() {
   document.getElementById('kas-form-title').innerHTML = '<i class="ti ti-plus"></i> Tambah Entri Jurnal';
   document.getElementById('jrn-id').value = '';
@@ -97,6 +100,7 @@ function showTambahJurnal() {
   document.getElementById('jrn-debit').value = '';
   document.getElementById('jrn-kredit').value = '';
   document.getElementById('form-tambah-jurnal').style.display = 'block';
+  sketchForm('form-tambah-jurnal');
 }
 
 function cancelJurnalForm() {

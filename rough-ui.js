@@ -181,6 +181,26 @@
     });
   }
 
+  // ── rerenderUI: sketch ulang semua elemen dalam kontainer (atau seluruh halaman)
+  // Dipanggil oleh modul-modul setelah mereka inject HTML secara dinamis
+  function rerenderUI(root) {
+    if (typeof rough === 'undefined') return;
+    const scope = root || document;
+    scope.querySelectorAll('.btn:not(.ch-mini-btn)').forEach(el => {
+      migrateBtn(el);
+      sketchBtn(el);
+    });
+    scope.querySelectorAll('.card, .metric').forEach(el => sketchCard(el));
+    scope.querySelectorAll('.nav-item').forEach(el => {
+      migrateNavItem(el);
+      sketchNavItem(el);
+    });
+    const dp = document.getElementById('topbar-date');
+    if (dp) sketchPill(dp);
+  }
+
+  window.rerenderUI = rerenderUI;
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

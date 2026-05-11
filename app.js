@@ -96,3 +96,13 @@ function exportCSV(filename, headers, rows) {
 }
 
 // ─── INIT ────────────────────────────────────────────────────
+
+// ─── HELPER: sketch tombol baru yang muncul dinamis (form, modal) ─
+function sketchForm(containerId) {
+  setTimeout(() => {
+    if (typeof rerenderUI === 'function') {
+      const el = document.getElementById(containerId);
+      if (el) rerenderUI(el);
+    }
+  }, 30);
+}
