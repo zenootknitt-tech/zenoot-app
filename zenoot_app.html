@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zenoot — Buku Bisnis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1c1a14;--ink2:#3d3a2e;--ink3:#7a7260;--ink4:#a89f8a;
+  --cream:#f5f0e8;--cream2:#ede7d9;--cream3:#e4dccb;--cream4:#d9d0bc;
+  --paper-line:rgba(160,145,110,0.18);
+  --f:'Caveat',cursive;
+  --warn:#c8a000;--danger:#b03020;--ok:#2a6e3a;
+}
+body{display:flex;height:100vh;background:var(--cream);font-family:var(--f);color:var(--ink);overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{
+  width:188px;min-width:188px;background:var(--cream2);
+  border-right:3px solid var(--ink);display:flex;flex-direction:column;
+  position:relative;overflow-y:auto;overflow-x:hidden;
+}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--ink4);border-radius:2px}
+.spiral{
+  position:fixed;left:178px;top:0;height:100vh;
+  display:flex;flex-direction:column;justify-content:space-evenly;
+  align-items:center;z-index:100;pointer-events:none;width:16px;
+}
+.hole{width:15px;height:15px;border-radius:50%;background:var(--cream);border:2px solid var(--ink);flex-shrink:0}
+
+.logo-block{padding:14px 14px 10px;border-bottom:2.5px solid var(--ink);flex-shrink:0}
+.logo-name{font-size:28px;font-weight:700;line-height:1}
+.logo-tag{font-size:12px;color:var(--ink3);transform:rotate(-1.5deg);display:block;margin-top:3px}
+
+.nav-label{
+  padding:10px 12px 2px;font-size:10px;font-weight:700;
+  color:var(--ink4);text-transform:uppercase;letter-spacing:.08em;
+}
+.nav-item{
+  display:flex;align-items:center;gap:7px;padding:7px 12px;
+  margin:1px 5px;font-size:15px;color:var(--ink2);cursor:pointer;
+  border:none;background:none;font-family:var(--f);width:calc(100% - 10px);
+  text-align:left;border-radius:3px;position:relative;
+}
+.nav-item:hover{background:rgba(0,0,0,0.04);color:var(--ink)}
+.nav-item.active{background:var(--cream3);color:var(--ink);font-weight:700}
+.nav-item.active::before{content:'→';position:absolute;left:0px;font-size:12px;color:var(--ink3)}
+.nav-item i{font-size:15px;flex-shrink:0}
+
+/* CHANNEL LIST in sidebar */
+.ch-sidebar-section{padding:4px 8px 8px}
+.ch-sidebar-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 8px;margin:2px 0;border:1.5px solid transparent;
+  border-radius:3px;font-size:13px;cursor:pointer;color:var(--ink2);
+}
+.ch-sidebar-item:hover{background:var(--cream3);border-color:var(--ink4)}
+.ch-sidebar-item.active-ch{background:var(--cream3);border-color:var(--ink);font-weight:700;color:var(--ink)}
+.ch-sidebar-item .ch-dot{width:7px;height:7px;border-radius:50%;background:var(--ink3);flex-shrink:0}
+.ch-sidebar-item .ch-dot.active{background:var(--ok)}
+.ch-sidebar-actions{display:flex;gap:4px;margin-top:4px}
+.ch-mini-btn{
+  flex:1;padding:4px;text-align:center;font-size:11px;font-family:var(--f);
+  border:1.5px dashed var(--ink4);background:none;color:var(--ink3);cursor:pointer;border-radius:2px;
+}
+.ch-mini-btn:hover{border-color:var(--ink);color:var(--ink)}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* TOPBAR */
+.topbar{
+  background:var(--cream2);border-bottom:2.5px solid var(--ink);
+  padding:10px 18px;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;position:relative;
+}
+.topbar::before{content:'';position:absolute;left:50px;top:0;bottom:0;width:1.5px;background:rgba(200,80,80,0.25)}
+.page-title{font-size:22px;font-weight:700;padding-left:8px}
+.page-sub{font-size:12px;color:var(--ink3);padding-left:8px}
+.date-pill{font-size:12px;padding:4px 12px;border:2px solid var(--ink);background:var(--cream);transform:rotate(-.8deg);box-shadow:2px 2px 0 var(--ink4)}
+
+/* CONTENT */
+.content{
+  flex:1;overflow-y:auto;padding:16px;
+  background-image:repeating-linear-gradient(to bottom,transparent,transparent 27px,var(--paper-line) 27px,var(--paper-line) 28px);
+  background-attachment:local;
+}
+.content::-webkit-scrollbar{width:5px}
+.content::-webkit-scrollbar-thumb{background:var(--ink4);border-radius:3px}
+
+/* CHANNEL SWITCHER BAR (inside content) */
+.ch-switcher{
+  display:flex;align-items:center;gap:6px;margin-bottom:14px;
+  padding:8px 12px;border:2px solid var(--ink);background:var(--cream2);
+  box-shadow:3px 3px 0 var(--ink4);position:relative;
+}
+.ch-switcher-label{font-size:11px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:4px}
+.ch-btn{
+  padding:4px 12px;border:2px solid var(--ink);background:var(--cream);
+  font-family:var(--f);font-size:13px;cursor:pointer;color:var(--ink2);
+  transform:rotate(-.3deg);transition:all .1s;
+}
+.ch-btn:hover{background:var(--cream3)}
+.ch-btn.active-ch-btn{background:var(--ink);color:var(--cream);font-weight:700;transform:rotate(.2deg)}
+
+/* ALERT */
+.alert{
+  border:2px solid var(--ink);padding:8px 12px;font-size:14px;
+  margin-bottom:12px;background:var(--cream3);display:flex;align-items:center;
+  gap:8px;font-weight:600;transform:rotate(-.2deg);box-shadow:3px 3px 0 var(--ink4);
+}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.metric{
+  background:var(--cream);border:2px solid var(--ink);padding:11px 12px;
+  position:relative;box-shadow:3px 3px 0 var(--ink);
+}
+.metric:nth-child(odd){transform:rotate(-.3deg)}
+.metric:nth-child(even){transform:rotate(.3deg)}
+.m-label{font-size:10px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.m-value{font-size:21px;font-weight:700;line-height:1.1;margin-top:3px}
+.m-delta{font-size:11px;color:var(--ink3);margin-top:2px}
+
+/* GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.grid1{margin-bottom:12px}
+
+/* CARD */
+.card{
+  background:var(--cream);border:2px solid var(--ink);padding:13px;
+  position:relative;box-shadow:4px 4px 0 var(--ink);
+}
+.card-title{
+  font-size:16px;font-weight:700;margin-bottom:10px;padding-bottom:7px;
+  border-bottom:2px dashed var(--ink3);display:flex;align-items:center;gap:6px;
+}
+.card-lined{
+  background-image:repeating-linear-gradient(to bottom,transparent,transparent 26px,var(--paper-line) 26px,var(--paper-line) 27px);
+}
+
+/* BAR */
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px}
+.bar-label{width:100px;color:var(--ink2);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:13px;border:2px solid var(--ink);background:var(--cream2)}
+.bar-fill{height:100%;background:var(--ink);position:relative}
+.bar-fill::after{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(-50deg,transparent,transparent 3px,rgba(255,255,255,0.2) 3px,rgba(255,255,255,0.2) 5px)}
+.bar-pct{width:30px;text-align:right;font-weight:700;font-size:12px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:5px 7px;font-size:10px;font-weight:700;color:var(--ink3);border-bottom:2px solid var(--ink);text-transform:uppercase;letter-spacing:.04em}
+.tbl td{padding:6px 7px;border-bottom:1.5px dashed var(--ink4)}
+.tbl tr:last-child td{border:none}
+.tbl tr:hover td{background:var(--cream2)}
+
+/* BADGE */
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border:2px solid var(--ink);background:var(--cream2)}
+.badge-ok{background:var(--cream2)}
+.badge-warn{background:var(--cream3);border-style:dashed}
+.badge-crit{background:var(--cream4);border-style:double;border-width:3px}
+
+/* BUTTON */
+.btn{
+  font-family:var(--f);font-size:14px;font-weight:700;padding:7px 16px;
+  border:2.5px solid var(--ink);background:var(--cream);cursor:pointer;color:var(--ink);
+  box-shadow:3px 3px 0 var(--ink);transition:all .1s;transform:rotate(-.3deg);
+}
+.btn:hover{box-shadow:1px 1px 0 var(--ink);transform:translate(2px,2px) rotate(-.3deg)}
+.btn:active{box-shadow:none;transform:translate(3px,3px) rotate(-.3deg)}
+.btn-primary{background:var(--ink);color:var(--cream)}
+.btn-sm{font-size:12px;padding:4px 10px;box-shadow:2px 2px 0 var(--ink)}
+
+/* UPLOAD ZONE */
+.upload-zone{
+  border:2.5px dashed var(--ink);padding:24px;text-align:center;
+  font-size:14px;color:var(--ink3);cursor:pointer;background:var(--cream2);
+  margin-bottom:12px;transition:background .15s;
+}
+.upload-zone:hover{background:var(--cream3);color:var(--ink)}
+.upload-zone i{font-size:28px;display:block;margin-bottom:6px}
+
+/* FORM */
+.form-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:10px;flex-wrap:wrap}
+.form-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px}
+.form-group label{font-size:12px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.form-group input,.form-group select,.form-group textarea{
+  font-family:var(--f);font-size:14px;padding:6px 10px;
+  border:2px solid var(--ink);background:var(--cream);color:var(--ink);outline:none;
+}
+.form-group input:focus,.form-group select:focus{background:var(--cream2)}
+
+/* MODAL */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(28,26,20,.55);
+  z-index:200;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--cream);border:3px solid var(--ink);padding:20px;
+  width:340px;box-shadow:6px 6px 0 var(--ink);position:relative;
+}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px dashed var(--ink3)}
+.modal-actions{display:flex;gap:8px;margin-top:14px}
+
+/* STICKY NOTE */
+.sticky{
+  background:#f7e97e;border:1.5px solid #c8b832;padding:8px 10px;
+  font-size:11px;color:#5a4f10;transform:rotate(1.5deg);
+  box-shadow:2px 3px 6px rgba(0,0,0,0.12);line-height:1.4;margin:8px 10px 4px;
+}
+.sticky::before{content:'📌';display:block;font-size:13px;margin-bottom:2px}
+
+/* DOODLE */
+.doodle{position:absolute;color:var(--ink4);font-size:11px;font-family:var(--f)}
+
+/* PAGE VISIBILITY */
+.page{display:none}
+.page.active{display:block}
+
+/* REKAP TABLE */
+.rekap-row-head{font-weight:700;background:var(--cream3)}
+.rekap-row-sub{padding-left:14px!important;color:var(--ink3);font-size:12px}
+.rasio-pill{
+  display:inline-block;font-size:11px;padding:1px 6px;
+  border:1.5px solid var(--ink);background:var(--cream2);
+}
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  .sidebar{width:0;min-width:0;overflow:hidden}
+  .metrics{grid-template-columns:1fr 1fr}
+  .grid2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- SPIRAL BINDING -->
+<div class="spiral" aria-hidden="true">
+  <div class="hole"></div><div class="hole"></div><div class="hole"></div>
+  <div class="hole"></div><div class="hole"></div><div class="hole"></div>
+  <div class="hole"></div><div class="hole"></div><div class="hole"></div>
+  <div class="hole"></div><div class="hole"></div><div class="hole"></div>
+  <div class="hole"></div><div class="hole"></div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo-block">
+    <div class="logo-name">zenoot</div>
+    <span class="logo-tag">~ buku bisnis ku ~</span>
+  </div>
+
+  <!-- OPERASIONAL NAV -->
+  <div class="nav-label">Operasional</div>
+  <button class="nav-item active" onclick="gotoPage('dashboard',this)"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</button>
+  <button class="nav-item" onclick="gotoPage('stok',this)"><i class="ti ti-package" aria-hidden="true"></i>Stok Produk</button>
+  <button class="nav-item" onclick="gotoPage('restock',this)"><i class="ti ti-refresh" aria-hidden="true"></i>Re-Stock</button>
+  <button class="nav-item" onclick="gotoPage('kas',this)"><i class="ti ti-cash" aria-hidden="true"></i>Kas & Jurnal</button>
+
+  <!-- CHANNEL OPERASIONAL -->
+  <div class="nav-label" style="margin-top:4px">Channel Operasional</div>
+  <div class="ch-sidebar-section" id="ch-ops-list"></div>
+  <div class="ch-sidebar-actions" style="padding:0 8px 8px">
+    <button class="ch-mini-btn" onclick="openModalAdd('ops')">+ tambah</button>
+    <button class="ch-mini-btn" onclick="openModalEdit('ops')">✎ edit</button>
+  </div>
+
+  <div style="border-top:2px solid var(--ink4);margin:4px 0"></div>
+
+  <!-- TOKO NAV -->
+  <div class="nav-label">Toko</div>
+  <button class="nav-item" onclick="gotoPage('dataorder',this)"><i class="ti ti-shopping-cart" aria-hidden="true"></i>Data Order</button>
+  <button class="nav-item" onclick="gotoPage('rekap',this)"><i class="ti ti-chart-bar" aria-hidden="true"></i>Rekap & P&amp;L</button>
+  <button class="nav-item" onclick="gotoPage('hpp',this)"><i class="ti ti-calculator" aria-hidden="true"></i>HPP Produk</button>
+
+  <!-- CHANNEL TOKO -->
+  <div class="nav-label" style="margin-top:4px">Channel Toko</div>
+  <div class="ch-sidebar-section" id="ch-toko-list"></div>
+  <div class="ch-sidebar-actions" style="padding:0 8px 8px">
+    <button class="ch-mini-btn" onclick="openModalAdd('toko')">+ tambah</button>
+    <button class="ch-mini-btn" onclick="openModalEdit('toko')">✎ edit</button>
+  </div>
+
+  <div class="sticky">restock MAYRA_MAUVE<br>minggu ini!!</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="topbar-title">Dashboard</div>
+      <div class="page-sub" id="topbar-sub">overview performa hari ini</div>
+    </div>
+    <div class="date-pill" id="topbar-date">—</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <div id="page-dashboard" class="page active">
+      <div class="alert"><i class="ti ti-alert-triangle" aria-hidden="true"></i>2 SKU kritis! MAYRA_MAUVE &amp; LUNEA_MARUN — restock segera!</div>
+      <div id="ops-switcher-dashboard" class="ch-switcher"></div>
+      <div class="metrics">
+        <div class="metric"><div class="m-label">Total Order</div><div class="m-value">264</div><div class="m-delta">↑ pesanan selesai</div><div class="doodle" style="bottom:6px;right:8px">🛒</div></div>
+        <div class="metric"><div class="m-label">Penghasilan</div><div class="m-value">Rp 8,9jt</div><div class="m-delta">setelah potongan</div><div class="doodle" style="bottom:6px;right:8px">💰</div></div>
+        <div class="metric"><div class="m-label">ROAS</div><div class="m-value">8.38×</div><div class="m-delta">target 6.5×</div><div class="doodle" style="bottom:6px;right:8px">📈</div></div>
+        <div class="metric"><div class="m-label">SKU Kritis</div><div class="m-value">2 sku!</div><div class="m-delta">perlu restock</div><div class="doodle" style="bottom:6px;right:8px">⚠️</div></div>
+      </div>
+      <div class="grid2">
+        <div class="card card-lined">
+          <div class="card-title"><i class="ti ti-chart-bar" aria-hidden="true"></i>Top SKU Terjual</div>
+          <div class="bar-row"><div class="bar-label">Hitam-L</div><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div><div class="bar-pct">88</div></div>
+          <div class="bar-row"><div class="bar-label">Marun-XL</div><div class="bar-track"><div class="bar-fill" style="width:72%"></div></div><div class="bar-pct">72</div></div>
+          <div class="bar-row"><div class="bar-label">Hitam-M</div><div class="bar-track"><div class="bar-fill" style="width:65%"></div></div><div class="bar-pct">65</div></div>
+          <div class="bar-row"><div class="bar-label">Nevi-L</div><div class="bar-track"><div class="bar-fill" style="width:54%"></div></div><div class="bar-pct">54</div></div>
+          <div class="bar-row"><div class="bar-label">Abu Tua-M</div><div class="bar-track"><div class="bar-fill" style="width:41%"></div></div><div class="bar-pct">41</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-package" aria-hidden="true"></i>Status Stok</div>
+          <table class="tbl">
+            <thead><tr><th>SKU</th><th>Boss</th><th>Sisa</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>MAYRA_MAUVE</td><td>H Solah</td><td><b>3</b></td><td><span class="badge badge-crit">Kritis!</span></td></tr>
+              <tr><td>LUNEA_MARUN</td><td>H Solah</td><td><b>1</b></td><td><span class="badge badge-crit">Kritis!</span></td></tr>
+              <tr><td>LAVINA_KREAM</td><td>G.CS</td><td><b>8</b></td><td><span class="badge badge-warn">Ati2</span></td></tr>
+              <tr><td>TN_HITAM-L</td><td>Alan</td><td><b>14</b></td><td><span class="badge badge-ok">Aman</span></td></tr>
+              <tr><td>MAYRA_MARUN</td><td>H Solah</td><td><b>10</b></td><td><span class="badge badge-ok">Aman</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STOK PRODUK ==================== -->
+    <div id="page-stok" class="page">
+      <div id="ops-switcher-stok" class="ch-switcher"></div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-sm" onclick="alert('Fitur tambah stok — hubungkan ke Supabase')"><i class="ti ti-plus" aria-hidden="true"></i> Tambah SKU</button>
+        <button class="btn btn-sm"><i class="ti ti-filter" aria-hidden="true"></i> Filter Boss</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-package" aria-hidden="true"></i>Semua SKU</div>
+        <table class="tbl">
+          <thead><tr><th>SKU Variasi</th><th>Katalog</th><th>Boss</th><th>Stok Masuk</th><th>Stok Keluar</th><th>Sisa</th><th>HPP</th><th>Nilai Stok</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>MAYRA_MAUVE</td><td>MAYRA</td><td>H Solah</td><td>12</td><td>9</td><td><b>3</b></td><td>Rp—</td><td>—</td><td><span class="badge badge-crit">Kritis!</span></td></tr>
+            <tr><td>MAYRA_MARUN</td><td>MAYRA</td><td>H Solah</td><td>12</td><td>2</td><td><b>10</b></td><td>Rp—</td><td>—</td><td><span class="badge badge-ok">Aman</span></td></tr>
+            <tr><td>MAYRA_KHAKI</td><td>MAYRA</td><td>H Solah</td><td>12</td><td>6</td><td><b>6</b></td><td>Rp—</td><td>—</td><td><span class="badge badge-warn">Ati2</span></td></tr>
+            <tr><td>LUNEA_MARUN</td><td>LUNEA</td><td>H Solah</td><td>12</td><td>11</td><td><b>1</b></td><td>Rp—</td><td>—</td><td><span class="badge badge-crit">Kritis!</span></td></tr>
+            <tr><td>LAVINA_KREAM</td><td>LAVINA</td><td>G.CS</td><td>12</td><td>4</td><td><b>8</b></td><td>Rp—</td><td>—</td><td><span class="badge badge-warn">Ati2</span></td></tr>
+            <tr><td>TN_HITAM-L</td><td>TURTLENECK</td><td>Alan</td><td>30</td><td>16</td><td><b>14</b></td><td>Rp41.000</td><td>Rp574.000</td><td><span class="badge badge-ok">Aman</span></td></tr>
+            <tr><td>TN_HITAM-M</td><td>TURTLENECK</td><td>Alan</td><td>30</td><td>18</td><td><b>12</b></td><td>Rp41.000</td><td>Rp492.000</td><td><span class="badge badge-ok">Aman</span></td></tr>
+            <tr><td>YUNA_SOFT-YELLOW</td><td>YUNA POLO</td><td>H Solah</td><td>12</td><td>12</td><td><b>0</b></td><td>Rp—</td><td>—</td><td><span class="badge badge-crit">Habis!</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== RESTOCK ==================== -->
+    <div id="page-restock" class="page">
+      <div id="ops-switcher-restock" class="ch-switcher"></div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-user" aria-hidden="true"></i>H Solah — Restock</div>
+          <table class="tbl">
+            <thead><tr><th>Katalog</th><th>Variant</th><th>Qty</th><th>Nilai</th></tr></thead>
+            <tbody>
+              <tr><td>MAYRA</td><td>MAYRA_MAUVE</td><td>12</td><td>—</td></tr>
+              <tr><td>MAYRA</td><td>MAYRA_MARUN</td><td>12</td><td>—</td></tr>
+              <tr><td>MAYRA</td><td>MAYRA_KHAKI</td><td>12</td><td>—</td></tr>
+              <tr><td>LUNEA</td><td>LUNEA_MARUN</td><td>12</td><td>—</td></tr>
+              <tr><td>YUNA POLO</td><td>YUNA_SOFT-YELLOW</td><td>12</td><td>—</td></tr>
+              <tr><td>YUNA POLO</td><td>YUNA_HITAM</td><td>12</td><td>—</td></tr>
+              <tr style="font-weight:700"><td colspan="2">Total</td><td>72</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-user" aria-hidden="true"></i>G.CS — Restock</div>
+          <table class="tbl">
+            <thead><tr><th>Katalog</th><th>Variant</th><th>Qty</th><th>Nilai</th></tr></thead>
+            <tbody>
+              <tr><td>LAVINA</td><td>LAVINA_KREAM</td><td>6</td><td>—</td></tr>
+              <tr><td>LAVINA</td><td>LAVINA_KHAKI</td><td>6</td><td>—</td></tr>
+              <tr><td>PITA BLUS</td><td>PITA_BLUS-MARUN</td><td>6</td><td>—</td></tr>
+              <tr style="font-weight:700"><td colspan="2">Total</td><td>18</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-user" aria-hidden="true"></i>Alan — Restock</div>
+        <table class="tbl">
+          <thead><tr><th>Katalog</th><th>Variant</th><th>Qty Order</th><th>Nilai</th></tr></thead>
+          <tbody>
+            <tr><td>TURTLENECK</td><td>TN_HITAM-M</td><td colspan="2" style="color:var(--ink3);font-style:italic">data kosong — isi di Supabase</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== KAS & JURNAL ==================== -->
+    <div id="page-kas" class="page">
+      <div id="ops-switcher-kas" class="ch-switcher"></div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" onclick="alert('Tambah jurnal — hubungkan ke Supabase')"><i class="ti ti-plus" aria-hidden="true"></i> Tambah Entri</button>
+      </div>
+      <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
+        <div class="metric"><div class="m-label">Kas Masuk</div><div class="m-value">Rp 8,9jt</div><div class="m-delta">Mar 2026</div></div>
+        <div class="metric"><div class="m-label">Kas Keluar</div><div class="m-value">Rp 10,1jt</div><div class="m-delta">operasional + iklan</div></div>
+        <div class="metric"><div class="m-label">Saldo</div><div class="m-value" style="color:var(--danger)">-1,2jt</div><div class="m-delta">rugi bulan ini</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-list" aria-hidden="true"></i>Jurnal Harian</div>
+        <div class="form-row" style="margin-bottom:12px">
+          <div class="form-group"><label>Tanggal</label><input type="date"></div>
+          <div class="form-group"><label>Keterangan</label><input type="text" placeholder="mis: iklan shopee"></div>
+          <div class="form-group"><label>Debit (masuk)</label><input type="number" placeholder="0"></div>
+          <div class="form-group"><label>Kredit (keluar)</label><input type="number" placeholder="0"></div>
+          <div class="form-group" style="flex:0"><label>&nbsp;</label><button class="btn btn-primary btn-sm">Simpan</button></div>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Debit</th><th>Kredit</th><th>Saldo</th></tr></thead>
+          <tbody>
+            <tr><td>10/05/26</td><td>Penghasilan Shopee Mar</td><td>Rp8.908.588</td><td>—</td><td>+8,9jt</td></tr>
+            <tr><td>10/05/26</td><td>Operasional</td><td>—</td><td>Rp4.000.000</td><td>+4,9jt</td></tr>
+            <tr><td>10/05/26</td><td>Iklan Shopee</td><td>—</td><td>Rp1.390.424</td><td>+3,5jt</td></tr>
+            <tr><td>10/05/26</td><td>HPP (116 pcs)</td><td>—</td><td>Rp4.756.000</td><td>-1,2jt</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== DATA ORDER ==================== -->
+    <div id="page-dataorder" class="page">
+      <div id="toko-switcher-dataorder" class="ch-switcher"></div>
+      <div class="upload-zone" onclick="alert('Upload file Shopee .xlsx/.csv — akan diproses otomatis')">
+        <i class="ti ti-upload" aria-hidden="true"></i>
+        Upload file Shopee (.xlsx / .csv)<br>
+        <span style="font-size:12px">Drag & drop atau klik untuk pilih file</span>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-shopping-cart" aria-hidden="true"></i>Data Order — sample 5 baris</div>
+        <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>No. Pesanan</th><th>SKU</th><th>Variasi</th><th>Qty</th><th>Harga Setelah Diskon</th><th>Total Bayar</th><th>Kota</th><th>Waktu Selesai</th></tr></thead>
+          <tbody>
+            <tr><td>260202M5Q4T98H</td><td>Turtleneck</td><td>Hitam,XL</td><td>1</td><td>Rp109.094</td><td>Rp83.820</td><td>Kota Bandung</td><td>Feb 2026</td></tr>
+            <tr><td>260202MXAFXBY6</td><td>Turtleneck</td><td>Maroon,L</td><td>1</td><td>Rp107.361</td><td>Rp80.063</td><td>Kab Sumedang</td><td>Feb 2026</td></tr>
+            <tr><td>260202KDWERC9D</td><td>Turtleneck</td><td>Nevi,S</td><td>1</td><td>Rp107.361</td><td>Rp88.826</td><td>Kab Sukoharjo</td><td>Feb 2026</td></tr>
+            <tr><td>260203Q7CS5GK1</td><td>Turtleneck</td><td>Maroon,XL</td><td>2</td><td>Rp103.861</td><td>Rp174.513</td><td>Kota Malang</td><td>Feb 2026</td></tr>
+            <tr><td>260204SD2M39R7</td><td>Turtleneck</td><td>Putih,M</td><td>1</td><td>Rp119.000</td><td>Rp111.900</td><td>Kota Bandung</td><td>Feb 2026</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== REKAP & P&L ==================== -->
+    <div id="page-rekap" class="page">
+      <div id="toko-switcher-rekap" class="ch-switcher"></div>
+      <div class="metrics">
+        <div class="metric"><div class="m-label">AOV Aktual</div><div class="m-value">Rp86rb</div><div class="m-delta">per order</div></div>
+        <div class="metric"><div class="m-label">Basket Size</div><div class="m-value">1.13×</div><div class="m-delta">pcs per order</div></div>
+        <div class="metric"><div class="m-label">ROAS Aktual</div><div class="m-value">8.38×</div><div class="m-delta">target 6.5×</div></div>
+        <div class="metric"><div class="m-label">Rasio Margin</div><div class="m-value">59.2%</div><div class="m-delta">margin kotor</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-chart-bar" aria-hidden="true"></i>Rekap Bulanan P&amp;L</div>
+        <table class="tbl">
+          <thead><tr><th>Item</th><th>Februari</th><th>Rasio Feb</th><th>Maret</th><th>Rasio Mar</th></tr></thead>
+          <tbody>
+            <tr class="rekap-row-head"><td>Total Pendapatan</td><td>Rp5.423.367</td><td>—</td><td>Rp11.654.672</td><td>—</td></tr>
+            <tr class="rekap-row-head"><td>Total Penghasilan</td><td>Rp4.173.024</td><td>—</td><td>Rp8.908.588</td><td>—</td></tr>
+            <tr class="rekap-row-head"><td>HPP</td><td>Rp2.120.000</td><td>—</td><td>Rp4.756.000</td><td>—</td></tr>
+            <tr><td>Operasional</td><td>Rp3.500.000</td><td><span class="rasio-pill">64.5%</span></td><td>Rp4.000.000</td><td><span class="rasio-pill">34.3%</span></td></tr>
+            <tr><td>Iklan</td><td>Rp1.110.000</td><td><span class="rasio-pill">20.5%</span></td><td>Rp1.390.424</td><td><span class="rasio-pill">11.9%</span></td></tr>
+            <tr><td>Rasio Admin &amp; Layanan</td><td>-Rp1.250.343</td><td><span class="rasio-pill">23%</span></td><td>-Rp2.746.084</td><td><span class="rasio-pill">-24%</span></td></tr>
+            <tr class="rekap-row-sub"><td>↳ Biaya Komisi AMS</td><td>-Rp181.051</td><td>3.3%</td><td>-Rp148.969</td><td>-1%</td></tr>
+            <tr class="rekap-row-sub"><td>↳ Biaya Administrasi</td><td>-Rp447.430</td><td>8.3%</td><td>-Rp961.505</td><td>-8%</td></tr>
+            <tr class="rekap-row-sub"><td>↳ Biaya Layanan</td><td>-Rp528.658</td><td>9.8%</td><td>-Rp1.325.325</td><td>-11%</td></tr>
+            <tr class="rekap-row-sub"><td>↳ Biaya Proses Pesanan</td><td>-Rp58.750</td><td>1.1%</td><td>-Rp128.750</td><td>-1%</td></tr>
+            <tr class="rekap-row-sub"><td>↳ Biaya Kampanye</td><td>-Rp34.454</td><td>0.6%</td><td>-Rp181.535</td><td>-2%</td></tr>
+            <tr class="rekap-row-sub"><td>↳ Biaya Isi Saldo Otomatis</td><td>—</td><td>—</td><td>-Rp1.112.927</td><td>-10%</td></tr>
+            <tr class="rekap-row-head" style="border-top:2px solid var(--ink)"><td>LABA / RUGI</td><td style="color:var(--danger)">-Rp2.556.976</td><td><span class="rasio-pill" style="border-color:var(--danger);color:var(--danger)">-47%</span></td><td style="color:var(--danger)">-Rp1.237.836</td><td><span class="rasio-pill" style="border-color:var(--danger);color:var(--danger)">-10.6%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== HPP PRODUK ==================== -->
+    <div id="page-hpp" class="page">
+      <div id="toko-switcher-hpp" class="ch-switcher"></div>
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <button class="btn btn-sm btn-primary"><i class="ti ti-plus" aria-hidden="true"></i> Tambah Produk</button>
+        <button class="btn btn-sm"><i class="ti ti-download" aria-hidden="true"></i> Export</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-calculator" aria-hidden="true"></i>Daftar HPP Produk</div>
+        <table class="tbl">
+          <thead><tr><th>SKU Induk</th><th>Nomor Referensi SKU</th><th>Nama Variasi</th><th>HPP</th></tr></thead>
+          <tbody>
+            <tr><td>Turtleneck</td><td>Turtleneck_HITAM-XL</td><td>Hitam,XL</td><td>Rp41.000</td></tr>
+            <tr><td>Turtleneck</td><td>Turtleneck_MARUN-L</td><td>Maroon,L</td><td>Rp41.000</td></tr>
+            <tr><td>Turtleneck</td><td>Turtleneck_NEVI-S</td><td>Nevi,S</td><td>Rp41.000</td></tr>
+            <tr><td>Turtleneck</td><td>Turtleneck_HITAM-L</td><td>Hitam,L</td><td>Rp41.000</td></tr>
+            <tr><td>Turtleneck</td><td>Turtleneck_PUTIH-M</td><td>Putih,M</td><td>Rp41.000</td></tr>
+            <tr><td>Turtleneck</td><td>Turtleneck_Abu muda-XL</td><td>Abu Muda Misty,XL</td><td>Rp41.000</td></tr>
+            <tr><td>TURTLENECK</td><td>Turtleneck_Hitam</td><td>Hitam,All Size</td><td>Rp41.000</td></tr>
+            <tr><td>TURTLENECK</td><td>Turtleneck_Nevi</td><td>Nevy,All Size</td><td>Rp41.000</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+</div><!-- end main -->
+
+<!-- MODAL: TAMBAH CHANNEL -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-title" id="modal-add-title">Tambah Channel</div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Nama Channel</label>
+      <input type="text" id="modal-add-input" placeholder="mis: Zenoot / BL-CS / Toko B">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="confirmAdd()">Simpan</button>
+      <button class="btn" onclick="closeModal('modal-add')">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDIT/HAPUS CHANNEL -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-title" id="modal-edit-title">Edit Channel</div>
+    <div id="modal-edit-list" style="margin-bottom:12px"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-edit')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────
+const state = {
+  ops: {
+    channels: ['Zenoot','BL-CS'],
+    active: 'Zenoot'
+  },
+  toko: {
+    channels: ['Zenoot','Toko B'],
+    active: 'Zenoot'
+  },
+  currentPage: 'dashboard',
+  modalTarget: null
+};
+
+const pageMap = {
+  dashboard: { title:'Dashboard', sub:'overview performa hari ini', section:'ops' },
+  stok:      { title:'Stok Produk', sub:'monitoring stok semua SKU', section:'ops' },
+  restock:   { title:'Re-Stock', sub:'daftar reorder per boss', section:'ops' },
+  kas:       { title:'Kas & Jurnal', sub:'pencatatan arus kas harian', section:'ops' },
+  dataorder: { title:'Data Order', sub:'upload & lihat order Shopee', section:'toko' },
+  rekap:     { title:'Rekap & P&L', sub:'laporan keuangan per toko', section:'toko' },
+  hpp:       { title:'HPP Produk', sub:'harga pokok produksi per SKU', section:'toko' },
+};
+
+// ─── DATE ───────────────────────────────────────────────────
+const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const now = new Date();
+document.getElementById('topbar-date').textContent =
+  days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+
+// ─── NAV ────────────────────────────────────────────────────
+function gotoPage(page, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const info = pageMap[page];
+  document.getElementById('topbar-title').textContent = info.title;
+  document.getElementById('topbar-sub').textContent = info.sub;
+  state.currentPage = page;
+  renderSwitchers();
+}
+
+// ─── CHANNEL SIDEBAR RENDER ──────────────────────────────────
+function renderSidebarChannels(type) {
+  const list = document.getElementById('ch-' + type + '-list');
+  list.innerHTML = '';
+  state[type].channels.forEach(ch => {
+    const el = document.createElement('div');
+    el.className = 'ch-sidebar-item' + (ch === state[type].active ? ' active-ch' : '');
+    el.innerHTML = `<span><span class="ch-dot${ch===state[type].active?' active':''}"></span> ${ch}</span>`;
+    el.onclick = () => { state[type].active = ch; renderSidebarChannels(type); renderSwitchers(); };
+    list.appendChild(el);
+  });
+}
+
+// ─── CHANNEL SWITCHER BAR (inside pages) ─────────────────────
+function renderSwitchers() {
+  const targets = {
+    ops: ['dashboard','stok','restock','kas'],
+    toko: ['dataorder','rekap','hpp']
+  };
+  ['ops','toko'].forEach(type => {
+    targets[type].forEach(page => {
+      const el = document.getElementById(type + '-switcher-' + page);
+      if (!el) return;
+      el.innerHTML = `<span class="ch-switcher-label">Channel:</span>` +
+        state[type].channels.map(ch =>
+          `<button class="ch-btn${ch===state[type].active?' active-ch-btn':''}" onclick="switchChannel('${type}','${ch}')">${ch}</button>`
+        ).join('');
+    });
+  });
+}
+
+function switchChannel(type, ch) {
+  state[type].active = ch;
+  renderSidebarChannels(type);
+  renderSwitchers();
+}
+
+// ─── MODAL ───────────────────────────────────────────────────
+function openModalAdd(type) {
+  state.modalTarget = type;
+  document.getElementById('modal-add-title').textContent =
+    'Tambah Channel ' + (type === 'ops' ? 'Operasional' : 'Toko');
+  document.getElementById('modal-add-input').value = '';
+  document.getElementById('modal-add').classList.add('open');
+}
+
+function confirmAdd() {
+  const val = document.getElementById('modal-add-input').value.trim();
+  if (!val) return;
+  const type = state.modalTarget;
+  if (!state[type].channels.includes(val)) {
+    state[type].channels.push(val);
+    renderSidebarChannels(type);
+    renderSwitchers();
+  }
+  closeModal('modal-add');
+}
+
+function openModalEdit(type) {
+  state.modalTarget = type;
+  document.getElementById('modal-edit-title').textContent =
+    'Edit Channel ' + (type === 'ops' ? 'Operasional' : 'Toko');
+  const list = document.getElementById('modal-edit-list');
+  list.innerHTML = '';
+  state[type].channels.forEach((ch, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px';
+    row.innerHTML = `
+      <input type="text" value="${ch}" style="flex:1;font-family:var(--f);font-size:14px;padding:5px 8px;border:2px solid var(--ink);background:var(--cream)" id="edit-ch-${i}">
+      <button class="btn btn-sm" onclick="saveEditChannel('${type}',${i})">✓</button>
+      <button class="btn btn-sm" onclick="deleteChannel('${type}',${i})" style="color:var(--danger)">✕</button>
+    `;
+    list.appendChild(row);
+  });
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+function saveEditChannel(type, i) {
+  const val = document.getElementById('edit-ch-' + i).value.trim();
+  if (val) { state[type].channels[i] = val; renderSidebarChannels(type); renderSwitchers(); openModalEdit(type); }
+}
+
+function deleteChannel(type, i) {
+  if (state[type].channels.length <= 1) { alert('Minimal harus ada 1 channel!'); return; }
+  state[type].channels.splice(i, 1);
+  if (!state[type].channels.includes(state[type].active)) state[type].active = state[type].channels[0];
+  renderSidebarChannels(type); renderSwitchers(); openModalEdit(type);
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ─── INIT ────────────────────────────────────────────────────
+renderSidebarChannels('ops');
+renderSidebarChannels('toko');
+renderSwitchers();
+</script>
+</body>
+</html>
