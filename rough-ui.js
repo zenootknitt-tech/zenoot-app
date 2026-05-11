@@ -167,7 +167,16 @@
         origGotoPage(page, btn);
         setTimeout(() => {
           document.querySelectorAll('.nav-item').forEach(el => sketchNavItem(el));
-        }, 10);
+          // Re-sketch tombol di halaman yang baru aktif
+          const pageEl = document.getElementById('page-' + page);
+          if (pageEl) {
+            pageEl.querySelectorAll('.btn:not(.ch-mini-btn)').forEach(el => {
+              migrateBtn(el);
+              sketchBtn(el);
+            });
+            pageEl.querySelectorAll('.card, .metric').forEach(el => sketchCard(el));
+          }
+        }, 30);
       };
     }
 
@@ -179,7 +188,44 @@
         }, 300);
       });
     });
+
+    // MutationObserver: auto-sketch tombol baru yang muncul di DOM
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(m => {
+        m.addedNodes.forEach(node => {
+          if (node.nodeType !== 1) return;
+          // Kalau node itu sendiri tombol
+          if (node.matches && node.matches('.btn:not(.ch-mini-btn)')) {
+            migrateBtn(node);
+            sketchBtn(node);
+          }
+          // Atau cari di dalam node yang ditambahkan
+          node.querySelectorAll && node.querySelectorAll('.btn:not(.ch-mini-btn)').forEach(el => {
+            migrateBtn(el);
+            sketchBtn(el);
+          });
+          node.querySelectorAll && node.querySelectorAll('.card, .metric').forEach(el => sketchCard(el));
+        });
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
   }
+
+  // Expose global supaya bisa dipanggil manual kalau perlu
+  window.roughUI = {
+    sketchBtn,
+    sketchCard,
+    migrateBtn,
+    refreshPage: function(pageId) {
+      const pageEl = document.getElementById(pageId);
+      if (!pageEl) return;
+      pageEl.querySelectorAll('.btn:not(.ch-mini-btn)').forEach(el => {
+        migrateBtn(el);
+        sketchBtn(el);
+      });
+      pageEl.querySelectorAll('.card, .metric').forEach(el => sketchCard(el));
+    }
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
