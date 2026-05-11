@@ -2,7 +2,6 @@
 
 document.getElementById('page-dashboard').innerHTML = `
   <div class="alert" id="dash-alert" style="display:none"><i class="ti ti-alert-triangle"></i><span id="dash-alert-msg"></span></div>
-  <div id="ops-switcher-dashboard" class="ch-switcher"></div>
   <div class="metrics" id="dash-metrics">
     <div class="metric"><div class="m-label">Total SKU Aktif</div><div class="m-value" id="d-sku">—</div><div class="m-delta">produk terdaftar</div><div class="doodle" style="bottom:6px;right:8px">📦</div></div>
     <div class="metric"><div class="m-label">Nilai Stok</div><div class="m-value" id="d-nilaiStok">—</div><div class="m-delta">HPP × sisa stok</div><div class="doodle" style="bottom:6px;right:8px">💰</div></div>

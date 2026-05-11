@@ -44,7 +44,6 @@ async function loadStok() {
 }
 
 document.getElementById('page-stok').innerHTML = `
-  <div id="ops-switcher-stok" class="ch-switcher"></div>
   <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
     <button class="btn btn-sm btn-primary" onclick="showTambahStok()"><i class="ti ti-plus"></i> Tambah SKU</button>
     <button class="btn btn-sm" onclick="showPasteStok()"><i class="ti ti-clipboard"></i> Paste Massal</button>

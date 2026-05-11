@@ -48,7 +48,6 @@ function updateSummary(data) {
 }
 
 document.getElementById('page-kas').innerHTML = `
-  <div id="ops-switcher-kas" class="ch-switcher"></div>
   <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
     <button class="btn btn-sm btn-primary" onclick="showTambahJurnal()"><i class="ti ti-plus"></i> Tambah Entri</button>
     <button class="btn btn-sm" onclick="loadJurnal()"><i class="ti ti-refresh"></i> Refresh</button>

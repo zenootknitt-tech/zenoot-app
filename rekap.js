@@ -1,6 +1,5 @@
 // ─── REKAP.JS — edit halaman ini untuk update rekap P&L ──────
 document.getElementById('page-rekap').innerHTML = `
-  <div id="toko-switcher-rekap" class="ch-switcher"></div>
   <div class="metrics">
     <div class="metric"><div class="m-label">AOV Aktual</div><div class="m-value">Rp86rb</div><div class="m-delta">per order</div></div>
     <div class="metric"><div class="m-label">Basket Size</div><div class="m-value">1.13×</div><div class="m-delta">pcs per order</div></div>

@@ -68,66 +68,7 @@ function gotoPage(page, btn) {
     document.getElementById('topbar-title').textContent = info.title;
     document.getElementById('topbar-sub').textContent   = info.sub;
   }
-  // Render channel switcher hanya untuk halaman toko
-  renderTokoSwitcher(page);
   closeSidebar();
-}
-
-// ─── CHANNEL SWITCHER — HANYA UNTUK TOKO ─────────────────────
-// Toko pages yang pakai channel switcher
-const TOKO_PAGES = ['dataorder', 'rekap'];
-
-function renderTokoSwitcher(page) {
-  if (!TOKO_PAGES.includes(page)) return;
-  const elId = 'toko-switcher-' + page;
-  const el   = document.getElementById(elId);
-  if (!el) return;
-
-  // Ambil channel toko dari Supabase (cache di _channelCache)
-  renderSwitcherFromCache(el);
-}
-
-let _channelCache = [];
-
-async function loadChannelCache() {
-  try {
-    const data = await dbGet('channels', '&kategori=eq.toko_utama&order=nama.asc');
-    _channelCache = data || [];
-    // Re-render switcher kalau halaman toko sedang aktif
-    TOKO_PAGES.forEach(page => {
-      const el = document.getElementById('toko-switcher-' + page);
-      if (el) renderSwitcherFromCache(el);
-    });
-  } catch(e) {
-    _channelCache = [];
-  }
-}
-
-let _activeTokoChannel = null;
-
-function renderSwitcherFromCache(el) {
-  if (!_channelCache || _channelCache.length === 0) {
-    el.innerHTML = '<span style="font-size:12px;color:var(--ink3)">Belum ada channel — tambah di Database › Channel</span>';
-    return;
-  }
-  if (!_activeTokoChannel) _activeTokoChannel = _channelCache[0].nama;
-  el.innerHTML = '<span class="ch-switcher-label">Channel:</span>' +
-    _channelCache.map(ch =>
-      `<button class="ch-btn${ch.nama===_activeTokoChannel?' active-ch-btn':''}"
-        onclick="switchTokoChannel('${ch.nama}')">${ch.nama}</button>`
-    ).join('');
-}
-
-function switchTokoChannel(nama) {
-  _activeTokoChannel = nama;
-  TOKO_PAGES.forEach(page => {
-    const el = document.getElementById('toko-switcher-' + page);
-    if (el) renderSwitcherFromCache(el);
-  });
-}
-
-function getActiveTokoChannel() {
-  return _activeTokoChannel;
 }
 
 // ─── MODAL ───────────────────────────────────────────────────
@@ -155,4 +96,3 @@ function exportCSV(filename, headers, rows) {
 }
 
 // ─── INIT ────────────────────────────────────────────────────
-loadChannelCache();

@@ -3,8 +3,6 @@
 let _orderData = [];
 
 document.getElementById('page-dataorder').innerHTML = `
-  <div id="toko-switcher-dataorder" class="ch-switcher"></div>
-
   <!-- UPLOAD ZONE -->
   <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
     <i class="ti ti-upload"></i>
