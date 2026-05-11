@@ -171,8 +171,11 @@
           const pageEl = document.getElementById('page-' + page);
           if (pageEl) {
             pageEl.querySelectorAll('.btn:not(.ch-mini-btn)').forEach(el => {
-              migrateBtn(el);
-              sketchBtn(el);
+              // Skip tombol yang ada di dalam tbody (tombol edit/hapus di tabel data)
+              if (!el.closest('tbody')) {
+                migrateBtn(el);
+                sketchBtn(el);
+              }
             });
             pageEl.querySelectorAll('.card, .metric').forEach(el => sketchCard(el));
           }
@@ -190,21 +193,31 @@
     });
 
     // MutationObserver: auto-sketch tombol baru yang muncul di DOM
+    // Skip tbody/tr/td supaya tidak interferensi render data tabel
+    const SKIP_TAGS = new Set(['TBODY','TR','TD','TH','THEAD','TFOOT']);
     const observer = new MutationObserver(mutations => {
       mutations.forEach(m => {
+        // Kalau mutasi terjadi di dalam elemen tabel, skip
+        if (m.target && SKIP_TAGS.has(m.target.tagName)) return;
         m.addedNodes.forEach(node => {
           if (node.nodeType !== 1) return;
-          // Kalau node itu sendiri tombol
-          if (node.matches && node.matches('.btn:not(.ch-mini-btn)')) {
+          if (SKIP_TAGS.has(node.tagName)) return;
+          // Kalau node itu sendiri tombol (dan bukan di dalam tbody)
+          if (node.matches && node.matches('.btn:not(.ch-mini-btn)') && !node.closest('tbody')) {
             migrateBtn(node);
             sketchBtn(node);
           }
           // Atau cari di dalam node yang ditambahkan
-          node.querySelectorAll && node.querySelectorAll('.btn:not(.ch-mini-btn)').forEach(el => {
-            migrateBtn(el);
-            sketchBtn(el);
-          });
-          node.querySelectorAll && node.querySelectorAll('.card, .metric').forEach(el => sketchCard(el));
+          if (node.querySelectorAll) {
+            node.querySelectorAll('.btn:not(.ch-mini-btn)').forEach(el => {
+              // Hanya sketch tombol yang BUKAN di dalam tbody data tabel
+              if (!el.closest('tbody')) {
+                migrateBtn(el);
+                sketchBtn(el);
+              }
+            });
+            node.querySelectorAll('.card, .metric').forEach(el => sketchCard(el));
+          }
         });
       });
     });
@@ -220,8 +233,10 @@
       const pageEl = document.getElementById(pageId);
       if (!pageEl) return;
       pageEl.querySelectorAll('.btn:not(.ch-mini-btn)').forEach(el => {
-        migrateBtn(el);
-        sketchBtn(el);
+        if (!el.closest('tbody')) {
+          migrateBtn(el);
+          sketchBtn(el);
+        }
       });
       pageEl.querySelectorAll('.card, .metric').forEach(el => sketchCard(el));
     }
