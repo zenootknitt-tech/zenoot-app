@@ -1,4 +1,4 @@
-// ─── APP.JS — logika utama navigasi & channel ────────────────
+// ─── APP.JS — navigasi, channel, sidebar mobile ────────────
 
 // ─── DATE ───────────────────────────────────────────────────
 const days   = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
@@ -6,6 +6,16 @@ const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov
 const now    = new Date();
 document.getElementById('topbar-date').textContent =
   days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+
+// ─── MOBILE SIDEBAR ─────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
 
 // ─── NAV ────────────────────────────────────────────────────
 function gotoPage(page, btn) {
@@ -18,6 +28,7 @@ function gotoPage(page, btn) {
   document.getElementById('topbar-sub').textContent   = info.sub;
   state.currentPage = page;
   renderSwitchers();
+  closeSidebar(); // tutup sidebar otomatis di mobile
 }
 
 // ─── CHANNEL SIDEBAR ─────────────────────────────────────────
@@ -28,7 +39,7 @@ function renderSidebarChannels(type) {
     const el = document.createElement('div');
     el.className = 'ch-sidebar-item' + (ch === state[type].active ? ' active-ch' : '');
     el.innerHTML = `<span><span class="ch-dot${ch===state[type].active?' active':''}"></span> ${ch}</span>`;
-    el.onclick = () => { state[type].active = ch; renderSidebarChannels(type); renderSwitchers(); };
+    el.onclick = () => { state[type].active = ch; saveState(); renderSidebarChannels(type); renderSwitchers(); };
     list.appendChild(el);
   });
 }
@@ -53,6 +64,7 @@ function renderSwitchers() {
 
 function switchChannel(type, ch) {
   state[type].active = ch;
+  saveState();
   renderSidebarChannels(type);
   renderSwitchers();
 }
@@ -72,6 +84,7 @@ function confirmAdd() {
   const type = state.modalTarget;
   if (!state[type].channels.includes(val)) {
     state[type].channels.push(val);
+    saveState();
     renderSidebarChannels(type);
     renderSwitchers();
   }
@@ -99,20 +112,47 @@ function openModalEdit(type) {
 
 function saveEditChannel(type, i) {
   const val = document.getElementById('edit-ch-' + i).value.trim();
-  if (val) { state[type].channels[i] = val; renderSidebarChannels(type); renderSwitchers(); openModalEdit(type); }
+  if (val) {
+    state[type].channels[i] = val;
+    saveState();
+    renderSidebarChannels(type);
+    renderSwitchers();
+    openModalEdit(type);
+  }
 }
 
 function deleteChannel(type, i) {
   if (state[type].channels.length <= 1) { alert('Minimal harus ada 1 channel!'); return; }
   state[type].channels.splice(i, 1);
   if (!state[type].channels.includes(state[type].active)) state[type].active = state[type].channels[0];
-  renderSidebarChannels(type); renderSwitchers(); openModalEdit(type);
+  saveState();
+  renderSidebarChannels(type);
+  renderSwitchers();
+  openModalEdit(type);
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
 });
+
+// ─── CONFIRM DELETE HELPER ───────────────────────────────────
+function confirmDelete(msg, onConfirm) {
+  document.getElementById('modal-confirm-msg').textContent = msg;
+  document.getElementById('modal-confirm').classList.add('open');
+  const btn = document.getElementById('modal-confirm-ok');
+  btn.onclick = () => { closeModal('modal-confirm'); onConfirm(); };
+}
+
+// ─── EXPORT CSV HELPER ───────────────────────────────────────
+function exportCSV(filename, headers, rows) {
+  const lines = [headers.join(','), ...rows.map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(','))];
+  const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
 
 // ─── INIT ────────────────────────────────────────────────────
 renderSidebarChannels('ops');

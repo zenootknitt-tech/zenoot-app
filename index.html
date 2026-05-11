@@ -2,16 +2,30 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Zenoot — Buku Bisnis</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ede7d9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Zenoot">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-
-<!-- STYLE UTAMA — edit style.css untuk ubah tampilan -->
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<!-- HAMBURGER (mobile only) -->
+<button class="hamburger" id="btn-hamburger" onclick="toggleSidebar()" aria-label="Menu">
+  <i class="ti ti-menu-2"></i>
+</button>
+
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <!-- SPIRAL BINDING -->
 <div class="spiral" aria-hidden="true">
@@ -23,7 +37,7 @@
 </div>
 
 <!-- SIDEBAR -->
-<div class="sidebar">
+<div class="sidebar" id="sidebar">
   <div class="logo-block">
     <div class="logo-name">zenoot</div>
     <span class="logo-tag">~ buku bisnis ku ~</span>
@@ -56,7 +70,7 @@
     <button class="ch-mini-btn" onclick="openModalEdit('toko')">✎ edit</button>
   </div>
 
-  <div class="sticky">restock MAYRA_MAUVE<br>minggu ini!!</div>
+  <div class="sticky" id="sticky-note">restock MAYRA_MAUVE<br>minggu ini!!</div>
 </div>
 
 <!-- MAIN -->
@@ -70,28 +84,13 @@
   </div>
 
   <div class="content">
-
-    <!-- PAGE: DASHBOARD — edit js/dashboard.js -->
     <div id="page-dashboard" class="page active"></div>
-
-    <!-- PAGE: STOK PRODUK — edit js/stok.js -->
     <div id="page-stok" class="page"></div>
-
-    <!-- PAGE: RESTOCK — edit js/restock.js -->
     <div id="page-restock" class="page"></div>
-
-    <!-- PAGE: KAS & JURNAL — edit js/kas.js -->
     <div id="page-kas" class="page"></div>
-
-    <!-- PAGE: DATA ORDER — edit js/dataorder.js -->
     <div id="page-dataorder" class="page"></div>
-
-    <!-- PAGE: REKAP & P&L — edit js/rekap.js -->
     <div id="page-rekap" class="page"></div>
-
-    <!-- PAGE: HPP PRODUK — edit js/hpp.js -->
     <div id="page-hpp" class="page"></div>
-
   </div>
 </div>
 
@@ -121,17 +120,34 @@
   </div>
 </div>
 
-<!-- DATA & LOGIC — urutan penting! -->
-<script src="supabase.js"></script>     <!-- koneksi Supabase -->
-<script src="channels.js"></script>   <!-- state & pageMap -->
-<script src="app.js"></script>           <!-- navigasi & channel -->
-<script src="dashboard.js"></script>     <!-- halaman dashboard -->
-<script src="stok.js"></script>          <!-- halaman stok -->
-<script src="restock.js"></script>       <!-- halaman restock -->
-<script src="kas.js"></script>           <!-- halaman kas & jurnal -->
-<script src="dataorder.js"></script>     <!-- halaman data order -->
-<script src="rekap.js"></script>         <!-- halaman rekap P&L -->
-<script src="hpp.js"></script>           <!-- halaman HPP produk -->
+<!-- MODAL: KONFIRMASI HAPUS -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal">
+    <div class="modal-title">Konfirmasi Hapus</div>
+    <div id="modal-confirm-msg" style="margin-bottom:16px;font-size:15px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-danger" id="modal-confirm-ok">Hapus</button>
+      <button class="btn" onclick="closeModal('modal-confirm')">Batal</button>
+    </div>
+  </div>
+</div>
 
+<!-- DATA & LOGIC -->
+<script src="supabase.js"></script>
+<script src="channels.js"></script>
+<script src="app.js"></script>
+<script src="dashboard.js"></script>
+<script src="stok.js"></script>
+<script src="restock.js"></script>
+<script src="kas.js"></script>
+<script src="dataorder.js"></script>
+<script src="rekap.js"></script>
+<script src="hpp.js"></script>
+<script>
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+</script>
 </body>
 </html>

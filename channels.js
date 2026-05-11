@@ -1,14 +1,32 @@
-// ─── DATA CHANNEL ────────────────────────────────────────────
-// Edit file ini untuk tambah/ubah channel default
+// ─── CHANNELS.JS — state & channel dengan localStorage persist ──
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('zenoot_state');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return null;
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('zenoot_state', JSON.stringify({
+      ops:  { channels: state.ops.channels,  active: state.ops.active  },
+      toko: { channels: state.toko.channels, active: state.toko.active },
+    }));
+  } catch(e) {}
+}
+
+const _saved = loadState();
 
 const state = {
   ops: {
-    channels: ['Zenoot', 'BL-CS'],
-    active: 'Zenoot'
+    channels: _saved?.ops?.channels  || ['Zenoot', 'BL-CS'],
+    active:   _saved?.ops?.active    || 'Zenoot'
   },
   toko: {
-    channels: ['Zenoot', 'Toko B'],
-    active: 'Zenoot'
+    channels: _saved?.toko?.channels || ['Zenoot', 'Toko B'],
+    active:   _saved?.toko?.active   || 'Zenoot'
   },
   currentPage: 'dashboard',
   modalTarget: null
