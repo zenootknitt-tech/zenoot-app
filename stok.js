@@ -50,6 +50,7 @@ document.getElementById('page-stok').innerHTML = `
     <button class="btn btn-sm" onclick="showPasteStok()"><i class="ti ti-clipboard"></i> Paste Massal</button>
     <button class="btn btn-sm" onclick="loadStok()"><i class="ti ti-refresh"></i> Refresh</button>
     <button class="btn btn-sm" onclick="exportStok()"><i class="ti ti-download"></i> Export CSV</button>
+    <span id="stok-info-msg" style="font-size:12px;color:var(--danger)"></span>
   </div>
 
   <!-- MODAL PASTE MASSAL STOK -->
@@ -182,15 +183,18 @@ async function hapusStok(id, sku) {
 async function exportStok() {
   try {
     const data = await dbGet('stok');
-    if (!data || data.length === 0) { alert('Belum ada data stok'); return; }
+    if (!data || data.length === 0) {
+      document.getElementById('stok-info-msg').textContent = '⚠ Belum ada data stok untuk diexport';
+      return;
+    }
     const headers = ['SKU Variasi','Katalog','Boss','Stok Masuk','Stok Keluar','Sisa','HPP','Nilai Stok','Status'];
     const rows = data.map(r => {
       const sisa = (r.stok_masuk||0) - (r.stok_keluar||0);
       const status = sisa <= 0 ? 'Habis' : sisa <= 3 ? 'Kritis' : sisa <= 8 ? 'Ati2' : 'Aman';
-      return [r.sku_variasi, r.katalog, r.boss, r.stok_masuk, r.stok_keluar, sisa, r.hpp, sisa*r.hpp, status];
+      return [r.sku_variasi, r.katalog, r.boss, r.stok_masuk, r.stok_keluar, sisa, r.hpp, sisa*(r.hpp||0), status];
     });
     exportCSV('zenoot-stok.csv', headers, rows);
-  } catch(err) { alert('Gagal export: ' + err.message); }
+  } catch(err) { document.getElementById('stok-info-msg').textContent = '⚠ Gagal export: ' + err.message; }
 }
 
 // ─── PASTE MASSAL STOK ────────────────────────────────────────
