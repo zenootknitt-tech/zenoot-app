@@ -38,8 +38,10 @@ const pageMap = {
   stok:      { title:'Stok Produk',    sub:'monitoring stok semua SKU',        section:'ops'  },
   restock:   { title:'Re-Stock',       sub:'daftar reorder per boss',          section:'ops'  },
   kas:                { title:'Kas & Jurnal',       sub:'pencatatan arus kas harian',       section:'ops'  },
-  'jurnal-penjualan': { title:'Jurnal Penjualan',    sub:'pencatatan transaksi penjualan',   section:'ops'  },
-  dataorder:          { title:'Data Order',           sub:'upload & lihat order Shopee',      section:'toko' },
+  'jurnal-penjualan':   { title:'Jurnal Penjualan',    sub:'pencatatan transaksi penjualan',   section:'ops'  },
+  'beban-operasional':  { title:'Beban Operasional',   sub:'acuan % beban & target NPM',        section:'ops'  },
+  'price-list':         { title:'Price List',           sub:'harga jual otomatis dari HPP',      section:'ops'  },
+  dataorder:            { title:'Data Order',           sub:'upload & lihat order Shopee',       section:'toko' },
   rekap:     { title:'Rekap & P&L',    sub:'laporan keuangan per toko',        section:'toko' },
   hpp:       { title:'HPP Produk',     sub:'harga pokok produksi per SKU',     section:'toko' },
 };
