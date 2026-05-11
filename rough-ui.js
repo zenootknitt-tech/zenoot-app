@@ -165,22 +165,9 @@
     if (origGotoPage) {
       window.gotoPage = function(page, btn) {
         origGotoPage(page, btn);
-        // Re-sketch nav
         setTimeout(() => {
           document.querySelectorAll('.nav-item').forEach(el => sketchNavItem(el));
         }, 10);
-        // Re-sketch tombol di halaman yang baru visible
-        // (saat init() jalan, halaman ini display:none sehingga offsetWidth=0 dan di-skip)
-        setTimeout(() => {
-          const pageEl = document.getElementById('page-' + page);
-          if (!pageEl) return;
-          pageEl.querySelectorAll('.btn:not(.ch-mini-btn)').forEach(el => {
-            if (el.closest('tbody')) return; // jangan sentuh tombol di dalam tabel data
-            migrateBtn(el);
-            sketchBtn(el);
-          });
-          pageEl.querySelectorAll('.card, .metric').forEach(el => sketchCard(el));
-        }, 50);
       };
     }
 
