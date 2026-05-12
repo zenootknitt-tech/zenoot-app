@@ -119,15 +119,15 @@ document.getElementById('page-dashboard').innerHTML = `
 
     <div class="card">
       <div class="card-title"><i class="ti ti-users"></i> Performa per Boss</div>
-      <div style="position:relative;height:150px;margin-bottom:8px">
-        <canvas id="dash-chart-boss" style="width:100%;height:100%;display:block"></canvas>
-      </div>
       <div class="tbl-wrap"><table class="tbl">
         <thead><tr><th>Boss</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
         <tbody id="dash-boss-tbody">
           <tr><td colspan="4" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
         </tbody>
       </table></div>
+      <div style="position:relative;height:150px;margin-top:10px">
+        <canvas id="dash-chart-boss" style="width:100%;height:150px;display:block"></canvas>
+      </div>
     </div>
 
   </div>
@@ -414,7 +414,7 @@ function _renderTopSku(jpData) {
 
 // ─── BOSS CHART ──────────────────────────────────────────────
 function _renderBoss(jpData, stokData) {
-  // Map SKU → boss, case-insensitive (sama dengan logika stok.js)
+  // Map SKU → boss, case-insensitive
   const skuBossMap = {};
   stokData.forEach(r => {
     if (r.sku_variasi && r.boss)
@@ -433,10 +433,11 @@ function _renderBoss(jpData, stokData) {
   const totalOmset = sorted.reduce((s,[,d])=>s+d.omset, 0);
   const colors     = ['#2a6e3a','#2266cc','#c8a000','#b03020','#6b3fa0','#1a8a7a'];
 
+  // ─ Tabel DULU (di atas)
   const tbody = document.getElementById('dash-boss-tbody');
   if (tbody) {
     if (!sorted.length) {
-      tbody.innerHTML = '<tr><td colspan="4" style="color:var(--ink3);font-style:italic">Belum ada data</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="color:var(--ink3);font-style:italic">Belum ada data penjualan</td></tr>';
     } else {
       tbody.innerHTML = sorted.map(([boss,d],i) => {
         const pct = totalOmset>0?(d.omset/totalOmset*100).toFixed(0):0;
@@ -444,18 +445,28 @@ function _renderBoss(jpData, stokData) {
           '<td><b>'+boss+'</b></td>' +
           '<td>'+d.qty+'</td>' +
           '<td><b style="color:var(--ok)">'+_fmtRp(d.omset)+'</b></td>' +
-          '<td><div style="display:flex;align-items:center;gap:4px"><div style="width:40px;background:var(--cream4);height:5px;border-radius:2px;overflow:hidden;border:1px solid var(--ink4)"><div style="width:'+pct+'%;height:100%;background:'+colors[i%colors.length]+'"></div></div><span style="font-size:11px;color:var(--ink3)">'+pct+'%</span></div></td>' +
+          '<td><div style="display:flex;align-items:center;gap:4px">'+
+            '<div style="width:40px;background:var(--cream4);height:5px;border-radius:2px;overflow:hidden;border:1px solid var(--ink4)">'+
+              '<div style="width:'+pct+'%;height:100%;background:'+colors[i%colors.length]+'"></div>'+
+            '</div>'+
+            '<span style="font-size:11px;color:var(--ink3)">'+pct+'%</span>'+
+          '</div></td>' +
         '</tr>';
       }).join('');
     }
   }
 
-  // Donut chart
+  // ─ Donut chart SETELAH tabel
   const canvas = document.getElementById('dash-chart-boss');
   if (!canvas || !sorted.length || totalOmset===0) return;
   const dpr = window.devicePixelRatio||1;
-  const W = canvas.offsetWidth||200, H = canvas.offsetHeight||150;
-  canvas.width=W*dpr; canvas.height=H*dpr;
+  // Paksa ukuran dari parentElement kalau offsetWidth masih 0
+  const W = canvas.offsetWidth || canvas.parentElement?.offsetWidth || 300;
+  const H = 150;
+  canvas.style.width  = W+'px';
+  canvas.style.height = H+'px';
+  canvas.width  = W*dpr;
+  canvas.height = H*dpr;
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr,dpr);
   const cx=W/2, cy=H/2, r=Math.min(cx,cy)-14, inner=r*0.52;
@@ -611,12 +622,10 @@ async function loadDashboard() {
       }
     }
 
-    // Target
+    // Target — tampil dari beban operasional, no edit button
     const targetEl = document.getElementById('d-target');
     if (targetEl) {
-      targetEl.innerHTML = target>0
-        ? _fmtRp(target)+'<span class="target-link" onclick="openTargetModal()" title="Ubah target">✏️</span>'
-        : '<span class="target-link" onclick="openTargetModal()">+ Set target</span>';
+      targetEl.textContent = target>0 ? _fmtRp(target) : '—';
     }
     if (target>0) {
       const pct = Math.min(omsetBln/target*100,100).toFixed(0);
@@ -677,14 +686,15 @@ async function loadDashboard() {
       ? '<tr><td colspan="4" style="color:var(--ink3);font-style:italic">Belum ada jurnal</td></tr>'
       : jurnalRecent.map(r => '<tr><td>'+_fmtTgl(r.tanggal||r.created_at)+'</td><td>'+(r.keterangan||'—')+'</td><td style="color:var(--ok)">'+(r.debit?_fmtRp(r.debit):'—')+'</td><td style="color:var(--danger)">'+(r.kredit?_fmtRp(r.kredit):'—')+'</td></tr>').join('');
 
-    // ─ Chart penjualan
-    _renderChartPenjualan(_dashJPData);
-
-    // ─ Top SKU (prioritaskan bulan ini)
-    _renderTopSku(jpBulan.length>0 ? jpBulan : _dashJPData);
-
-    // ─ Boss
-    _renderBoss(jpBulan.length>0 ? jpBulan : _dashJPData, _dashStokData);
+    // ─ Chart penjualan + Boss — render setelah layout selesai (RAF)
+    const _jpForChart  = _dashJPData;
+    const _jpForRender = jpBulan.length>0 ? jpBulan : _dashJPData;
+    const _stokForBoss = _dashStokData;
+    requestAnimationFrame(() => {
+      _renderChartPenjualan(_jpForChart);
+      _renderTopSku(_jpForRender);
+      _renderBoss(_jpForRender, _stokForBoss);
+    });
 
     // ─ Aktivitas feed
     _renderAktivitas(_dashJPData.slice(0,6), jurnalData||[]);
