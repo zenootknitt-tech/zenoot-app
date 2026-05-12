@@ -598,23 +598,29 @@ async function loadDashboard() {
     // ─ Metric 5-8
     const jpBulan   = _dashJPData.filter(r => r.tanggal && String(r.tanggal).slice(0,7) === todayYM);
     const jpHariIni = _dashJPData.filter(r => r.tanggal && String(r.tanggal).slice(0,10) === today);
-    const omsetBln  = jpBulan.reduce((s,r)=>s+(r.total||0),0);
-    const omsetHari = jpHariIni.reduce((s,r)=>s+(r.total||0),0);
+    const omsetBln  = jpBulan.reduce((s,r)=>s+(Number(r.total)||0),0);
+    const omsetHari = jpHariIni.reduce((s,r)=>s+(Number(r.total)||0),0);
     const aov       = jpBulan.length>0 ? Math.round(omsetBln/jpBulan.length) : 0;
 
-    document.getElementById('d-omset').textContent          = _fmtRp(omsetBln);
+    // Omset bulan + bar harian (target harian = target/hari dalam bulan)
+    document.getElementById('d-omset').textContent = _fmtRp(omsetBln);
+    // Bar omset harian di bawah nilai omset bulan
+    const hariDlmBulan = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate();
+    const omsetDeltaEl = document.getElementById('d-omset-delta');
+    if (omsetDeltaEl) {
+      omsetDeltaEl.innerHTML =
+        '<span style="font-size:11px;color:var(--ink3)">Hari ini: <b style="color:'+(omsetHari>0?'var(--ok)':'var(--ink3)')+'">'+_fmtRp(omsetHari)+'</b></span>';
+    }
+
     document.getElementById('d-order-hari').textContent     = jpHariIni.length + ' transaksi';
     document.getElementById('d-order-hari-delta').textContent = omsetHari>0 ? _fmtRp(omsetHari)+' hari ini' : 'belum ada order hari ini';
     document.getElementById('d-aov').textContent            = _fmtRp(aov);
 
     // ─ Target Omset — Logika ekonomi: Target = Beban / (beban_persen / 100)
-    //   Contoh: beban Rp4.000.000, rasio 10% → Target = 4.000.000 / 0.10 = Rp40.000.000
     let target = _getTarget();
     const bebanArr = bebanData || [];
     if (bebanArr.length > 0) {
-      // Ambil baris pertama yang nama_beban-nya angka = nominal beban operasional
-      const bebanRow = bebanArr.find(r => r.nama_beban && !isNaN(Number(String(r.nama_beban).replace(/[\.,]/g,''))));
-      // Total rasio beban dari semua baris
+      const bebanRow   = bebanArr.find(r => r.nama_beban && !isNaN(Number(String(r.nama_beban).replace(/[\.,]/g,''))));
       const totalRasio = bebanArr.reduce((s,r) => s + (Number(r.beban_persen)||0), 0);
       if (bebanRow && totalRasio > 0) {
         const nominalBeban = Number(String(bebanRow.nama_beban).replace(/[\.,]/g,''));
@@ -624,17 +630,16 @@ async function loadDashboard() {
 
     // Target — tampil dari beban operasional, no edit button
     const targetEl = document.getElementById('d-target');
-    if (targetEl) {
-      targetEl.textContent = target>0 ? _fmtRp(target) : '—';
-    }
+    if (targetEl) targetEl.textContent = target>0 ? _fmtRp(target) : '—';
     if (target>0) {
-      const pct = Math.min(omsetBln/target*100,100).toFixed(0);
-      const barWrap = document.getElementById('d-target-bar-wrap');
-      const bar     = document.getElementById('d-target-bar');
-      const pctEl   = document.getElementById('d-target-pct');
-      if (barWrap) barWrap.style.display='block';
-      if (bar)     { bar.style.width=pct+'%'; bar.style.background=pct>=100?'var(--ok)':pct>=60?'var(--warn)':'var(--danger)'; }
-      if (pctEl)   pctEl.textContent=pct+'% tercapai';
+      const omsetNum = Number(omsetBln) || 0;
+      const pct      = Math.min(omsetNum/target*100, 100).toFixed(1);
+      const barWrap  = document.getElementById('d-target-bar-wrap');
+      const bar      = document.getElementById('d-target-bar');
+      const pctEl    = document.getElementById('d-target-pct');
+      if (barWrap) barWrap.style.display = 'block';
+      if (bar)     { bar.style.width = pct+'%'; bar.style.background = pct>=100?'var(--ok)':pct>=60?'var(--warn)':'var(--danger)'; }
+      if (pctEl)   pctEl.textContent = pct+'% tercapai';
     }
 
     // ─ Alerts
@@ -686,15 +691,16 @@ async function loadDashboard() {
       ? '<tr><td colspan="4" style="color:var(--ink3);font-style:italic">Belum ada jurnal</td></tr>'
       : jurnalRecent.map(r => '<tr><td>'+_fmtTgl(r.tanggal||r.created_at)+'</td><td>'+(r.keterangan||'—')+'</td><td style="color:var(--ok)">'+(r.debit?_fmtRp(r.debit):'—')+'</td><td style="color:var(--danger)">'+(r.kredit?_fmtRp(r.kredit):'—')+'</td></tr>').join('');
 
-    // ─ Chart penjualan + Boss — render setelah layout selesai (RAF)
+    // ─ Chart penjualan + Boss — render setelah layout selesai
     const _jpForChart  = _dashJPData;
     const _jpForRender = jpBulan.length>0 ? jpBulan : _dashJPData;
     const _stokForBoss = _dashStokData;
-    requestAnimationFrame(() => {
+    // setTimeout 150ms: pastikan canvas sudah memiliki offsetWidth sebelum digambar
+    setTimeout(() => {
       _renderChartPenjualan(_jpForChart);
       _renderTopSku(_jpForRender);
       _renderBoss(_jpForRender, _stokForBoss);
-    });
+    }, 150);
 
     // ─ Aktivitas feed
     _renderAktivitas(_dashJPData.slice(0,6), jurnalData||[]);
