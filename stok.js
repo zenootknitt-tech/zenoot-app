@@ -529,13 +529,24 @@ function stokOpenSub(type, e) {
   if (!sub) return;
   sub.innerHTML = opsi.map(function(o) {
     var active = o.val === currVal;
-    return '<div onclick="stokSetFilter(\'' + type + '\',' + JSON.stringify(o.val) + ')"' +
+    var valAttr = o.val === null ? '' : o.val;
+    return '<div data-filter-type="' + type + '" data-filter-val="' + valAttr + '" data-filter-isnull="' + (o.val === null ? '1' : '0') + '"' +
       ' style="padding:8px 14px;cursor:pointer;font-size:13px;' +
       'background:' + (active ? 'var(--ink)' : 'transparent') + ';' +
       'color:' + (active ? 'var(--cream)' : 'inherit') + ';' +
       'border-bottom:1px dashed var(--ink4)">' + o.label + '</div>';
   }).join('');
   sub.style.display = 'block';
+
+  // Event listener langsung (bukan inline onclick) agar tidak ada masalah escaping
+  Array.from(sub.querySelectorAll('[data-filter-type]')).forEach(function(el) {
+    el.addEventListener('click', function(ev) {
+      ev.stopPropagation();
+      var t   = el.getAttribute('data-filter-type');
+      var val = el.getAttribute('data-filter-isnull') === '1' ? null : el.getAttribute('data-filter-val');
+      stokSetFilter(t, val);
+    });
+  });
 }
 
 function stokResetAllFilter() {
