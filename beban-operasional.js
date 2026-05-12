@@ -132,17 +132,18 @@ async function loadBebanByTipe(tipe) {
       return;
     }
 
-    tbody.innerHTML = data.map(row => `
-      <tr>
+    tbody.innerHTML = data.map(row => {
+      const safeNama = (row.nama_beban||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      return `<tr>
         <td>${row.nama_beban || '—'}</td>
         <td style="text-align:center;color:var(--danger);font-weight:600">${(row.beban_persen || 0).toFixed(1)}%</td>
         <td style="text-align:center;color:var(--ok);font-weight:600">${(row.npm_persen || 0).toFixed(1)}%</td>
         <td>
-          <button class="btn btn-sm" onclick="editBeban(${row.id},'${tipe}')" style="margin-right:4px"><i class="ti ti-edit"></i></button>
-          <button class="btn btn-sm btn-danger" onclick="hapusBeban(${row.id},'${(row.nama_beban||'').replace(/'/g,"\\'")}','${tipe}')"><i class="ti ti-trash"></i></button>
+          <button class="btn btn-sm" data-action="edit-beban" data-id="${row.id}" data-tipe="${tipe}" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-sm btn-danger" data-action="hapus-beban" data-id="${row.id}" data-tipe="${tipe}" data-nama="${safeNama}"><i class="ti ti-trash"></i></button>
         </td>
-      </tr>
-    `).join('');
+      </tr>`;
+    }).join('');
 
     // Total footer
     const totalBeban = data.reduce((s, r) => s + (r.beban_persen || 0), 0);
@@ -221,6 +222,20 @@ async function hapusBeban(id, nama, tipe) {
     } catch(err) { alert('Gagal hapus: ' + err.message); }
   });
 }
+
+// ─── EVENT DELEGATION ────────────────────────────────────────
+document.getElementById('page-beban-operasional').addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id     = btn.dataset.id;
+  const tipe   = btn.dataset.tipe;
+  if (action === 'edit-beban') {
+    editBeban(id, tipe);
+  } else if (action === 'hapus-beban') {
+    hapusBeban(id, btn.dataset.nama, tipe);
+  }
+});
 
 // ─── INIT ────────────────────────────────────────────────────
 loadBebanOperasional();

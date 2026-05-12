@@ -27,10 +27,10 @@ async function loadJurnal() {
           <td style="color:var(--danger)">${row.kredit ? 'Rp' + row.kredit.toLocaleString('id-ID') : '—'}</td>
           <td style="color:${saldo >= 0 ? 'var(--ok)' : 'var(--danger)'}">${saldoFmt}</td>
           <td>
-            <button class="btn btn-sm" onclick="editJurnal(${row.id})" style="margin-right:4px"><i class="ti ti-edit"></i></button>
-            <button class="btn btn-sm btn-danger" onclick="hapusJurnal(${row.id},'${(row.keterangan||'').replace(/'/g,"\\'")}')"><i class="ti ti-trash"></i></button>
+            <button class="btn btn-sm" data-action="edit-kas" data-id="${row.id}" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+            <button class="btn btn-sm btn-danger" data-action="hapus-kas" data-id="${row.id}" data-ket="${(row.keterangan||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"><i class="ti ti-trash"></i></button>
           </td>
-        </tr>`;
+        \`;
     }).join('');
   } catch(err) {
     tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger)">Error: ${err.message}</td></tr>`;
@@ -163,5 +163,17 @@ async function exportJurnal() {
     exportCSV('zenoot-jurnal.csv', headers, rows);
   } catch(err) { alert('Gagal export: ' + err.message); }
 }
+
+// ─── EVENT DELEGATION ────────────────────────────────────────
+document.getElementById('page-kas').addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  if (btn.dataset.action === 'edit-kas') {
+    editJurnal(parseInt(id));
+  } else if (btn.dataset.action === 'hapus-kas') {
+    hapusJurnal(parseInt(id), btn.dataset.ket);
+  }
+});
 
 loadJurnal();
