@@ -508,8 +508,8 @@ function renderTabelJP(data) {
       + '<td>' + fmtRp(row.harga_satuan) + '</td>'
       + '<td><b style="color:var(--ok)">' + fmtRp(row.total) + '</b></td>'
       + '<td>'
-      + '<button class="btn btn-sm" onclick="editJP(' + row.id + ')" style="margin-right:4px">&#9998;</button>'
-      + '<button class="btn btn-sm btn-danger" onclick="hapusJP(' + row.id + ',\'' + (row.sku||'').replace(/'/g,"\\'") + '\')">&#10005;</button>'
+      + '<button class="btn btn-sm" onclick="editJP(' + row.id + ')" style="margin-right:4px"><i class="ti ti-edit"></i></button>'
+      + '<button class="btn btn-sm btn-danger" onclick="hapusJP(' + row.id + ',\'' + (row.sku||'').replace(/'/g,"\\'") + '\')"><i class="ti ti-trash"></i></button>'
       + '</td></tr>';
   }).join('');
   document.getElementById('jp-footer').textContent = 'Menampilkan ' + data.length + ' entri';

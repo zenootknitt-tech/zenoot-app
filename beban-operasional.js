@@ -138,8 +138,8 @@ async function loadBebanByTipe(tipe) {
         <td style="text-align:center;color:var(--danger);font-weight:600">${(row.beban_persen || 0).toFixed(1)}%</td>
         <td style="text-align:center;color:var(--ok);font-weight:600">${(row.npm_persen || 0).toFixed(1)}%</td>
         <td>
-          <button class="btn btn-sm" onclick="editBeban(${row.id},'${tipe}')" style="margin-right:4px">✎</button>
-          <button class="btn btn-sm btn-danger" onclick="hapusBeban(${row.id},'${(row.nama_beban||'').replace(/'/g,"\\'")}','${tipe}')">✕</button>
+          <button class="btn btn-sm" onclick="editBeban(${row.id},'${tipe}')" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="hapusBeban(${row.id},'${(row.nama_beban||'').replace(/'/g,"\\'")}','${tipe}')"><i class="ti ti-trash"></i></button>
         </td>
       </tr>
     `).join('');

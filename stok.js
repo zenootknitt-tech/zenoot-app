@@ -33,8 +33,8 @@ async function loadStok() {
           <td>${sisa > 0 && row.hpp ? nilai : '—'}</td>
           <td>${statusBadge(sisa)}</td>
           <td>
-            <button class="btn btn-sm" onclick="editStok(${row.id})" style="margin-right:4px">✎</button>
-            <button class="btn btn-sm btn-danger" onclick="hapusStok(${row.id},'${row.sku_variasi}')">✕</button>
+            <button class="btn btn-sm" onclick="editStok(${row.id})" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="hapusStok(${row.id},'${row.sku_variasi}')"><i class="ti ti-trash"></i></button>
           </td>
         </tr>`;
     }).join('');

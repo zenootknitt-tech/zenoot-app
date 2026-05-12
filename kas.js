@@ -27,8 +27,8 @@ async function loadJurnal() {
           <td style="color:var(--danger)">${row.kredit ? 'Rp' + row.kredit.toLocaleString('id-ID') : '—'}</td>
           <td style="color:${saldo >= 0 ? 'var(--ok)' : 'var(--danger)'}">${saldoFmt}</td>
           <td>
-            <button class="btn btn-sm" onclick="editJurnal(${row.id})" style="margin-right:4px">✎</button>
-            <button class="btn btn-sm btn-danger" onclick="hapusJurnal(${row.id},'${(row.keterangan||'').replace(/'/g,"\\'")}')">✕</button>
+            <button class="btn btn-sm" onclick="editJurnal(${row.id})" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="hapusJurnal(${row.id},'${(row.keterangan||'').replace(/'/g,"\\'")}')"><i class="ti ti-trash"></i></button>
           </td>
         </tr>`;
     }).join('');

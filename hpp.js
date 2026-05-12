@@ -26,8 +26,8 @@ async function loadHpp() {
           <td>Rp${hj40.toLocaleString('id-ID')}</td>
           <td>Rp${hj50.toLocaleString('id-ID')}</td>
           <td>
-            <button class="btn btn-sm" onclick="editHpp(${row.id})" style="margin-right:4px">✎</button>
-            <button class="btn btn-sm btn-danger" onclick="hapusHpp(${row.id},'${row.sku_induk}')">✕</button>
+            <button class="btn btn-sm" onclick="editHpp(${row.id})" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="hapusHpp(${row.id},'${row.sku_induk}')"><i class="ti ti-trash"></i></button>
           </td>
         </tr>`;
     }).join('');

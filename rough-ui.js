@@ -119,10 +119,14 @@
   // ── Migrasi HTML: ubah .btn lama jadi struktur pill baru
   function migrateBtn(el) {
     if (el.querySelector('.bi')) return; // sudah baru
-    const text = el.textContent.trim();
     const icon = el.querySelector('i');
+    const rawText = el.textContent.trim();
+    // Skip tombol simbol pendek (✎ ✕ × ✓ dll) — biarkan apa adanya
+    if (!icon && rawText.length <= 2) return;
     const iconClass = icon ? icon.className : 'ti ti-check';
-    el.innerHTML = `<span class="bi"><i class="${iconClass}" aria-hidden="true"></i></span><span class="bl">${text.replace(/^[^\w]*/, '')}</span>`;
+    const labelText = rawText.replace(/^[^\w]*/, '').trim();
+    if (!labelText) return; // tidak ada teks label, skip
+    el.innerHTML = `<span class="bi"><i class="${iconClass}" aria-hidden="true"></i></span><span class="bl">${labelText}</span>`;
   }
 
   // ── Migrasi nav-item lama jadi struktur pill baru

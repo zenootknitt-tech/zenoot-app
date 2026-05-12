@@ -112,8 +112,8 @@ function renderProduk(data) {
       <td>Rp${(row.hpp||0).toLocaleString('id-ID')}</td>
       <td>${row.boss || '—'}</td>
       <td>
-        <button class="btn btn-sm" onclick="editProduk(${row.id})" style="margin-right:4px">✎</button>
-        <button class="btn btn-sm btn-danger" onclick="hapusProduk(${row.id},'${row.sku_variasi}')">✕</button>
+        <button class="btn btn-sm" onclick="editProduk(${row.id})" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-sm btn-danger" onclick="hapusProduk(${row.id},'${row.sku_variasi}')"><i class="ti ti-trash"></i></button>
       </td>
     </tr>`).join('');
 }

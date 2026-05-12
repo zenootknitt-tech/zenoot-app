@@ -144,8 +144,8 @@ async function loadChannelByKategori(kat) {
         <td style="font-weight:600">${row.nama || '—'}</td>
         <td style="color:var(--ink3);font-size:13px">${row.keterangan || '—'}</td>
         <td>
-          <button class="btn btn-sm" onclick="editChannel(${row.id},'${kat}')" style="margin-right:4px">✎</button>
-          <button class="btn btn-sm btn-danger" onclick="hapusChannel(${row.id},'${(row.nama||'').replace(/'/g,"\\'")}','${kat}')">✕</button>
+          <button class="btn btn-sm" onclick="editChannel(${row.id},'${kat}')" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="hapusChannel(${row.id},'${(row.nama||'').replace(/'/g,"\\'")}','${kat}')"><i class="ti ti-trash"></i></button>
         </td>
       </tr>
     `).join('');
