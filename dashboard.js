@@ -274,8 +274,8 @@ function _renderAlerts(stokData, saldo) {
   const wrap = document.getElementById('dash-alerts-wrap');
   if (!wrap) return;
   const alerts = [];
-  const habis      = stokData.filter(r => ((r.stok_masuk||0)-(r.stok_keluar||0)) <= 0);
-  const kritis     = stokData.filter(r => { const s=(r.stok_masuk||0)-(r.stok_keluar||0); return s>0 && s<=3; });
+  const habis      = stokData.filter(r => r.sisa <= 0);
+  const kritis     = stokData.filter(r => r.sisa > 0 && r.sisa <= 3);
   if (habis.length)  alerts.push({ cls:'danger', icon:'ti-circle-off',    msg: habis.length + ' SKU HABIS stok: ' + habis.slice(0,3).map(r=>r.sku_variasi).join(', ') + (habis.length>3?' ...':'') + ' — restock segera!' });
   if (kritis.length) alerts.push({ cls:'warn',   icon:'ti-alert-triangle', msg: kritis.length + ' SKU hampir habis: ' + kritis.slice(0,3).map(r=>r.sku_variasi).join(', ') + (kritis.length>3?' ...':'') });
   if (saldo < 0)     alerts.push({ cls:'danger', icon:'ti-coin-off',       msg: 'Saldo kas negatif ' + _fmtRp(Math.abs(saldo)) + ' — cek jurnal kas!' });
@@ -517,23 +517,55 @@ async function loadDashboard() {
     const today    = new Date().toISOString().split('T')[0];
     const todayYM  = today.slice(0,7);
 
-    // Load semua data paralel
-    const [stokData, jurnalData, jpData, jurnalAllData, channelData] = await Promise.all([
+    // Load semua data paralel — ambil produk + stok raw + semua jurnal penjualan
+    const [produkData, stokRaw, jurnalData, jpData, jurnalAllData, channelData] = await Promise.all([
+      dbGet('produk', '&order=katalog.asc,sku_variasi.asc'),
       dbGet('stok'),
       dbGet('jurnal', '&order=created_at.desc&limit=8'),
-      dbGet('jurnal_penjualan', '&order=tanggal.desc&limit=300'),
+      dbGet('jurnal_penjualan', '&order=tanggal.desc'),
       dbGet('jurnal'),
       dbGet('channels').catch(() => [])
     ]);
 
-    _dashStokData   = stokData   || [];
+    // ─ Bangun stokMasukMap dari tabel stok (sama persis seperti stok.js)
+    const stokMasukMap = {};
+    (stokRaw || []).forEach(s => {
+      const key = (s.sku_variasi || '').toUpperCase();
+      if (key) stokMasukMap[key] = { id: s.id, qty: s.stok_masuk || 0 };
+    });
+
+    // ─ Bangun keluarMap dari jurnal_penjualan (sama persis seperti stok.js)
+    const keluarMap = {};
+    (jpData || []).forEach(j => {
+      const key = (j.sku || '').toUpperCase();
+      if (key) keluarMap[key] = (keluarMap[key] || 0) + (j.qty || 0);
+    });
+
+    // ─ Merge: setiap produk + stok masuk + stok keluar (sama persis seperti stok.js)
+    _dashStokData = (produkData || []).map(p => {
+      const skuKey = (p.sku_variasi || '').toUpperCase();
+      const masuk  = stokMasukMap[skuKey] ? stokMasukMap[skuKey].qty : 0;
+      const keluar = keluarMap[skuKey] || 0;
+      const sisa   = masuk - keluar;
+      return {
+        sku_variasi:  p.sku_variasi,
+        katalog:      p.katalog,
+        boss:         p.boss,
+        hpp:          p.hpp || 0,
+        stok_masuk:   masuk,
+        stok_keluar:  keluar,
+        sisa:         sisa,
+        nilai_stok:   sisa > 0 ? sisa * (p.hpp || 0) : 0
+      };
+    });
+
     _dashJPData     = jpData     || [];
     _dashChannelMap = {};
     (channelData||[]).forEach(ch => { _dashChannelMap[ch.id] = ch; });
 
     // ─ Metric 1-4
-    const kritis    = _dashStokData.filter(r => ((r.stok_masuk||0)-(r.stok_keluar||0)) <= 3).length;
-    const nilaiStok = _dashStokData.reduce((s,r) => { const sisa=(r.stok_masuk||0)-(r.stok_keluar||0); return s+(sisa>0&&r.hpp?sisa*r.hpp:0); }, 0);
+    const kritis    = _dashStokData.filter(r => r.sisa <= 3).length;
+    const nilaiStok = _dashStokData.reduce((s,r) => s + (r.nilai_stok || 0), 0);
     const saldo     = (jurnalAllData||[]).reduce((s,r) => s+(r.debit||0)-(r.kredit||0), 0);
 
     document.getElementById('d-sku').textContent       = _dashStokData.length;
@@ -577,16 +609,14 @@ async function loadDashboard() {
     _renderAlerts(_dashStokData, saldo);
 
     // ─ Tabel stok (dengan kolom terjual/turnover)
-    const stokSorted = [..._dashStokData].sort((a,b)=>((a.stok_masuk||0)-(a.stok_keluar||0))-((b.stok_masuk||0)-(b.stok_keluar||0)));
+    const stokSorted = [..._dashStokData].sort((a,b) => a.sisa - b.sisa);
     const stokSum = document.getElementById('dash-stok-summary');
     if (stokSum) stokSum.textContent = _dashStokData.length+' SKU · Nilai '+_fmtRp(nilaiStok);
-    const stokJualMap = {};
-    _dashJPData.forEach(r => { if (r.sku) stokJualMap[r.sku] = (stokJualMap[r.sku]||0)+(r.qty||0); });
     document.getElementById('dash-stok-tbody').innerHTML = stokSorted.length===0
       ? '<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Belum ada data stok</td></tr>'
       : stokSorted.map(r => {
-          const sisa = (r.stok_masuk||0)-(r.stok_keluar||0);
-          const sold = stokJualMap[r.sku_variasi] || 0;
+          const sisa = r.sisa;
+          const sold = r.stok_keluar || 0;
           return '<tr><td><b>'+r.sku_variasi+'</b></td><td>'+(r.boss||'—')+'</td><td><b>'+sisa+'</b></td>'+
             '<td>'+(sold>0?'<span style="color:var(--ok);font-weight:700">'+sold+' terjual</span>':'<span style="color:var(--ink4)">—</span>')+'</td>'+
             '<td>'+statusBadgeDash(sisa)+'</td></tr>';
