@@ -100,7 +100,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
                      padding:0 12px;cursor:pointer;font-size:16px;color:var(--ink)">&#9660;</button>
           </div>
           <div id="jp-sku-dropdown"
-            style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;
+            style="display:none;position:fixed;z-index:9999;
                    background:var(--cream);border:2px solid var(--ink);border-top:none;
                    max-height:200px;overflow-y:auto;box-shadow:4px 4px 0 var(--ink4)">
           </div>
@@ -319,8 +319,19 @@ function _jpRenderDropdown(katalogs, katalogMap) {
   dd.style.display = 'block';
 }
 
+function _jpPositionDropdown() {
+  const inp = document.getElementById('jp-sku-induk');
+  const dd  = document.getElementById('jp-sku-dropdown');
+  if (!inp || !dd) return;
+  const rect = inp.getBoundingClientRect();
+  dd.style.top   = (rect.bottom + 2) + 'px';
+  dd.style.left  = rect.left + 'px';
+  dd.style.width = rect.width + 'px';
+}
+
 function jpSugestKatalog() {
   _jpDdMode = 'suggest';
+  _jpPositionDropdown();
   const q = (document.getElementById('jp-sku-induk').value || '').trim().toLowerCase();
   const katalogMap = {};
   _jpProdukList.forEach(p => {
@@ -338,6 +349,7 @@ function jpToggleKatalogFull() {
     jpTutupDropdownSKU(); return;
   }
   _jpDdMode = 'full';
+  _jpPositionDropdown();
   document.getElementById('jp-sku-induk').value = '';
   const katalogMap = {};
   _jpProdukList.forEach(p => {
