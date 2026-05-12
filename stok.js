@@ -8,42 +8,48 @@ function statusBadge(sisa) {
 }
 
 document.getElementById('page-stok').innerHTML = `
-  <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-    <button class="btn btn-sm btn-primary" onclick="showTambahStok()"><i class="ti ti-plus"></i> Tambah Stok Masuk</button>
-    <button class="btn btn-sm" onclick="showPasteStok()"><i class="ti ti-clipboard"></i> Paste Massal</button>
-    <button class="btn btn-sm" onclick="loadStok()"><i class="ti ti-refresh"></i> Refresh</button>
-    <button class="btn btn-sm" onclick="exportStok()"><i class="ti ti-download"></i> Export CSV</button>
-    <div style="display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap">
-      <div style="position:relative">
-        <button class="btn btn-sm" id="btn-filter-boss" onclick="stokToggleFilter('boss')" style="min-width:110px;text-align:left;padding-right:22px">
-          <i class="ti ti-user"></i> <span id="lbl-filter-boss">Supplier</span>
-          <i class="ti ti-chevron-down" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px"></i>
-        </button>
-        <div id="dd-filter-boss" style="display:none;position:absolute;right:0;top:calc(100% + 2px);z-index:999;
-          background:var(--cream);border:2px solid var(--ink);min-width:160px;
-          max-height:220px;overflow-y:auto;box-shadow:4px 4px 0 var(--ink4)"></div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+    <!-- KIRI: 1 tombol Filter dropdown -->
+    <div style="position:relative">
+      <button class="btn btn-sm" id="btn-filter-all" onclick="stokToggleFilterAll()" style="min-width:90px;text-align:left;padding-right:24px">
+        <i class="ti ti-adjustments-horizontal"></i> <span id="lbl-filter-all">Filter</span>
+        <i class="ti ti-chevron-down" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px"></i>
+      </button>
+      <div id="dd-filter-all" style="display:none;position:absolute;left:0;top:calc(100% + 2px);z-index:999;
+        background:var(--cream);border:2px solid var(--ink);min-width:220px;
+        box-shadow:4px 4px 0 var(--ink4)">
+
+        <!-- Supplier -->
+        <div style="padding:6px 10px;font-size:11px;font-weight:700;color:var(--ink3);border-bottom:1px dashed var(--ink4);letter-spacing:.04em">
+          <i class="ti ti-user" style="font-size:12px"></i> SUPPLIER
+        </div>
+        <div id="dd-filter-boss" style="max-height:160px;overflow-y:auto"></div>
+
+        <!-- SKU Induk -->
+        <div style="padding:6px 10px;font-size:11px;font-weight:700;color:var(--ink3);border-top:2px solid var(--ink4);border-bottom:1px dashed var(--ink4);letter-spacing:.04em">
+          <i class="ti ti-tag" style="font-size:12px"></i> SKU INDUK
+        </div>
+        <div id="dd-filter-katalog" style="max-height:160px;overflow-y:auto"></div>
+
+        <!-- Status -->
+        <div style="padding:6px 10px;font-size:11px;font-weight:700;color:var(--ink3);border-top:2px solid var(--ink4);border-bottom:1px dashed var(--ink4);letter-spacing:.04em">
+          <i class="ti ti-circle-check" style="font-size:12px"></i> STATUS
+        </div>
+        <div id="dd-filter-status"></div>
+
+        <!-- Reset -->
+        <div style="padding:6px 10px;border-top:2px solid var(--ink)">
+          <button class="btn btn-sm" onclick="stokResetAllFilter()" style="width:100%;font-size:12px">
+            <i class="ti ti-x"></i> Reset Filter
+          </button>
+        </div>
       </div>
-      <div style="position:relative">
-        <button class="btn btn-sm" id="btn-filter-katalog" onclick="stokToggleFilter('katalog')" style="min-width:120px;text-align:left;padding-right:22px">
-          <i class="ti ti-tag"></i> <span id="lbl-filter-katalog">SKU Induk</span>
-          <i class="ti ti-chevron-down" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px"></i>
-        </button>
-        <div id="dd-filter-katalog" style="display:none;position:absolute;right:0;top:calc(100% + 2px);z-index:999;
-          background:var(--cream);border:2px solid var(--ink);min-width:170px;
-          max-height:220px;overflow-y:auto;box-shadow:4px 4px 0 var(--ink4)"></div>
-      </div>
-      <div style="position:relative">
-        <button class="btn btn-sm" id="btn-filter-status" onclick="stokToggleFilter('status')" style="min-width:100px;text-align:left;padding-right:22px">
-          <i class="ti ti-circle-check"></i> <span id="lbl-filter-status">Status</span>
-          <i class="ti ti-chevron-down" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px"></i>
-        </button>
-        <div id="dd-filter-status" style="display:none;position:absolute;right:0;top:calc(100% + 2px);z-index:999;
-          background:var(--cream);border:2px solid var(--ink);min-width:140px;
-          max-height:220px;overflow-y:auto;box-shadow:4px 4px 0 var(--ink4)"></div>
-      </div>
-      <input type="text" id="stok-search" placeholder="Cari SKU / katalog..."
-        style="font-family:var(--f);font-size:13px;padding:4px 8px;border:2px solid var(--ink);background:var(--cream);width:180px"
-        oninput="filterStok()">
+    </div>
+
+    <!-- KANAN: Paste Massal + Tambah -->
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <button class="btn btn-sm" onclick="showPasteStok()"><i class="ti ti-clipboard"></i> Paste Massal</button>
+      <button class="btn btn-sm btn-primary" onclick="showTambahStok()"><i class="ti ti-plus"></i> Tambah</button>
     </div>
   </div>
 
@@ -224,15 +230,7 @@ function renderStok(data) {
 
 // ─── FILTER ───────────────────────────────────────────────────
 function filterStok() {
-  const q = (document.getElementById('stok-search').value || '').toLowerCase().trim();
   const filtered = _stokAllData.filter(r => {
-    if (q) {
-      const match =
-        (r.sku_variasi || '').toLowerCase().includes(q) ||
-        (r.katalog     || '').toLowerCase().includes(q) ||
-        (r.boss        || '').toLowerCase().includes(q);
-      if (!match) return false;
-    }
     if (_filterBoss    && (r.boss    || '') !== _filterBoss)    return false;
     if (_filterKatalog && (r.katalog || '') !== _filterKatalog) return false;
     if (_filterStatus) {
@@ -439,103 +437,104 @@ async function simpanPasteStok() {
   }
 }
 
-// ─── EXPORT ───────────────────────────────────────────────────
-async function exportStok() {
-  if (!_stokAllData.length) { alert('Belum ada data'); return; }
-  const headers = ['SKU Variasi','Katalog','Boss','Stok Masuk','Keluar (Terjual)','Sisa','HPP','Nilai Stok','Status'];
-  const rows = _stokAllData.map(r => {
-    const status = r.sisa <= 0 ? 'Habis' : r.sisa <= 3 ? 'Kritis' : r.sisa <= 8 ? 'Ati2' : 'Aman';
-    return [r.sku_variasi, r.katalog, r.boss, r.stok_masuk, r.stok_keluar, r.sisa, r.hpp, r.nilai_stok, status];
-  });
-  exportCSV('zenoot-stok.csv', headers, rows);
-}
+// exportStok dihapus (tombol Export CSV diringkas)
 
 // ─── FILTER STATE ─────────────────────────────────────────────
 let _filterBoss    = null;
 let _filterKatalog = null;
 let _filterStatus  = null;
 
-function stokToggleFilter(type) {
-  var ddId = 'dd-filter-' + type;
-  var dd   = document.getElementById(ddId);
+function stokToggleFilterAll() {
+  var dd = document.getElementById('dd-filter-all');
   if (!dd) return;
-
-  ['boss','katalog','status'].forEach(function(t) {
-    if (t !== type) {
-      var el = document.getElementById('dd-filter-' + t);
-      if (el) el.style.display = 'none';
-    }
-  });
-
   if (dd.style.display === 'block') { dd.style.display = 'none'; return; }
 
-  var opsi = [];
-  if (type === 'boss') {
-    var vals = _stokAllData.map(function(r){ return r.boss || ''; }).filter(Boolean);
-    vals = [...new Set(vals)].sort();
-    opsi = [{ val: null, label: 'Semua Supplier' }].concat(vals.map(function(v){ return { val: v, label: v }; }));
-  } else if (type === 'katalog') {
-    var vals2 = _stokAllData.map(function(r){ return r.katalog || ''; }).filter(Boolean);
-    vals2 = [...new Set(vals2)].sort();
-    opsi = [{ val: null, label: 'Semua SKU Induk' }].concat(vals2.map(function(v){ return { val: v, label: v }; }));
-  } else if (type === 'status') {
-    opsi = [
-      { val: null,     label: 'Semua Status' },
-      { val: 'habis',  label: 'Habis' },
-      { val: 'kritis', label: 'Kritis' },
-      { val: 'ati2',   label: 'Ati2' },
-      { val: 'aman',   label: 'Aman' },
-    ];
-  }
+  _stokRenderFilterSection('boss',
+    [{ val: null, label: 'Semua Supplier' }].concat(
+      [...new Set(_stokAllData.map(function(r){ return r.boss||''; }).filter(Boolean))].sort()
+      .map(function(v){ return { val: v, label: v }; })
+    )
+  );
+  _stokRenderFilterSection('katalog',
+    [{ val: null, label: 'Semua SKU Induk' }].concat(
+      [...new Set(_stokAllData.map(function(r){ return r.katalog||''; }).filter(Boolean))].sort()
+      .map(function(v){ return { val: v, label: v }; })
+    )
+  );
+  _stokRenderFilterSection('status', [
+    { val: null,     label: 'Semua Status' },
+    { val: 'habis',  label: '🔴 Habis' },
+    { val: 'kritis', label: '🟠 Kritis' },
+    { val: 'ati2',   label: '🟡 Ati2' },
+    { val: 'aman',   label: '🟢 Aman' },
+  ]);
 
+  dd.style.display = 'block';
+}
+
+function _stokRenderFilterSection(type, opsi) {
   var currVal = type === 'boss' ? _filterBoss : type === 'katalog' ? _filterKatalog : _filterStatus;
-
-  dd.innerHTML = opsi.map(function(o) {
+  var el = document.getElementById('dd-filter-' + type);
+  if (!el) return;
+  el.innerHTML = opsi.map(function(o) {
     var active = o.val === currVal;
     return '<div onclick="stokSetFilter(\'' + type + '\',' + JSON.stringify(o.val) + ')"' +
-      ' style="padding:8px 12px;cursor:pointer;font-size:13px;' +
+      ' style="padding:7px 14px;cursor:pointer;font-size:13px;' +
       'background:' + (active ? 'var(--ink)' : 'transparent') + ';' +
       'color:' + (active ? 'var(--cream)' : 'inherit') + ';' +
       'border-bottom:1px dashed var(--ink4)">' + o.label + '</div>';
   }).join('');
-  dd.style.display = 'block';
 }
 
-function stokSetFilter(type, val) {
-  var lblMap = { habis:'Habis', kritis:'Kritis', ati2:'Ati2', aman:'Aman' };
-  if (type === 'boss') {
-    _filterBoss = val;
-    document.getElementById('lbl-filter-boss').textContent = val || 'Supplier';
-    var btn = document.getElementById('btn-filter-boss');
-    btn.style.background = val ? 'var(--ink)' : '';
-    btn.style.color = val ? 'var(--cream)' : '';
-  } else if (type === 'katalog') {
-    _filterKatalog = val;
-    document.getElementById('lbl-filter-katalog').textContent = val || 'SKU Induk';
-    var btn2 = document.getElementById('btn-filter-katalog');
-    btn2.style.background = val ? 'var(--ink)' : '';
-    btn2.style.color = val ? 'var(--cream)' : '';
-  } else if (type === 'status') {
-    _filterStatus = val;
-    document.getElementById('lbl-filter-status').textContent = val ? lblMap[val] : 'Status';
-    var btn3 = document.getElementById('btn-filter-status');
-    btn3.style.background = val ? 'var(--ink)' : '';
-    btn3.style.color = val ? 'var(--cream)' : '';
+function stokResetAllFilter() {
+  _filterBoss    = null;
+  _filterKatalog = null;
+  _filterStatus  = null;
+  _stokUpdateFilterLabel();
+  document.getElementById('dd-filter-all').style.display = 'none';
+  filterStok();
+}
+
+function _stokUpdateFilterLabel() {
+  var parts = [];
+  if (_filterBoss)    parts.push(_filterBoss);
+  if (_filterKatalog) parts.push(_filterKatalog);
+  if (_filterStatus)  parts.push(_filterStatus.charAt(0).toUpperCase() + _filterStatus.slice(1));
+  var lbl = document.getElementById('lbl-filter-all');
+  if (lbl) lbl.textContent = parts.length ? parts.join(', ') : 'Filter';
+  var btn = document.getElementById('btn-filter-all');
+  if (btn) {
+    btn.style.background = parts.length ? 'var(--ink)' : '';
+    btn.style.color      = parts.length ? 'var(--cream)' : '';
   }
-  document.getElementById('dd-filter-' + type).style.display = 'none';
+}
+
+// stokToggleFilter (per-tombol) sudah digantikan stokToggleFilterAll
+
+function stokSetFilter(type, val) {
+  if (type === 'boss')    _filterBoss    = val;
+  if (type === 'katalog') _filterKatalog = val;
+  if (type === 'status')  _filterStatus  = val;
+  // Re-render seksi agar highlight aktif langsung keliatan
+  _stokRenderFilterSection(type,
+    document.getElementById('dd-filter-' + type).children.length
+      ? null  // sudah ada, re-render via toggle
+      : null
+  );
+  // Refresh dropdown yang sedang terbuka
+  stokToggleFilterAll(); // tutup dulu
+  _stokUpdateFilterLabel();
   filterStok();
 }
 
 document.addEventListener('click', function(e) {
-  ['boss','katalog','status'].forEach(function(t) {
-    var dd  = document.getElementById('dd-filter-' + t);
-    var btn = document.getElementById('btn-filter-' + t);
-    if (dd && dd.style.display === 'block') {
-      if (!dd.contains(e.target) && btn && !btn.contains(e.target)) {
-        dd.style.display = 'none';
-      }
+  var dd  = document.getElementById('dd-filter-all');
+  var btn = document.getElementById('btn-filter-all');
+  if (dd && dd.style.display === 'block') {
+    if (!dd.contains(e.target) && btn && !btn.contains(e.target)) {
+      dd.style.display = 'none';
     }
-  });
+  }
 });
 
 loadStok();
