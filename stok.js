@@ -1,4 +1,4 @@
-// ─── STOK.JS — CRUD lengkap + export CSV ─────────────────────
+// ─── STOK.JS v3 — basis dari produk, keluar dari jurnal ───────
 
 function statusBadge(sisa) {
   if (sisa <= 0)  return '<span class="badge badge-crit">Habis!</span>';
@@ -7,57 +7,23 @@ function statusBadge(sisa) {
   return '<span class="badge badge-ok">Aman</span>';
 }
 
-async function loadStok() {
-  const tbody = document.getElementById('stok-tbody');
-  tbody.innerHTML = '<tr><td colspan="10" style="color:var(--ink3);font-style:italic">Memuat data...</td></tr>';
-
-  try {
-    const data = await dbGet('stok');
-    if (!data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="10" style="color:var(--ink3);font-style:italic">Belum ada data stok</td></tr>';
-      return;
-    }
-    tbody.innerHTML = data.map(row => {
-      const sisa  = (row.stok_masuk || 0) - (row.stok_keluar || 0);
-      const nilai = row.hpp ? `Rp${(sisa * row.hpp).toLocaleString('id-ID')}` : '—';
-      const hpp   = row.hpp ? `Rp${row.hpp.toLocaleString('id-ID')}` : 'Rp—';
-      return `
-        <tr>
-          <td>${row.sku_variasi}</td>
-          <td>${row.katalog || '—'}</td>
-          <td>${row.boss || '—'}</td>
-          <td>${row.stok_masuk || 0}</td>
-          <td>${row.stok_keluar || 0}</td>
-          <td><b>${sisa}</b></td>
-          <td>${hpp}</td>
-          <td>${sisa > 0 && row.hpp ? nilai : '—'}</td>
-          <td>${statusBadge(sisa)}</td>
-          <td>
-            <button class="btn btn-sm" onclick="editStok(${row.id})" style="margin-right:4px"><i class="ti ti-edit"></i></button>
-            <button class="btn btn-sm btn-danger" onclick="hapusStok(${row.id},'${row.sku_variasi}')"><i class="ti ti-trash"></i></button>
-          </td>
-        </tr>`;
-    }).join('');
-  } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="10" style="color:var(--danger)">Error: ${err.message}</td></tr>`;
-  }
-}
-
 document.getElementById('page-stok').innerHTML = `
   <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-    <button class="btn btn-sm btn-primary" onclick="showTambahStok()"><i class="ti ti-plus"></i> Tambah SKU</button>
+    <button class="btn btn-sm btn-primary" onclick="showTambahStok()"><i class="ti ti-plus"></i> Tambah Stok Masuk</button>
     <button class="btn btn-sm" onclick="showPasteStok()"><i class="ti ti-clipboard"></i> Paste Massal</button>
     <button class="btn btn-sm" onclick="loadStok()"><i class="ti ti-refresh"></i> Refresh</button>
     <button class="btn btn-sm" onclick="exportStok()"><i class="ti ti-download"></i> Export CSV</button>
-    <span id="stok-info-msg" style="font-size:12px;color:var(--danger)"></span>
+    <input type="text" id="stok-search" placeholder="Cari SKU / katalog..."
+      style="font-family:var(--f);font-size:13px;padding:4px 8px;border:2px solid var(--ink);background:var(--cream);width:180px;margin-left:auto"
+      oninput="filterStok()">
   </div>
 
   <!-- MODAL PASTE MASSAL STOK -->
   <div class="modal-overlay" id="modal-paste-stok">
     <div class="modal" style="max-width:480px">
-      <div class="modal-title"><i class="ti ti-clipboard"></i> Paste Massal Stok</div>
+      <div class="modal-title"><i class="ti ti-clipboard"></i> Paste Massal Stok Masuk</div>
       <div style="font-size:12px;color:var(--ink3);margin-bottom:10px;line-height:1.6">
-        Copy dari Excel lalu paste di bawah.<br>
+        Copy dari Google Sheet / Excel lalu paste di bawah.<br>
         Urutan kolom: <b>SKU Variasi → Qty (stok masuk)</b>
       </div>
       <textarea id="paste-area-stok"
@@ -72,39 +38,56 @@ document.getElementById('page-stok').innerHTML = `
       </div>
       <div class="modal-actions">
         <button class="btn btn-sm" onclick="parsePasteStok()"><i class="ti ti-eye"></i> Preview</button>
-        <button class="btn btn-primary btn-sm" id="btn-simpan-paste-stok" onclick="simpanPasteStok()" style="display:none"><i class="ti ti-check"></i> Simpan Semua</button>
-        <button class="btn btn-sm" onclick="closeModal('modal-paste-stok')">Batal</button>
+        <button class="btn btn-primary btn-sm" id="btn-simpan-paste-stok" onclick="simpanPasteStok()" style="display:none"><i class="ti ti-device-floppy"></i> Simpan Semua</button>
+        <button class="btn btn-sm" onclick="closeModal('modal-paste-stok')"><i class="ti ti-x"></i> Batal</button>
       </div>
     </div>
   </div>
 
-  <!-- FORM TAMBAH/EDIT SKU -->
+  <!-- FORM TAMBAH/EDIT STOK MASUK -->
   <div id="form-tambah-stok" style="display:none;margin-bottom:12px">
     <div class="card">
-      <div class="card-title" id="stok-form-title"><i class="ti ti-plus"></i> Tambah SKU Baru</div>
+      <div class="card-title" id="stok-form-title"><i class="ti ti-plus"></i> Tambah Stok Masuk</div>
       <input type="hidden" id="inp-id">
       <div class="form-row">
-        <div class="form-group"><label>SKU Variasi</label><input type="text" id="inp-sku" placeholder="mis: MAYRA_MAUVE"></div>
-        <div class="form-group"><label>Katalog</label><input type="text" id="inp-katalog" placeholder="mis: MAYRA"></div>
-        <div class="form-group"><label>Boss</label><input type="text" id="inp-boss" placeholder="mis: H Solah"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Stok Masuk</label><input type="number" id="inp-masuk" placeholder="0"></div>
-        <div class="form-group"><label>Stok Keluar</label><input type="number" id="inp-keluar" placeholder="0"></div>
-        <div class="form-group"><label>HPP (Rp)</label><input type="number" id="inp-hpp" placeholder="0"></div>
+        <div class="form-group" style="flex:2;position:relative">
+          <label>SKU Variasi</label>
+          <div style="display:flex">
+            <input type="text" id="inp-sku" placeholder="Ketik atau pilih SKU..." autocomplete="off"
+              oninput="stokSuggestSku()" onfocus="stokSuggestSku()"
+              style="flex:1;border-right:none">
+            <button onclick="stokToggleSkuFull()"
+              style="background:var(--cream2);border:2px solid var(--ink);border-left:none;padding:0 10px;cursor:pointer;font-size:14px">▼</button>
+          </div>
+          <div id="stok-sku-dropdown"
+            style="display:none;position:absolute;top:100%;left:0;right:0;z-index:999;
+                   background:var(--cream);border:2px solid var(--ink);border-top:none;
+                   max-height:180px;overflow-y:auto;box-shadow:4px 4px 0 var(--ink4)"></div>
+        </div>
+        <div class="form-group">
+          <label>Stok Masuk (Qty)</label>
+          <input type="number" id="inp-masuk" placeholder="0" min="0">
+        </div>
         <div class="form-group" style="flex:0;justify-content:flex-end">
           <label>&nbsp;</label>
-          <button class="btn btn-primary btn-sm" onclick="simpanStok()">Simpan</button>
-          <button class="btn btn-sm" onclick="cancelStokForm()" style="margin-top:4px">Batal</button>
+          <button class="btn btn-primary btn-sm" onclick="simpanStok()"><i class="ti ti-device-floppy"></i> Simpan</button>
+          <button class="btn btn-sm" onclick="cancelStokForm()" style="margin-top:4px"><i class="ti ti-x"></i> Batal</button>
         </div>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-title"><i class="ti ti-package"></i>Semua SKU</div>
+    <div class="card-title" style="display:flex;align-items:center;gap:8px">
+      <i class="ti ti-package"></i> Semua SKU
+      <span id="stok-summary" style="font-size:12px;color:var(--ink3);font-weight:400;margin-left:auto"></span>
+    </div>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>SKU Variasi</th><th>Katalog</th><th>Boss</th><th>Masuk</th><th>Keluar</th><th>Sisa</th><th>HPP</th><th>Nilai Stok</th><th>Status</th><th>Aksi</th></tr></thead>
+      <thead><tr>
+        <th>SKU Variasi</th><th>Katalog</th><th>Boss</th>
+        <th>Masuk</th><th>Keluar</th><th>Sisa</th>
+        <th>HPP</th><th>Nilai Stok</th><th>Status</th><th>Aksi</th>
+      </tr></thead>
       <tbody id="stok-tbody">
         <tr><td colspan="10" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
       </tbody>
@@ -112,95 +95,229 @@ document.getElementById('page-stok').innerHTML = `
   </div>
 `;
 
-// render sketchy UI untuk halaman stok setelah innerHTML siap
 setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-stok')); }, 80);
 
+// ─── STATE ────────────────────────────────────────────────────
+let _stokAllData  = [];   // hasil merge produk + stok + jurnal
+let _stokMasukMap = {};   // sku -> {id, qty}  (dari tabel stok)
+let _produkForStok = [];  // dari tabel produk
+
+// ─── LOAD UTAMA ───────────────────────────────────────────────
+async function loadStok() {
+  const tbody = document.getElementById('stok-tbody');
+  tbody.innerHTML = '<tr><td colspan="10" style="color:var(--ink3);font-style:italic">Memuat data...</td></tr>';
+
+  try {
+    // 1. Ambil semua produk (basis SKU)
+    const produkData = await dbGet('produk', '&order=katalog.asc,sku_variasi.asc');
+    _produkForStok = Array.isArray(produkData) ? produkData : [];
+
+    // 2. Ambil semua stok masuk manual
+    const stokData = await dbGet('stok');
+    _stokMasukMap = {};
+    if (Array.isArray(stokData)) {
+      stokData.forEach(s => {
+        const key = (s.sku_variasi || '').toUpperCase();
+        _stokMasukMap[key] = { id: s.id, qty: s.stok_masuk || 0 };
+      });
+    }
+
+    // 3. Ambil sum keluar dari jurnal_penjualan per SKU
+    const jurnalData = await dbGet('jurnal_penjualan', '&select=sku,qty');
+    const keluarMap = {};
+    if (Array.isArray(jurnalData)) {
+      jurnalData.forEach(j => {
+        const key = (j.sku || '').toUpperCase();
+        keluarMap[key] = (keluarMap[key] || 0) + (j.qty || 0);
+      });
+    }
+
+    // 4. Merge: semua SKU dari produk sebagai basis
+    _stokAllData = _produkForStok.map(p => {
+      const skuKey = (p.sku_variasi || '').toUpperCase();
+      const masuk  = _stokMasukMap[skuKey] ? _stokMasukMap[skuKey].qty : 0;
+      const keluar = keluarMap[skuKey] || 0;
+      const sisa   = masuk - keluar;
+      return {
+        sku_variasi: p.sku_variasi,
+        katalog:     p.katalog,
+        boss:        p.boss,
+        hpp:         p.hpp || 0,
+        stok_masuk:  masuk,
+        stok_keluar: keluar,
+        sisa,
+        nilai_stok:  sisa > 0 ? sisa * (p.hpp || 0) : 0,
+        _stok_id:    _stokMasukMap[skuKey] ? _stokMasukMap[skuKey].id : null,
+      };
+    });
+
+    renderStok(_stokAllData);
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="10" style="color:var(--danger)">Error: ${err.message}</td></tr>`;
+  }
+}
+
+// ─── RENDER ───────────────────────────────────────────────────
+function renderStok(data) {
+  const tbody = document.getElementById('stok-tbody');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--ink3);font-style:italic">Belum ada data produk</td></tr>';
+    return;
+  }
+
+  // Summary
+  const totalNilai = data.reduce((s, r) => s + (r.nilai_stok || 0), 0);
+  const totalSisa  = data.reduce((s, r) => s + (r.sisa || 0), 0);
+  const elSum = document.getElementById('stok-summary');
+  if (elSum) elSum.textContent =
+    `${data.length} SKU · Sisa: ${totalSisa} pcs · Nilai: Rp${totalNilai.toLocaleString('id-ID')}`;
+
+  tbody.innerHTML = data.map(row => {
+    const hpp   = row.hpp   ? `Rp${row.hpp.toLocaleString('id-ID')}` : 'Rp—';
+    const nilai = row.nilai_stok > 0 ? `Rp${row.nilai_stok.toLocaleString('id-ID')}` : '—';
+    const safeSku = (row.sku_variasi || '').replace(/"/g, '&quot;');
+    return `<tr>
+      <td><b>${row.sku_variasi || '—'}</b></td>
+      <td>${row.katalog || '—'}</td>
+      <td>${row.boss || '—'}</td>
+      <td style="text-align:center">${row.stok_masuk}</td>
+      <td style="text-align:center;color:var(--danger)">${row.stok_keluar}</td>
+      <td style="text-align:center"><b>${row.sisa}</b></td>
+      <td>${hpp}</td>
+      <td style="color:var(--ok);font-weight:700">${nilai}</td>
+      <td>${statusBadge(row.sisa)}</td>
+      <td>
+        <button class="btn btn-sm" data-action="edit-stok" data-sku="${safeSku}" style="margin-right:4px" title="Edit stok masuk"><i class="ti ti-edit"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── FILTER ───────────────────────────────────────────────────
+function filterStok() {
+  const q = (document.getElementById('stok-search').value || '').toLowerCase().trim();
+  if (!q) { renderStok(_stokAllData); return; }
+  const filtered = _stokAllData.filter(r =>
+    (r.sku_variasi || '').toLowerCase().includes(q) ||
+    (r.katalog     || '').toLowerCase().includes(q) ||
+    (r.boss        || '').toLowerCase().includes(q)
+  );
+  renderStok(filtered);
+}
+
+// ─── EVENT DELEGATION ─────────────────────────────────────────
+document.getElementById('page-stok').addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  if (btn.dataset.action === 'edit-stok') {
+    editStok(btn.dataset.sku);
+  }
+});
+
+// ─── FORM TAMBAH/EDIT ─────────────────────────────────────────
 function showTambahStok() {
-  document.getElementById('stok-form-title').innerHTML = '<i class="ti ti-plus"></i> Tambah SKU Baru';
-  document.getElementById('inp-id').value = '';
-  document.getElementById('inp-sku').value = '';
-  document.getElementById('inp-katalog').value = '';
-  document.getElementById('inp-boss').value = '';
+  document.getElementById('stok-form-title').innerHTML = '<i class="ti ti-plus"></i> Tambah Stok Masuk';
+  document.getElementById('inp-id').value    = '';
+  document.getElementById('inp-sku').value   = '';
   document.getElementById('inp-masuk').value = '';
-  document.getElementById('inp-keluar').value = '';
-  document.getElementById('inp-hpp').value = '';
   document.getElementById('form-tambah-stok').style.display = 'block';
   sketchForm('form-tambah-stok');
+  document.getElementById('form-tambah-stok').scrollIntoView({behavior:'smooth'});
 }
 
 function cancelStokForm() {
   document.getElementById('form-tambah-stok').style.display = 'none';
+  stokTutupDropdown();
 }
 
-async function editStok(id) {
-  try {
-    const data = await dbGet('stok', `&id=eq.${id}`);
-    if (!data || !data[0]) return;
-    const r = data[0];
-    document.getElementById('stok-form-title').innerHTML = '<i class="ti ti-edit"></i> Edit SKU';
-    document.getElementById('inp-id').value       = r.id;
-    document.getElementById('inp-sku').value      = r.sku_variasi || '';
-    document.getElementById('inp-katalog').value  = r.katalog || '';
-    document.getElementById('inp-boss').value     = r.boss || '';
-    document.getElementById('inp-masuk').value    = r.stok_masuk || 0;
-    document.getElementById('inp-keluar').value   = r.stok_keluar || 0;
-    document.getElementById('inp-hpp').value      = r.hpp || 0;
-    document.getElementById('form-tambah-stok').style.display = 'block';
-    document.getElementById('form-tambah-stok').scrollIntoView({behavior:'smooth'});
-  } catch(err) { alert('Gagal load data: ' + err.message); }
+function editStok(sku) {
+  const skuKey = sku.toUpperCase();
+  const existing = _stokMasukMap[skuKey];
+  document.getElementById('stok-form-title').innerHTML = '<i class="ti ti-edit"></i> Edit Stok Masuk — ' + sku;
+  document.getElementById('inp-id').value    = existing ? existing.id : '';
+  document.getElementById('inp-sku').value   = sku;
+  document.getElementById('inp-masuk').value = existing ? existing.qty : 0;
+  document.getElementById('form-tambah-stok').style.display = 'block';
+  sketchForm('form-tambah-stok');
+  document.getElementById('form-tambah-stok').scrollIntoView({behavior:'smooth'});
 }
 
 async function simpanStok() {
-  const id = document.getElementById('inp-id').value;
-  const data = {
-    sku_variasi:  document.getElementById('inp-sku').value.trim(),
-    katalog:      document.getElementById('inp-katalog').value.trim(),
-    boss:         document.getElementById('inp-boss').value.trim(),
-    stok_masuk:   parseInt(document.getElementById('inp-masuk').value)  || 0,
-    stok_keluar:  parseInt(document.getElementById('inp-keluar').value) || 0,
-    hpp:          parseInt(document.getElementById('inp-hpp').value)    || 0,
+  const id  = document.getElementById('inp-id').value;
+  const sku = document.getElementById('inp-sku').value.trim();
+  const qty = parseInt(document.getElementById('inp-masuk').value) || 0;
+
+  if (!sku) { alert('SKU Variasi wajib diisi!'); return; }
+
+  // Cari data produk untuk ambil katalog & boss
+  const prod = _produkForStok.find(p =>
+    (p.sku_variasi || '').toUpperCase() === sku.toUpperCase()
+  );
+
+  const payload = {
+    sku_variasi:  sku.toUpperCase(),
+    stok_masuk:   qty,
+    stok_keluar:  0,
+    katalog:      prod ? prod.katalog : '',
+    boss:         prod ? prod.boss    : '',
+    hpp:          prod ? prod.hpp     : 0,
   };
-  if (!data.sku_variasi) { alert('SKU Variasi wajib diisi!'); return; }
+
   try {
     if (id) {
-      await dbUpdate('stok', id, data);
+      await dbUpdate('stok', id, { stok_masuk: qty });
     } else {
-      await dbInsert('stok', data);
+      await dbInsert('stok', payload);
     }
     cancelStokForm();
     loadStok();
-    loadDashboard();
   } catch(err) { alert('Gagal simpan: ' + err.message); }
 }
 
-async function hapusStok(id, sku) {
-  confirmDelete(`Hapus SKU "${sku}"? Data tidak bisa dikembalikan.`, async () => {
-    try {
-      await dbDelete('stok', id);
-      loadStok();
-      loadDashboard();
-    } catch(err) { alert('Gagal hapus: ' + err.message); }
-  });
+// ─── SKU AUTOCOMPLETE DI FORM ─────────────────────────────────
+function stokSuggestSku() {
+  const q   = (document.getElementById('inp-sku').value || '').toLowerCase();
+  const dd  = document.getElementById('stok-sku-dropdown');
+  const list = _produkForStok.filter(p =>
+    !q || (p.sku_variasi || '').toLowerCase().includes(q)
+  ).slice(0, 30);
+
+  if (!list.length) { dd.style.display = 'none'; return; }
+  dd.innerHTML = list.map(p =>
+    `<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px dashed var(--ink4)"
+      onmousedown="stokPilihSku('${(p.sku_variasi||'').replace(/'/g,"\\'")}')">
+      <b>${p.sku_variasi}</b>
+      <span style="color:var(--ink3);font-size:11px;margin-left:6px">${p.katalog || ''}</span>
+    </div>`
+  ).join('');
+  dd.style.display = 'block';
 }
 
-async function exportStok() {
-  try {
-    const data = await dbGet('stok');
-    if (!data || data.length === 0) {
-      document.getElementById('stok-info-msg').textContent = '⚠ Belum ada data stok untuk diexport';
-      return;
-    }
-    const headers = ['SKU Variasi','Katalog','Boss','Stok Masuk','Stok Keluar','Sisa','HPP','Nilai Stok','Status'];
-    const rows = data.map(r => {
-      const sisa = (r.stok_masuk||0) - (r.stok_keluar||0);
-      const status = sisa <= 0 ? 'Habis' : sisa <= 3 ? 'Kritis' : sisa <= 8 ? 'Ati2' : 'Aman';
-      return [r.sku_variasi, r.katalog, r.boss, r.stok_masuk, r.stok_keluar, sisa, r.hpp, sisa*(r.hpp||0), status];
-    });
-    exportCSV('zenoot-stok.csv', headers, rows);
-  } catch(err) { document.getElementById('stok-info-msg').textContent = '⚠ Gagal export: ' + err.message; }
+function stokToggleSkuFull() {
+  document.getElementById('inp-sku').value = '';
+  stokSuggestSku();
+  document.getElementById('inp-sku').focus();
 }
 
-// ─── PASTE MASSAL STOK ────────────────────────────────────────
+function stokPilihSku(sku) {
+  document.getElementById('inp-sku').value = sku;
+  stokTutupDropdown();
+  document.getElementById('inp-masuk').focus();
+}
+
+function stokTutupDropdown() {
+  const dd = document.getElementById('stok-sku-dropdown');
+  if (dd) dd.style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+  const inp = document.getElementById('inp-sku');
+  const dd  = document.getElementById('stok-sku-dropdown');
+  if (!inp || !dd) return;
+  if (!inp.contains(e.target) && !dd.contains(e.target)) dd.style.display = 'none';
+});
+
+// ─── PASTE MASSAL ─────────────────────────────────────────────
 function showPasteStok() {
   document.getElementById('paste-area-stok').value = '';
   document.getElementById('paste-stok-preview').style.display = 'none';
@@ -217,30 +334,26 @@ function parsePasteStok() {
 
   _parsedStok = [];
   const lines = raw.split('\n');
-
   for (const line of lines) {
     if (!line.trim()) continue;
     const cols = line.split('\t').map(c => c.trim());
     if (cols.length < 2) continue;
-
-    const sku = cols[0] || '';
-    const qty = parseInt((cols[1]||'').replace(/[^0-9]/g,'')) || 0;
+    const sku = (cols[0] || '').toUpperCase();
+    const qty = parseInt((cols[1] || '').replace(/[^0-9]/g, '')) || 0;
     if (!sku) continue;
-    _parsedStok.push({ sku_variasi: sku, stok_masuk: qty, stok_keluar: 0 });
+    _parsedStok.push({ sku_variasi: sku, stok_masuk: qty });
   }
 
   if (_parsedStok.length === 0) {
-    alert('Tidak ada data yang terbaca. Pastikan format: SKU Variasi (tab) Qty');
+    alert('Tidak ada data yang terbaca. Format: SKU Variasi (tab) Qty');
     return;
   }
 
   document.getElementById('paste-stok-count').textContent =
     `✓ ${_parsedStok.length} SKU siap diimport`;
-  document.getElementById('paste-stok-tbody').innerHTML = _parsedStok.map(r => `
-    <tr>
-      <td>${r.sku_variasi}</td>
-      <td><b>${r.stok_masuk}</b></td>
-    </tr>`).join('');
+  document.getElementById('paste-stok-tbody').innerHTML = _parsedStok.map(r =>
+    `<tr><td>${r.sku_variasi}</td><td><b>${r.stok_masuk}</b></td></tr>`
+  ).join('');
   document.getElementById('paste-stok-preview').style.display = 'block';
   document.getElementById('btn-simpan-paste-stok').style.display = 'inline-block';
 }
@@ -250,16 +363,31 @@ async function simpanPasteStok() {
   const btn = document.getElementById('btn-simpan-paste-stok');
   btn.textContent = 'Menyimpan...';
   btn.disabled = true;
+
   try {
     let ok = 0;
     for (const row of _parsedStok) {
-      await dbInsert('stok', row);
+      const skuKey = row.sku_variasi.toUpperCase();
+      const prod   = _produkForStok.find(p => (p.sku_variasi||'').toUpperCase() === skuKey);
+      const existing = _stokMasukMap[skuKey];
+      const payload  = {
+        sku_variasi: row.sku_variasi,
+        stok_masuk:  row.stok_masuk,
+        stok_keluar: 0,
+        katalog:     prod ? prod.katalog : '',
+        boss:        prod ? prod.boss    : '',
+        hpp:         prod ? prod.hpp     : 0,
+      };
+      if (existing) {
+        await dbUpdate('stok', existing.id, { stok_masuk: row.stok_masuk });
+      } else {
+        await dbInsert('stok', payload);
+      }
       ok++;
       btn.textContent = `Menyimpan ${ok}/${_parsedStok.length}...`;
     }
     closeModal('modal-paste-stok');
     loadStok();
-    loadDashboard();
     alert(`✓ ${ok} SKU berhasil disimpan!`);
   } catch(err) {
     alert('Gagal simpan: ' + err.message);
@@ -267,6 +395,17 @@ async function simpanPasteStok() {
     btn.textContent = 'Simpan Semua';
     btn.disabled = false;
   }
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────
+async function exportStok() {
+  if (!_stokAllData.length) { alert('Belum ada data'); return; }
+  const headers = ['SKU Variasi','Katalog','Boss','Stok Masuk','Keluar (Terjual)','Sisa','HPP','Nilai Stok','Status'];
+  const rows = _stokAllData.map(r => {
+    const status = r.sisa <= 0 ? 'Habis' : r.sisa <= 3 ? 'Kritis' : r.sisa <= 8 ? 'Ati2' : 'Aman';
+    return [r.sku_variasi, r.katalog, r.boss, r.stok_masuk, r.stok_keluar, r.sisa, r.hpp, r.nilai_stok, status];
+  });
+  exportCSV('zenoot-stok.csv', headers, rows);
 }
 
 loadStok();
