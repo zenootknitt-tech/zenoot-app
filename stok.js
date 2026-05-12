@@ -584,8 +584,17 @@ function stokSetFilter(type, val) {
     badgeEl.textContent = bLabel;
   }
 
-  // Tutup semua
-  stokToggleFilterAll();
+  // Tutup semua submenu dan main dropdown secara langsung
+  // (jangan pakai stokToggleFilterAll() karena bisa toggle arah salah)
+  ['boss','katalog','status'].forEach(function(t) {
+    var s = document.getElementById('dd-filter-' + t);
+    if (s) s.style.display = 'none';
+    var m = document.getElementById('mi-' + t);
+    if (m) { m.style.background = ''; m.style.color = ''; }
+  });
+  var dd = document.getElementById('dd-filter-all');
+  if (dd) dd.style.display = 'none';
+
   _stokUpdateFilterLabel();
   filterStok();
 }
@@ -600,6 +609,12 @@ document.addEventListener('click', function(e) {
     return s && s.contains(e.target);
   });
   if (inSub) return; // jangan tutup kalau klik di submenu
+  // Cek apakah klik di dalam main menu items (mi-boss, mi-katalog, mi-status)
+  var inMenuItem = ['mi-boss','mi-katalog','mi-status'].some(function(id) {
+    var m = document.getElementById(id);
+    return m && m.contains(e.target);
+  });
+  if (inMenuItem) return; // biarkan stokOpenSub yang handle
   if (dd && dd.style.display === 'block') {
     if (!dd.contains(e.target) && btn && !btn.contains(e.target)) {
       // Tutup semua submenu
