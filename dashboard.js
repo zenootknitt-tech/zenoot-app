@@ -45,6 +45,19 @@ document.getElementById('page-dashboard').innerHTML = `
       <div class="doodle" style="bottom:6px;right:8px">📈</div>
     </div>
     <div class="metric">
+      <div class="m-label">Target Harian</div>
+      <div class="m-value" id="d-target-harian">—</div>
+      <div class="m-delta">
+        <div id="d-target-harian-bar-wrap" style="margin-top:4px;display:none">
+          <div style="background:var(--cream4);height:6px;border-radius:3px;overflow:hidden;border:1px solid var(--ink4)">
+            <div id="d-target-harian-bar" style="height:100%;background:var(--ok);transition:width .5s;width:0%"></div>
+          </div>
+          <span id="d-target-harian-pct" style="font-size:10px;color:var(--ink3)">0%</span>
+        </div>
+      </div>
+      <div class="doodle" style="bottom:6px;right:8px">📅</div>
+    </div>
+    <div class="metric">
       <div class="m-label">Target Omset</div>
       <div class="m-value" id="d-target">—</div>
       <div class="m-delta">
@@ -62,12 +75,6 @@ document.getElementById('page-dashboard').innerHTML = `
       <div class="m-value" id="d-order-hari">—</div>
       <div class="m-delta" id="d-order-hari-delta">transaksi masuk</div>
       <div class="doodle" style="bottom:6px;right:8px">🛍️</div>
-    </div>
-    <div class="metric">
-      <div class="m-label">Avg Order Value</div>
-      <div class="m-value" id="d-aov">—</div>
-      <div class="m-delta">rata2 per transaksi bulan ini</div>
-      <div class="doodle" style="bottom:6px;right:8px">💳</div>
     </div>
   </div>
 
@@ -602,19 +609,14 @@ async function loadDashboard() {
     const omsetHari = jpHariIni.reduce((s,r)=>s+(Number(r.total)||0),0);
     const aov       = jpBulan.length>0 ? Math.round(omsetBln/jpBulan.length) : 0;
 
-    // Omset bulan + bar harian (target harian = target/hari dalam bulan)
+    // Omset bulan + info harian
     document.getElementById('d-omset').textContent = _fmtRp(omsetBln);
-    // Bar omset harian di bawah nilai omset bulan
-    const hariDlmBulan = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate();
     const omsetDeltaEl = document.getElementById('d-omset-delta');
-    if (omsetDeltaEl) {
-      omsetDeltaEl.innerHTML =
-        '<span style="font-size:11px;color:var(--ink3)">Hari ini: <b style="color:'+(omsetHari>0?'var(--ok)':'var(--ink3)')+'">'+_fmtRp(omsetHari)+'</b></span>';
-    }
+    if (omsetDeltaEl) omsetDeltaEl.textContent = 'dari jurnal penjualan';
 
-    document.getElementById('d-order-hari').textContent     = jpHariIni.length + ' transaksi';
+    document.getElementById('d-order-hari').textContent       = jpHariIni.length + ' transaksi';
     document.getElementById('d-order-hari-delta').textContent = omsetHari>0 ? _fmtRp(omsetHari)+' hari ini' : 'belum ada order hari ini';
-    document.getElementById('d-aov').textContent            = _fmtRp(aov);
+    document.getElementById('d-aov').textContent              = _fmtRp(aov);
 
     // ─ Target Omset — Logika ekonomi: Target = Beban / (beban_persen / 100)
     let target = _getTarget();
@@ -640,6 +642,21 @@ async function loadDashboard() {
       if (barWrap) barWrap.style.display = 'block';
       if (bar)     { bar.style.width = pct+'%'; bar.style.background = pct>=100?'var(--ok)':pct>=60?'var(--warn)':'var(--danger)'; }
       if (pctEl)   pctEl.textContent = pct+'% tercapai';
+    }
+
+    // ─ Target Harian = Target Bulanan ÷ Jumlah hari dalam bulan
+    const hariDlmBulan  = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate();
+    const targetHarian  = target>0 ? Math.round(target / hariDlmBulan) : 0;
+    const thEl          = document.getElementById('d-target-harian');
+    if (thEl) thEl.textContent = targetHarian>0 ? _fmtRp(targetHarian) : '—';
+    if (targetHarian>0) {
+      const pctH     = Math.min((Number(omsetHari)||0) / targetHarian * 100, 100).toFixed(1);
+      const bwH      = document.getElementById('d-target-harian-bar-wrap');
+      const barH     = document.getElementById('d-target-harian-bar');
+      const pctHEl   = document.getElementById('d-target-harian-pct');
+      if (bwH)   bwH.style.display = 'block';
+      if (barH)  { barH.style.width = pctH+'%'; barH.style.background = pctH>=100?'var(--ok)':pctH>=60?'var(--warn)':'var(--danger)'; }
+      if (pctHEl) pctHEl.textContent = _fmtRp(omsetHari)+' · '+pctH+'% tercapai';
     }
 
     // ─ Alerts
