@@ -81,11 +81,6 @@ function closeSidebar() {
 })();
 
 // ─── PAGE MAP ────────────────────────────────────────────────
-const pageMap = {
-  // Operasional
-  dashboard:           { title:'Dashboard',          sub:'overview performa hari ini'        },
-  stok:                { title:'Stok Produk',         sub:'monitoring stok semua SKU'         },
-// ─── PAGE MAP ────────────────────────────────────────────────
 var pageMap = {
   'dashboard':          { title:'Dashboard',          sub:'overview performa hari ini'     },
   'stok':               { title:'Stok Produk',         sub:'monitoring stok semua SKU'      },
