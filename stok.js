@@ -20,33 +20,24 @@ document.getElementById('page-stok').innerHTML = `
         box-shadow:4px 4px 0 var(--ink4)">
 
         <!-- Menu: Supplier -->
-        <div id="mi-boss" onmouseenter="stokOpenSub('boss',this)"
-          style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4);position:relative">
+        <div id="mi-boss" onmouseenter="stokOpenSub('boss')"
+          style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4)">
           <span><i class="ti ti-user" style="font-size:12px;margin-right:6px"></i>Supplier <span id="badge-boss" style="font-size:10px;color:var(--ink3)"></span></span>
           <i class="ti ti-chevron-right" style="font-size:11px"></i>
-          <div id="dd-filter-boss" style="display:none;position:absolute;left:100%;top:-2px;z-index:1000;
-            background:var(--cream);border:2px solid var(--ink);min-width:160px;max-height:240px;overflow-y:auto;
-            box-shadow:4px 4px 0 var(--ink4)"></div>
         </div>
 
         <!-- Menu: SKU Induk -->
-        <div id="mi-katalog" onmouseenter="stokOpenSub('katalog',this)"
-          style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4);position:relative">
+        <div id="mi-katalog" onmouseenter="stokOpenSub('katalog')"
+          style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4)">
           <span><i class="ti ti-tag" style="font-size:12px;margin-right:6px"></i>SKU Induk <span id="badge-katalog" style="font-size:10px;color:var(--ink3)"></span></span>
           <i class="ti ti-chevron-right" style="font-size:11px"></i>
-          <div id="dd-filter-katalog" style="display:none;position:absolute;left:100%;top:-2px;z-index:1000;
-            background:var(--cream);border:2px solid var(--ink);min-width:180px;max-height:240px;overflow-y:auto;
-            box-shadow:4px 4px 0 var(--ink4)"></div>
         </div>
 
         <!-- Menu: Status -->
-        <div id="mi-status" onmouseenter="stokOpenSub('status',this)"
-          style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4);position:relative">
+        <div id="mi-status" onmouseenter="stokOpenSub('status')"
+          style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4)">
           <span><i class="ti ti-circle-check" style="font-size:12px;margin-right:6px"></i>Status <span id="badge-status" style="font-size:10px;color:var(--ink3)"></span></span>
           <i class="ti ti-chevron-right" style="font-size:11px"></i>
-          <div id="dd-filter-status" style="display:none;position:absolute;left:100%;top:-2px;z-index:1000;
-            background:var(--cream);border:2px solid var(--ink);min-width:150px;
-            box-shadow:4px 4px 0 var(--ink4)"></div>
         </div>
 
         <!-- Reset -->
@@ -56,6 +47,17 @@ document.getElementById('page-stok').innerHTML = `
           </button>
         </div>
       </div>
+
+      <!-- Submenu — di luar dd-filter-all, sejajar dengannya -->
+      <div id="dd-filter-boss" style="display:none;position:absolute;left:100%;top:0;z-index:1000;
+        background:var(--cream);border:2px solid var(--ink);min-width:170px;max-height:260px;overflow-y:auto;
+        box-shadow:4px 4px 0 var(--ink4)"></div>
+      <div id="dd-filter-katalog" style="display:none;position:absolute;left:100%;top:0;z-index:1000;
+        background:var(--cream);border:2px solid var(--ink);min-width:190px;max-height:260px;overflow-y:auto;
+        box-shadow:4px 4px 0 var(--ink4)"></div>
+      <div id="dd-filter-status" style="display:none;position:absolute;left:100%;top:0;z-index:1000;
+        background:var(--cream);border:2px solid var(--ink);min-width:160px;
+        box-shadow:4px 4px 0 var(--ink4)"></div>
     </div>
 
     <!-- KANAN: Paste Massal + Tambah -->
@@ -473,7 +475,10 @@ function stokToggleFilterAll() {
   dd.style.display = 'block';
 }
 
-function stokOpenSub(type, el) {
+function stokOpenSub(type) {
+  var el = document.getElementById('mi-' + type);
+  if (!el) return;
+
   // Tutup semua submenu lain, reset highlight
   ['boss','katalog','status'].forEach(function(t) {
     if (t !== type) {
@@ -487,6 +492,10 @@ function stokOpenSub(type, el) {
   // Highlight item aktif
   el.style.background = 'var(--ink)';
   el.style.color = 'var(--cream)';
+
+  // Sesuaikan posisi top submenu dengan posisi menu item
+  var sub = document.getElementById('dd-filter-' + type);
+  if (sub) sub.style.top = el.offsetTop + 'px';
 
   // Render isi submenu
   var opsi = [];
