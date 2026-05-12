@@ -294,9 +294,13 @@ function _renderChartPenjualan(jpData) {
   for (let i = _dashPeriod - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    const key = d.toISOString().split('T')[0];
+    const key = d.toISOString().split('T')[0]; // YYYY-MM-DD
     labels.push(String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'));
-    totals.push(jpData.filter(r => r.tanggal && r.tanggal.startsWith(key)).reduce((s,r) => s+(r.total||0), 0));
+    // Normalize tanggal: support "YYYY-MM-DD" dan "YYYY-MM-DDTHH:mm:ss"
+    const dayTotal = jpData
+      .filter(r => r.tanggal && String(r.tanggal).slice(0,10) === key)
+      .reduce((s,r) => s + (Number(r.total)||0), 0);
+    totals.push(dayTotal);
   }
 
   const maxVal  = Math.max(...totals, 1);
@@ -410,15 +414,19 @@ function _renderTopSku(jpData) {
 
 // ─── BOSS CHART ──────────────────────────────────────────────
 function _renderBoss(jpData, stokData) {
+  // Map SKU → boss, case-insensitive (sama dengan logika stok.js)
   const skuBossMap = {};
-  stokData.forEach(r => { if (r.sku_variasi && r.boss) skuBossMap[r.sku_variasi] = r.boss; });
+  stokData.forEach(r => {
+    if (r.sku_variasi && r.boss)
+      skuBossMap[(r.sku_variasi||'').toUpperCase()] = r.boss;
+  });
 
   const bossMap = {};
   jpData.forEach(r => {
-    const boss = skuBossMap[r.sku] || 'Lainnya';
+    const boss = skuBossMap[(r.sku||'').toUpperCase()] || 'Lainnya';
     if (!bossMap[boss]) bossMap[boss] = {qty:0,omset:0};
     bossMap[boss].qty   += (r.qty||0);
-    bossMap[boss].omset += (r.total||0);
+    bossMap[boss].omset += (Number(r.total)||0);
   });
 
   const sorted     = Object.entries(bossMap).sort((a,b)=>b[1].omset-a[1].omset);
@@ -517,14 +525,15 @@ async function loadDashboard() {
     const today    = new Date().toISOString().split('T')[0];
     const todayYM  = today.slice(0,7);
 
-    // Load semua data paralel — ambil produk + stok raw + semua jurnal penjualan
-    const [produkData, stokRaw, jurnalData, jpData, jurnalAllData, channelData] = await Promise.all([
+    // Load semua data paralel — ambil produk + stok raw + semua jurnal penjualan + beban
+    const [produkData, stokRaw, jurnalData, jpData, jurnalAllData, channelData, bebanData] = await Promise.all([
       dbGet('produk', '&order=katalog.asc,sku_variasi.asc'),
       dbGet('stok'),
       dbGet('jurnal', '&order=created_at.desc&limit=8'),
       dbGet('jurnal_penjualan', '&order=tanggal.desc'),
       dbGet('jurnal'),
-      dbGet('channels').catch(() => [])
+      dbGet('channels').catch(() => []),
+      dbGet('beban_operasional', '&tipe=eq.toko_utama').catch(() => [])
     ]);
 
     // ─ Bangun stokMasukMap dari tabel stok (sama persis seperti stok.js)
@@ -576,17 +585,26 @@ async function loadDashboard() {
     document.getElementById('d-saldo').style.color     = saldo>=0?'var(--ok)':'var(--danger)';
 
     // ─ Metric 5-8
-    const jpBulan   = _dashJPData.filter(r => r.tanggal && r.tanggal.startsWith(todayYM));
-    const jpHariIni = _dashJPData.filter(r => r.tanggal && r.tanggal.startsWith(today));
+    const jpBulan   = _dashJPData.filter(r => r.tanggal && String(r.tanggal).slice(0,7) === todayYM);
+    const jpHariIni = _dashJPData.filter(r => r.tanggal && String(r.tanggal).slice(0,10) === today);
     const omsetBln  = jpBulan.reduce((s,r)=>s+(r.total||0),0);
     const omsetHari = jpHariIni.reduce((s,r)=>s+(r.total||0),0);
     const aov       = jpBulan.length>0 ? Math.round(omsetBln/jpBulan.length) : 0;
-    const target    = _getTarget();
 
     document.getElementById('d-omset').textContent          = _fmtRp(omsetBln);
     document.getElementById('d-order-hari').textContent     = jpHariIni.length + ' transaksi';
     document.getElementById('d-order-hari-delta').textContent = omsetHari>0 ? _fmtRp(omsetHari)+' hari ini' : 'belum ada order hari ini';
     document.getElementById('d-aov').textContent            = _fmtRp(aov);
+
+    // ─ Target Omset: ambil dari beban_operasional toko_utama
+    //   Cari baris yang nama_beban-nya adalah angka (misal "4000000") → itu target omset
+    //   Fallback ke localStorage kalau tidak ada
+    let target = _getTarget();
+    const bebanArr = bebanData || [];
+    const targetRow = bebanArr.find(r => r.nama_beban && !isNaN(Number(String(r.nama_beban).replace(/\./g,'').replace(/,/g,''))));
+    if (targetRow) {
+      target = parseInt(String(targetRow.nama_beban).replace(/\./g,'').replace(/,/g,'')) || target;
+    }
 
     // Target
     const targetEl = document.getElementById('d-target');
@@ -608,18 +626,24 @@ async function loadDashboard() {
     // ─ Alerts
     _renderAlerts(_dashStokData, saldo);
 
-    // ─ Tabel stok (dengan kolom terjual/turnover)
-    const stokSorted = [..._dashStokData].sort((a,b) => a.sisa - b.sisa);
+    // ─ Tabel stok — hanya tampilkan SKU kritis (sisa ≤ 8), sorted dari paling kritis
+    const stokKritis = [..._dashStokData]
+      .filter(r => r.sisa <= 8)
+      .sort((a,b) => a.sisa - b.sisa)
+      .slice(0, 15);
     const stokSum = document.getElementById('dash-stok-summary');
     if (stokSum) stokSum.textContent = _dashStokData.length+' SKU · Nilai '+_fmtRp(nilaiStok);
-    document.getElementById('dash-stok-tbody').innerHTML = stokSorted.length===0
-      ? '<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Belum ada data stok</td></tr>'
-      : stokSorted.map(r => {
-          const sisa = r.sisa;
+    document.getElementById('dash-stok-tbody').innerHTML = stokKritis.length===0
+      ? '<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Semua stok aman ✓</td></tr>'
+      : stokKritis.map(r => {
           const sold = r.stok_keluar || 0;
-          return '<tr><td><b>'+r.sku_variasi+'</b></td><td>'+(r.boss||'—')+'</td><td><b>'+sisa+'</b></td>'+
-            '<td>'+(sold>0?'<span style="color:var(--ok);font-weight:700">'+sold+' terjual</span>':'<span style="color:var(--ink4)">—</span>')+'</td>'+
-            '<td>'+statusBadgeDash(sisa)+'</td></tr>';
+          return '<tr>' +
+            '<td><b>'+r.sku_variasi+'</b></td>' +
+            '<td>'+(r.boss||'—')+'</td>' +
+            '<td><b>'+(r.sisa <= 0 ? '<span style="color:var(--danger)">'+r.sisa+'</span>' : r.sisa)+'</b></td>'+
+            '<td>'+(sold>0?'<span style="color:var(--ok);font-weight:700">'+sold+'</span>':'<span style="color:var(--ink4)">—</span>')+'</td>'+
+            '<td>'+statusBadgeDash(r.sisa)+'</td>' +
+          '</tr>';
         }).join('');
 
     // ─ Jurnal terakhir
