@@ -124,7 +124,7 @@ body{display:flex;height:100vh;background:var(--cream);font-family:var(--f);colo
 
 /* ─── CONTENT ────────────────────────────────────────────── */
 .content{
-  flex:1;overflow-y:hidden;padding:16px;
+  flex:1;overflow-y:auto;padding:16px;
   background-image:repeating-linear-gradient(to bottom,transparent,transparent 27px,var(--paper-line) 27px,var(--paper-line) 28px);
   background-attachment:local;
 }
