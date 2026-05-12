@@ -232,6 +232,7 @@ body{display:flex;height:100vh;background:var(--cream);font-family:var(--f);colo
   border-bottom:4px solid #2C1A0E;text-transform:uppercase;letter-spacing:.06em;
   white-space:nowrap;font-family:var(--f2);
   position:sticky;top:0;background:var(--cream);z-index:2;
+  box-shadow:0 4px 0 0 #2C1A0E;
 }
 .tbl td{padding:7px 8px;border-bottom:1.5px dashed var(--ink4);white-space:nowrap;font-size:14px;font-weight:500}
 .tbl tr:last-child td{border:none}
