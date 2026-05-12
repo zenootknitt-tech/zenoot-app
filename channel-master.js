@@ -189,6 +189,7 @@ async function editChannel(id, kat) {
 async function simpanChannel(kat) {
   const id = document.getElementById('ch-id-' + kat).value;
   const data = {
+    tipe:        '',
     kategori:    kat,
     nama:        document.getElementById('ch-nama-' + kat).value.trim(),
     keterangan:  document.getElementById('ch-ket-' + kat).value.trim(),
