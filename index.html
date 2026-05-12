@@ -2,16 +2,18 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>Zenoot — Buku Bisnis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>zenOt — Trax Operasional</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ede7d9">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Zenoot">
+<meta name="apple-mobile-web-app-title" content="zenOt">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Handlee&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -32,7 +34,7 @@
 
 <div class="sidebar" id="sidebar">
   <div class="logo-block">
-    <div class="logo-name">zen<span class="logo-O">O</span>t</div>
+    <div class="logo-name">zen<span class="logo-capital">O</span>t</div>
     <span class="logo-tag">trax operasional</span>
   </div>
 
@@ -116,9 +118,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.min.js"></script>
-<script src="rough-ui.js?v=2"></script>
+<script src="rough-ui.js?v=1"></script>
 <script src="supabase.js?v=2"></script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=4"></script>
 <script src="dashboard.js?v=2"></script>
 <script src="produk.js?v=3"></script>
 <script src="stok.js?v=2"></script>
@@ -131,9 +133,8 @@
 <script src="channel-master.js?v=2"></script>
 <script src="beban-operasional.js?v=1"></script>
 <script>
-  // Register SW
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(function(){});
+    navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 </script>
 </body>

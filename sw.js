@@ -1,79 +1,102 @@
-// ─── SERVICE WORKER — Zenoot PWA ─────────────────────────────
-// ✅ Versi otomatis — tidak perlu update manual lagi!
+// ─── SERVICE WORKER — zenOt PWA v4 ───────────────────────────
+// Cache lengkap: semua file JS + font + icons
 
-// Setiap kali sw.js diubah & di-deploy, browser akan detect perubahan
-// dan install ulang SW otomatis (karena file sw.js itu sendiri berubah).
-// Cache name pakai timestamp waktu install supaya selalu fresh.
-let CACHE = 'zenoot-auto';
+var CACHE = 'zenot-auto';
 
-const ASSETS = [
+var ASSETS = [
   './',
   './index.html',
   './style.css',
-  './channels.js',
   './app.js',
+  './supabase.js',
+  './rough-ui.js',
+  './channels.js',
+  './hpp.js',
   './dashboard.js',
   './produk.js',
   './stok.js',
   './restock.js',
   './kas.js',
+  './jurnal-penjualan.js',
+  './price-list.js',
   './dataorder.js',
   './rekap.js',
-  './hpp.js',
-  './supabase.js',
-  'https://fonts.googleapis.com/css2?family=Handlee&family=Caveat:wght@400;600;700&display=swap',
+  './channel-master.js',
+  './beban-operasional.js',
+  'https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css',
+  'https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.min.js',
 ];
 
-// ─── INSTALL: buat cache baru dengan nama unik per install ───
-self.addEventListener('install', e => {
-  // Pakai timestamp supaya cache name selalu unik tiap install baru
-  CACHE = 'zenoot-' + Date.now();
+// ─── INSTALL ─────────────────────────────────────────────────
+self.addEventListener('install', function(e) {
+  CACHE = 'zenot-' + Date.now();
   e.waitUntil(
-    caches.open(CACHE)
-      .then(c => c.addAll(ASSETS))
-      .then(() => self.skipWaiting()) // langsung aktif, tidak tunggu tab ditutup
+    caches.open(CACHE).then(function(c) {
+      // addAll satu-satu agar satu file gagal tidak blokir semua
+      return Promise.all(
+        ASSETS.map(function(url) {
+          return c.add(url).catch(function(err) {
+            console.warn('[SW] Gagal cache:', url, err);
+          });
+        })
+      );
+    }).then(function() { return self.skipWaiting(); })
   );
 });
 
-// ─── ACTIVATE: hapus semua cache lama otomatis ───────────────
-self.addEventListener('activate', e => {
+// ─── ACTIVATE ────────────────────────────────────────────────
+self.addEventListener('activate', function(e) {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(k => k.startsWith('zenoot-') && k !== CACHE)
-          .map(k => {
-            console.log('[SW] Hapus cache lama:', k);
-            return caches.delete(k);
-          })
-      )
-    ).then(() => self.clients.claim()) // ambil alih semua tab yang terbuka
+    caches.keys().then(function(keys) {
+      return Promise.all(
+        keys.filter(function(k) {
+          return k.startsWith('zenot-') && k !== CACHE;
+        }).map(function(k) {
+          return caches.delete(k);
+        })
+      );
+    }).then(function() { return self.clients.claim(); })
   );
 });
 
-// ─── FETCH: network-first supaya update langsung kelihatan ───
-self.addEventListener('fetch', e => {
-  // Supabase: selalu network, jangan pernah cache
-  if (e.request.url.includes('supabase.co')) {
+// ─── FETCH: network-first ────────────────────────────────────
+self.addEventListener('fetch', function(e) {
+  // Supabase: selalu network, jangan cache
+  if (e.request.url.indexOf('supabase.co') !== -1) {
     e.respondWith(
-      fetch(e.request).catch(() =>
-        new Response('[]', { headers: { 'Content-Type': 'application/json' } })
-      )
+      fetch(e.request).catch(function() {
+        return new Response('[]', { headers: { 'Content-Type': 'application/json' } });
+      })
     );
     return;
   }
-
-  // App assets: coba network dulu, kalau gagal (offline) pakai cache
-  e.respondWith(
-    fetch(e.request)
-      .then(res => {
-        if (res.ok) {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return res;
+  // Google Fonts & CDN: cache-first (jarang berubah)
+  if (e.request.url.indexOf('fonts.googleapis.com') !== -1 ||
+      e.request.url.indexOf('fonts.gstatic.com') !== -1 ||
+      e.request.url.indexOf('cdn.jsdelivr.net') !== -1) {
+    e.respondWith(
+      caches.match(e.request).then(function(cached) {
+        if (cached) return cached;
+        return fetch(e.request).then(function(res) {
+          var clone = res.clone();
+          caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
+          return res;
+        });
       })
-      .catch(() => caches.match(e.request)) // fallback offline
+    );
+    return;
+  }
+  // App assets: network-first, fallback cache
+  e.respondWith(
+    fetch(e.request).then(function(res) {
+      if (res.ok) {
+        var clone = res.clone();
+        caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
+      }
+      return res;
+    }).catch(function() {
+      return caches.match(e.request);
+    })
   );
 });
