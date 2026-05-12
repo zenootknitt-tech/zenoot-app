@@ -226,7 +226,7 @@ body{display:flex;height:100vh;background:var(--cream);font-family:var(--f);colo
 
 /* ─── TABLE ──────────────────────────────────────────────── */
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
 .tbl th{
   text-align:left;padding:6px 8px;font-size:12px;font-weight:700;color:#000000;
   border-bottom:4px solid #2C1A0E;text-transform:uppercase;letter-spacing:.06em;
