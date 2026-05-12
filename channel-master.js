@@ -149,8 +149,8 @@ async function loadChannelByKategori(kat) {
         </td>
       </tr>
     `).join('');
-    // Refresh cache switcher toko utama
-    if (kat === 'toko_utama') loadChannelCache();
+    // Refresh dropdown JP kalau sudah diload
+    if (typeof loadChannelDropdownJP === 'function') loadChannelDropdownJP();
   } catch(err) {
     tbody.innerHTML = `<tr><td colspan="3" style="color:var(--danger)">Error: ${err.message}</td></tr>`;
   }

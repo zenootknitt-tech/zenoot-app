@@ -590,7 +590,7 @@ async function simpanJP() {
   const payload = {
     tanggal:      document.getElementById('jp-tgl').value,
     waktu:        waktu,
-    channel_id:   chId ? parseInt(chId) : null,
+    channel_id:   chId ? chId : null,
     sku:          sku,
     qty,
     harga_satuan: harga,
