@@ -99,11 +99,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
               style="background:var(--cream2);border:2px solid var(--ink);border-left:none;
                      padding:0 12px;cursor:pointer;font-size:16px;color:var(--ink)">&#9660;</button>
           </div>
-          <div id="jp-sku-dropdown"
-            style="display:none;position:fixed;z-index:9999;
-                   background:var(--cream);border:2px solid var(--ink);border-top:none;
-                   max-height:200px;overflow-y:auto;box-shadow:4px 4px 0 var(--ink4)">
-          </div>
+          <!-- dropdown SKU diinject ke body via JS -->
         </div>
       </div>
 
@@ -587,7 +583,11 @@ function showTambahJP() {
   // Reload produk list setiap buka modal agar selalu fresh
   loadProdukListJP();
   document.getElementById('modal-jp').classList.add('open');
-  setTimeout(() => document.getElementById('jp-channel').focus(), 100);
+  // Re-render sketchy UI untuk modal agar tombol SIMPAN tampil benar
+  setTimeout(() => {
+    if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('modal-jp'));
+    document.getElementById('jp-channel').focus();
+  }, 80);
 }
 
 // ─── EDIT ────────────────────────────────────────────────────
@@ -621,6 +621,7 @@ async function editJP(id) {
         : '<option value="">— Pilih Variasi —</option>';
     }
     document.getElementById('modal-jp').classList.add('open');
+    setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('modal-jp')); }, 80);
   } catch(err) { alert('Gagal load: ' + err.message); }
 }
 
@@ -631,7 +632,7 @@ async function simpanJP() {
   const harga = parseInt(document.getElementById('jp-harga').value) || 0;
   const total = parseInt(document.getElementById('jp-total').value) || qty * harga;
   const chIdRaw = document.getElementById('jp-channel').value;
-  const chId    = chIdRaw ? parseInt(chIdRaw) : null;
+  const chId    = chIdRaw ? chIdRaw : null;  // UUID string, jangan parseInt
   const skuV  = document.getElementById('jp-sku-variasi').value;
   const skuI  = document.getElementById('jp-sku-induk').value.trim().toUpperCase();
   const sku   = (skuV || skuI).trim().toUpperCase();
@@ -691,6 +692,15 @@ async function exportJurnalPenjualan() {
     exportCSV('zenoot-jurnal-penjualan.csv', headers, rows);
   } catch(err) { alert('Gagal export: ' + err.message); }
 }
+
+// ─── INJECT DROPDOWN SKU KE BODY ─────────────────────────────
+(function() {
+  if (document.getElementById('jp-sku-dropdown')) return;
+  const dd = document.createElement('div');
+  dd.id = 'jp-sku-dropdown';
+  dd.style.cssText = 'display:none;position:fixed;z-index:99999;background:var(--cream);border:2px solid var(--ink);border-top:none;max-height:220px;overflow-y:auto;box-shadow:4px 4px 0 var(--ink4)';
+  document.body.appendChild(dd);
+})();
 
 // ─── INIT ────────────────────────────────────────────────────
 document.getElementById('jp-filter-bulan').value = new Date().toISOString().slice(0,7);

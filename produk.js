@@ -147,7 +147,7 @@ function cancelFormProduk() {
 }
 
 async function editProduk(id) {
-  const r = _produkData.find(d => d.id === id);
+  const r = _produkData.find(d => d.id == id);  // == agar string '123' cocok dengan bigint 123
   if (!r) return;
   document.getElementById('produk-form-title').innerHTML = '<i class="ti ti-edit"></i> Edit SKU';
   document.getElementById('prd-id').value      = r.id;
@@ -278,7 +278,7 @@ document.getElementById('page-produk').addEventListener('click', function(e) {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
   const action = btn.dataset.action;
-  const id     = btn.dataset.id;   // bisa UUID, jangan parseInt
+  const id     = parseInt(btn.dataset.id);  // produk.id = bigint, harus parseInt
   if (action === 'edit-prd') {
     editProduk(id);
   } else if (action === 'hapus-prd') {
