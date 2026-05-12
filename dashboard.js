@@ -1,7 +1,7 @@
-// ─── DASHBOARD.JS v3 — Enterprise Edition ────────────────────
-// Fitur: metrics, grafik penjualan 7/14/30 hari, top SKU, performa boss,
-//        aktivitas order hari ini, alert otomatis, omset vs target,
-//        turnover stok, timeline aktivitas terakhir
+// ─── DASHBOARD.JS v4 — Full Edition ──────────────────────────
+// Fitur baru v4: AOV, HPP vs Omset/Laba Kotor, Performa per Channel,
+//   Grafik Omset per Katalog, Turnover Rate Stok, Ringkasan Beban,
+//   Tooltip hover chart penjualan, Distribusi status stok
 
 document.getElementById('page-dashboard').innerHTML = `
 
@@ -36,7 +36,7 @@ document.getElementById('page-dashboard').innerHTML = `
     </div>
   </div>
 
-  <!-- ═══ ROW 2: 4 METRIC CARDS (tambahan) ═════════════════════ -->
+  <!-- ═══ ROW 2: 4 METRIC CARDS ════════════════════════════════ -->
   <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
     <div class="metric">
       <div class="m-label">Omset Bulan Ini</div>
@@ -82,6 +82,34 @@ document.getElementById('page-dashboard').innerHTML = `
     </div>
   </div>
 
+  <!-- ═══ ROW 2b: METRIC BARU — AOV + LABA KOTOR + BEBAN ═══════ -->
+  <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+    <div class="metric">
+      <div class="m-label">AOV Bulan Ini</div>
+      <div class="m-value" id="d-aov">—</div>
+      <div class="m-delta">rata-rata per transaksi</div>
+      <div class="doodle" style="bottom:6px;right:8px">🧮</div>
+    </div>
+    <div class="metric">
+      <div class="m-label">Est. Laba Kotor</div>
+      <div class="m-value" id="d-laba">—</div>
+      <div class="m-delta" id="d-laba-delta">omset − HPP terjual</div>
+      <div class="doodle" style="bottom:6px;right:8px">💹</div>
+    </div>
+    <div class="metric">
+      <div class="m-label">Beban Operasional</div>
+      <div class="m-value" id="d-beban">—</div>
+      <div class="m-delta" id="d-beban-delta">bulan ini</div>
+      <div class="doodle" style="bottom:6px;right:8px">📋</div>
+    </div>
+    <div class="metric">
+      <div class="m-label">Est. Laba Bersih</div>
+      <div class="m-value" id="d-laba-bersih">—</div>
+      <div class="m-delta">laba kotor − beban</div>
+      <div class="doodle" style="bottom:6px;right:8px">🏆</div>
+    </div>
+  </div>
+
   <!-- ═══ ROW 3: GRAFIK PENJUALAN + TOP SKU ════════════════════ -->
   <div class="grid2" style="margin-bottom:12px">
 
@@ -99,6 +127,8 @@ document.getElementById('page-dashboard').innerHTML = `
         <div id="dash-chart-empty" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:var(--ink3);font-style:italic;font-size:13px">
           Belum ada data penjualan
         </div>
+        <!-- Tooltip hover -->
+        <div id="dash-chart-tooltip" style="display:none;position:absolute;background:var(--cream);border:2px solid var(--ink);padding:5px 10px;font-size:11px;font-family:var(--f);pointer-events:none;box-shadow:3px 3px 0 var(--ink4);z-index:10;white-space:nowrap"></div>
       </div>
       <div id="dash-chart-legend" style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--ink3);flex-wrap:wrap"></div>
     </div>
@@ -120,10 +150,12 @@ document.getElementById('page-dashboard').innerHTML = `
         <span><i class="ti ti-package"></i> Status Stok</span>
         <span id="dash-stok-summary" style="font-size:11px;color:var(--ink3);font-weight:400"></span>
       </div>
+      <!-- Distribusi status stok — BARU -->
+      <div id="dash-stok-dist" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap"></div>
       <div class="tbl-wrap"><table class="tbl">
-        <thead><tr><th>SKU</th><th>Boss</th><th>Sisa</th><th>Terjual</th><th>Status</th></tr></thead>
+        <thead><tr><th>SKU</th><th>Boss</th><th>Sisa</th><th>Terjual</th><th>Turnover</th><th>Status</th></tr></thead>
         <tbody id="dash-stok-tbody">
-          <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+          <tr><td colspan="6" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
         </tbody>
       </table></div>
     </div>
@@ -143,8 +175,43 @@ document.getElementById('page-dashboard').innerHTML = `
 
   </div>
 
-  <!-- ═══ ROW 5: JURNAL TERAKHIR + AKTIVITAS FEED ═══════════════ -->
+  <!-- ═══ ROW 5: PERFORMA CHANNEL + GRAFIK OMSET PER KATALOG ═══ -->
   <div class="grid2" style="margin-bottom:12px">
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-building-store"></i> Performa per Channel / Toko</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Channel</th><th>Transaksi</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
+        <tbody id="dash-channel-tbody">
+          <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+        </tbody>
+      </table></div>
+      <div style="position:relative;height:130px;margin-top:10px">
+        <canvas id="dash-chart-channel" style="width:100%;height:130px;display:block"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-bar"></i> Omset per Katalog / SKU Induk</div>
+      <div style="position:relative;height:220px;width:100%">
+        <canvas id="dash-chart-katalog" style="width:100%;height:100%;display:block"></canvas>
+        <div id="dash-katalog-empty" style="display:none;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink3);font-style:italic;font-size:13px">
+          Belum ada data
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ ROW 6: RINGKASAN BEBAN + JURNAL TERAKHIR ════════════ -->
+  <div class="grid2" style="margin-bottom:12px">
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-report-money"></i> Ringkasan Beban Operasional</div>
+      <div id="dash-beban-wrap">
+        <div style="color:var(--ink3);font-style:italic;font-size:13px">Memuat...</div>
+      </div>
+    </div>
 
     <div class="card">
       <div class="card-title"><i class="ti ti-list"></i> Jurnal Terakhir</div>
@@ -156,13 +223,16 @@ document.getElementById('page-dashboard').innerHTML = `
       </table></div>
     </div>
 
-    <div class="card">
+  </div>
+
+  <!-- ═══ ROW 7: AKTIVITAS FEED ════════════════════════════════ -->
+  <div class="grid2" style="margin-bottom:12px">
+    <div class="card" style="grid-column:1/-1">
       <div class="card-title"><i class="ti ti-clock"></i> Aktivitas Terbaru</div>
       <div id="dash-aktivitas-feed" style="display:flex;flex-direction:column;gap:0">
         <div style="color:var(--ink3);font-style:italic;font-size:13px">Memuat...</div>
       </div>
     </div>
-
   </div>
 
   <!-- ═══ FOOTER ════════════════════════════════════════════════ -->
@@ -211,6 +281,9 @@ document.getElementById('page-dashboard').innerHTML = `
     .dash-feed-time{font-size:10px;color:var(--ink4);margin-top:2px}
     .target-link{font-size:11px;color:var(--ink4);cursor:pointer;text-decoration:underline dashed;margin-left:4px}
     .target-link:hover{color:var(--ink2)}
+    .dist-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:2px solid var(--ink);font-size:11px;font-weight:700;font-family:var(--f)}
+    .beban-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--ink4);font-size:13px}
+    .beban-row:last-child{border-bottom:none}
   `;
   document.head.appendChild(s);
 })();
@@ -222,6 +295,7 @@ let _dashPeriod     = 7;
 let _dashJPData     = [];
 let _dashStokData   = [];
 let _dashChannelMap = {};
+let _dashChartPoints = []; // untuk tooltip hover
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function _fmtRp(v) {
@@ -295,19 +369,20 @@ function _renderAlerts(stokData, saldo) {
   ).join('');
 }
 
-// ─── CHART PENJUALAN ─────────────────────────────────────────
+// ─── CHART PENJUALAN + TOOLTIP HOVER ─────────────────────────
 function _renderChartPenjualan(jpData) {
-  const canvas = document.getElementById('dash-chart-penjualan');
+  const canvas  = document.getElementById('dash-chart-penjualan');
+  const tooltip = document.getElementById('dash-chart-tooltip');
   if (!canvas) return;
 
   const today = new Date();
-  const labels = [], totals = [];
+  const labels = [], totals = [], dates = [];
   for (let i = _dashPeriod - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    const key = d.toISOString().split('T')[0]; // YYYY-MM-DD
+    const key = d.toISOString().split('T')[0];
+    dates.push(key);
     labels.push(String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'));
-    // Normalize tanggal: support "YYYY-MM-DD" dan "YYYY-MM-DDTHH:mm:ss"
     const dayTotal = jpData
       .filter(r => r.tanggal && String(r.tanggal).slice(0,10) === key)
       .reduce((s,r) => s + (Number(r.total)||0), 0);
@@ -332,7 +407,6 @@ function _renderChartPenjualan(jpData) {
   const cW=W-padL-padR, cH=H-padT-padB;
   const colLine='#2a6e3a', colFill='rgba(42,110,58,0.1)', colGrid='rgba(28,26,20,0.08)', colLabel='#6b6354';
 
-  // Grid + Y labels
   for (let i=0; i<=4; i++) {
     const y = padT + cH - cH*i/4;
     ctx.strokeStyle=colGrid; ctx.lineWidth=0.7;
@@ -343,26 +417,25 @@ function _renderChartPenjualan(jpData) {
 
   const step = cW / Math.max(labels.length-1, 1);
 
-  // Highlight hari ini
   ctx.fillStyle='rgba(200,160,0,0.12)';
   ctx.fillRect(padL+cW-step*0.6, padT, step*0.6+padR, cH);
 
-  // Area fill
   ctx.beginPath();
   ctx.moveTo(padL, padT+cH);
   totals.forEach((v,i) => { const x=padL+i*step, y=padT+cH-(v/maxVal)*cH; i===0?ctx.lineTo(x,y):ctx.lineTo(x,y); });
   ctx.lineTo(padL+(totals.length-1)*step, padT+cH);
   ctx.closePath(); ctx.fillStyle=colFill; ctx.fill();
 
-  // Line
   ctx.beginPath(); ctx.strokeStyle=colLine; ctx.lineWidth=2; ctx.lineJoin='round';
   totals.forEach((v,i) => { const x=padL+i*step, y=padT+cH-(v/maxVal)*cH; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
   ctx.stroke();
 
-  // Dots + labels
+  // Simpan koordinat titik untuk tooltip
+  _dashChartPoints = [];
   const skip = Math.ceil(labels.length/7);
   totals.forEach((v,i) => {
     const x=padL+i*step, y=padT+cH-(v/maxVal)*cH;
+    _dashChartPoints.push({ x, y, label: labels[i], date: dates[i], val: v });
     ctx.beginPath(); ctx.arc(x,y,3.5,0,Math.PI*2);
     ctx.fillStyle=v>0?colLine:colGrid; ctx.fill();
     ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
@@ -376,7 +449,33 @@ function _renderChartPenjualan(jpData) {
     }
   });
 
-  // Legend
+  // Tooltip hover
+  if (tooltip) {
+    canvas.onmousemove = function(e) {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      let closest = null, minDist = 30;
+      _dashChartPoints.forEach(pt => {
+        const dist = Math.abs(mx - pt.x);
+        if (dist < minDist) { minDist = dist; closest = pt; }
+      });
+      if (closest) {
+        const txn = jpData.filter(r => r.tanggal && String(r.tanggal).slice(0,10) === closest.date);
+        const qty = txn.reduce((s,r)=>s+(Number(r.qty)||0),0);
+        tooltip.innerHTML = '<b>' + closest.label + '</b>  ' + _fmtRp(closest.val) + '  ·  ' + qty + ' pcs  ·  ' + txn.length + ' trx';
+        const tooltipX = Math.min(closest.x + 10, W - 170);
+        const tooltipY = Math.max(closest.y - 36, 0);
+        tooltip.style.left  = tooltipX + 'px';
+        tooltip.style.top   = tooltipY + 'px';
+        tooltip.style.display = 'block';
+      } else {
+        tooltip.style.display = 'none';
+      }
+    };
+    canvas.onmouseleave = function() { tooltip.style.display = 'none'; };
+  }
+
   const leg = document.getElementById('dash-chart-legend');
   if (leg) {
     const total = totals.reduce((a,b)=>a+b,0);
@@ -425,13 +524,11 @@ function _renderTopSku(jpData) {
 
 // ─── BOSS CHART ──────────────────────────────────────────────
 function _renderBoss(jpData, stokData) {
-  // Map SKU → boss, case-insensitive
   const skuBossMap = {};
   stokData.forEach(r => {
     if (r.sku_variasi && r.boss)
       skuBossMap[(r.sku_variasi||'').toUpperCase()] = r.boss;
   });
-
   const bossMap = {};
   jpData.forEach(r => {
     const boss = skuBossMap[(r.sku||'').toUpperCase()] || 'Lainnya';
@@ -439,12 +536,10 @@ function _renderBoss(jpData, stokData) {
     bossMap[boss].qty   += (r.qty||0);
     bossMap[boss].omset += (Number(r.total)||0);
   });
-
   const sorted     = Object.entries(bossMap).sort((a,b)=>b[1].omset-a[1].omset);
   const totalOmset = sorted.reduce((s,[,d])=>s+d.omset, 0);
   const colors     = ['#2a6e3a','#2266cc','#c8a000','#b03020','#6b3fa0','#1a8a7a'];
 
-  // ─ Tabel DULU (di atas)
   const tbody = document.getElementById('dash-boss-tbody');
   if (tbody) {
     if (!sorted.length) {
@@ -467,11 +562,9 @@ function _renderBoss(jpData, stokData) {
     }
   }
 
-  // ─ Donut chart SETELAH tabel
   const canvas = document.getElementById('dash-chart-boss');
   if (!canvas || !sorted.length || totalOmset===0) return;
   const dpr = window.devicePixelRatio||1;
-  // Paksa ukuran dari parentElement kalau offsetWidth masih 0
   const W = canvas.offsetWidth || canvas.parentElement?.offsetWidth || 300;
   const H = 150;
   canvas.style.width  = W+'px';
@@ -492,15 +585,236 @@ function _renderBoss(jpData, stokData) {
     ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
     angle += slice;
   });
-  // Hole
   ctx.beginPath(); ctx.arc(cx,cy,inner,0,Math.PI*2);
   ctx.fillStyle='#ede7d9'; ctx.fill();
-  // Center text
   ctx.fillStyle='#1c1a14'; ctx.font='bold 11px sans-serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText(_fmtRp(totalOmset),cx,cy-6);
   ctx.font='9px sans-serif'; ctx.fillStyle='#6b6354';
   ctx.fillText('omset',cx,cy+6);
+}
+
+// ─── PERFORMA CHANNEL — BARU ──────────────────────────────────
+function _renderChannel(jpData) {
+  const tbody  = document.getElementById('dash-channel-tbody');
+  const canvas = document.getElementById('dash-chart-channel');
+  if (!tbody) return;
+
+  // Build channel map dari _dashChannelMap (sudah di-load)
+  const chMap = {};
+  jpData.forEach(r => {
+    const ch  = _dashChannelMap[r.channel_id];
+    const key = ch ? (ch.nama || ('Ch#'+r.channel_id)) : 'Tidak Diketahui';
+    if (!chMap[key]) chMap[key] = {trx:0, qty:0, omset:0};
+    chMap[key].trx++;
+    chMap[key].qty   += (Number(r.qty)||0);
+    chMap[key].omset += (Number(r.total)||0);
+  });
+
+  const sorted     = Object.entries(chMap).sort((a,b)=>b[1].omset-a[1].omset);
+  const totalOmset = sorted.reduce((s,[,d])=>s+d.omset, 0);
+  const colors     = ['#2a6e3a','#2266cc','#c8a000','#b03020','#6b3fa0','#1a8a7a','#888'];
+
+  if (!sorted.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Belum ada data channel</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = sorted.map(([ch, d], i) => {
+    const pct = totalOmset>0 ? (d.omset/totalOmset*100).toFixed(0) : 0;
+    return '<tr>' +
+      '<td><b style="color:'+colors[i%colors.length]+'">'+ch+'</b></td>' +
+      '<td style="text-align:center">'+d.trx+'</td>' +
+      '<td style="text-align:center">'+d.qty+'</td>' +
+      '<td><b style="color:var(--ok)">'+_fmtRp(d.omset)+'</b></td>' +
+      '<td><div style="display:flex;align-items:center;gap:4px">'+
+        '<div style="width:36px;background:var(--cream4);height:5px;border-radius:2px;overflow:hidden;border:1px solid var(--ink4)">'+
+          '<div style="width:'+pct+'%;height:100%;background:'+colors[i%colors.length]+'"></div>'+
+        '</div>'+
+        '<span style="font-size:11px;color:var(--ink3)">'+pct+'%</span>'+
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+
+  // Donut chart channel
+  if (!canvas || totalOmset===0) return;
+  const dpr = window.devicePixelRatio||1;
+  const W = canvas.offsetWidth || canvas.parentElement?.offsetWidth || 280;
+  const H = 130;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  canvas.width = W*dpr; canvas.height = H*dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const cx=W/2, cy=H/2, r=Math.min(cx,cy)-10, inner=r*0.5;
+  let angle=-Math.PI/2;
+  sorted.forEach(([,d],i) => {
+    const slice=(d.omset/totalOmset)*Math.PI*2;
+    if(slice<=0) return;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,angle,angle+slice);
+    ctx.closePath();
+    ctx.fillStyle=colors[i%colors.length]; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    angle+=slice;
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,inner,0,Math.PI*2);
+  ctx.fillStyle='#ede7d9'; ctx.fill();
+  ctx.fillStyle='#1c1a14'; ctx.font='bold 10px sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(sorted.length+' ch',cx,cy-5);
+  ctx.font='9px sans-serif'; ctx.fillStyle='#6b6354';
+  ctx.fillText(_fmtRp(totalOmset),cx,cy+7);
+
+  // Legend kecil di samping donut
+  // (sudah ada di tabel, cukup)
+}
+
+// ─── GRAFIK OMSET PER KATALOG — BARU ─────────────────────────
+function _renderKatalog(jpData, stokData) {
+  const canvas = document.getElementById('dash-chart-katalog');
+  if (!canvas) return;
+
+  // Map sku → katalog
+  const skuKatalogMap = {};
+  stokData.forEach(r => {
+    if (r.sku_variasi && r.katalog)
+      skuKatalogMap[(r.sku_variasi||'').toUpperCase()] = r.katalog;
+  });
+
+  const katMap = {};
+  jpData.forEach(r => {
+    const kat = skuKatalogMap[(r.sku||'').toUpperCase()] || 'Lainnya';
+    if (!katMap[kat]) katMap[kat] = {qty:0,omset:0};
+    katMap[kat].qty   += (Number(r.qty)||0);
+    katMap[kat].omset += (Number(r.total)||0);
+  });
+
+  const sorted = Object.entries(katMap).sort((a,b)=>b[1].omset-a[1].omset).slice(0,8);
+  const emptyEl = document.getElementById('dash-katalog-empty');
+
+  if (!sorted.length) {
+    if (emptyEl) emptyEl.style.display='flex';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display='none';
+
+  const maxO   = sorted[0][1].omset;
+  const colors = ['#2a6e3a','#2266cc','#c8a000','#b03020','#6b3fa0','#1a8a7a','#888','#c84080'];
+
+  const dpr = window.devicePixelRatio||1;
+  const W   = canvas.offsetWidth || 280;
+  const H   = canvas.offsetHeight || 200;
+  canvas.width = W*dpr; canvas.height = H*dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const padL=10, padR=10, padT=10, padB=10;
+  const barH    = Math.floor((H-padT-padB-(sorted.length-1)*8) / sorted.length);
+  const trackW  = W - padL - padR - 100; // 100px label kanan
+
+  sorted.forEach(([kat,d],i) => {
+    const y   = padT + i*(barH+8);
+    const pct = maxO>0 ? d.omset/maxO : 0;
+    const bw  = Math.round(pct * trackW);
+
+    // Background track
+    ctx.fillStyle='rgba(28,26,20,0.06)';
+    ctx.fillRect(padL, y, trackW, barH);
+
+    // Bar
+    ctx.fillStyle=colors[i%colors.length];
+    if (bw > 0) ctx.fillRect(padL, y, bw, barH);
+
+    // Label katalog (kiri, di dalam bar jika panjang, atau di luar)
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = pct > 0.25 ? '#fff' : '#1c1a14';
+    ctx.fillText(kat, padL+5, y+barH/2);
+
+    // Nilai omset (kanan bar)
+    ctx.fillStyle = '#1c1a14';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(_fmtRp(d.omset), padL+trackW+8, y+barH/2-5);
+    ctx.font = '10px sans-serif';
+    ctx.fillStyle = '#6b6354';
+    ctx.fillText(d.qty+' pcs', padL+trackW+8, y+barH/2+7);
+  });
+}
+
+// ─── DISTRIBUSI STATUS STOK — BARU ───────────────────────────
+function _renderStokDist(stokData) {
+  const el = document.getElementById('dash-stok-dist');
+  if (!el) return;
+
+  const aman   = stokData.filter(r => r.sisa > 8).length;
+  const ati2   = stokData.filter(r => r.sisa > 3 && r.sisa <= 8).length;
+  const kritis = stokData.filter(r => r.sisa > 0 && r.sisa <= 3).length;
+  const habis  = stokData.filter(r => r.sisa <= 0).length;
+  const total  = stokData.length;
+
+  const pills = [
+    { label:'Aman',   count: aman,   color: 'var(--ok)',     bg: 'rgba(42,110,58,0.1)' },
+    { label:'Ati2',   count: ati2,   color: 'var(--warn)',   bg: 'rgba(200,160,0,0.1)' },
+    { label:'Kritis', count: kritis, color: 'var(--danger)', bg: 'rgba(176,48,32,0.1)' },
+    { label:'Habis',  count: habis,  color: 'var(--danger)', bg: 'rgba(176,48,32,0.18)' },
+  ];
+
+  el.innerHTML = pills.map(p =>
+    '<span class="dist-pill" style="color:'+p.color+';background:'+p.bg+';border-color:'+p.color+'">' +
+      p.label + ' <b>' + p.count + '</b>' +
+    '</span>'
+  ).join('') +
+  '<span style="font-size:11px;color:var(--ink3);margin-left:auto;align-self:center">total '+total+' SKU</span>';
+}
+
+// ─── TURNOVER RATE STOK — BARU ───────────────────────────────
+function _turnoverLabel(masuk, keluar) {
+  if (!masuk || masuk <= 0) return '<span style="color:var(--ink4)">—</span>';
+  const rate = keluar / masuk;
+  if (rate >= 0.8) return '<span style="color:var(--ok);font-weight:700">🔥 Cepat</span>';
+  if (rate >= 0.5) return '<span style="color:var(--warn);font-weight:700">⚡ Sedang</span>';
+  if (rate >= 0.2) return '<span style="color:var(--ink3)">🐢 Lambat</span>';
+  return '<span style="color:var(--ink4)">💤 Stagnan</span>';
+}
+
+// ─── RINGKASAN BEBAN OPERASIONAL — BARU ──────────────────────
+function _renderBeban(bebanData, omsetBln) {
+  const el = document.getElementById('dash-beban-wrap');
+  if (!el) return;
+  if (!bebanData || !bebanData.length) {
+    el.innerHTML = '<div style="color:var(--ink3);font-style:italic;font-size:13px">Belum ada data beban. Isi di menu Beban Operasional.</div>';
+    return;
+  }
+
+  // Hitung total beban (nominal)
+  let totalNominal = 0;
+  const rows = bebanData.map(r => {
+    const nominal = Number(r.nominal || r.jumlah || 0);
+    totalNominal += nominal;
+    return { nama: r.nama_beban || r.nama || '—', nominal, persen: Number(r.beban_persen||0) };
+  });
+
+  const pctDariOmset = omsetBln>0 ? (totalNominal/omsetBln*100).toFixed(1) : null;
+  const labaBersihEst = omsetBln - totalNominal;
+
+  el.innerHTML =
+    rows.map(r =>
+      '<div class="beban-row">' +
+        '<span style="font-size:13px">' + r.nama + '</span>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          (r.persen>0 ? '<span style="font-size:11px;color:var(--ink3)">'+r.persen+'%</span>' : '') +
+          '<span style="font-size:13px;font-weight:700;color:var(--danger)">' + _fmtRp(r.nominal) + '</span>' +
+        '</div>' +
+      '</div>'
+    ).join('') +
+    '<div class="beban-row" style="margin-top:6px;border-top:2px solid var(--ink)">' +
+      '<span style="font-size:13px;font-weight:700">Total Beban</span>' +
+      '<span style="font-size:14px;font-weight:700;color:var(--danger)">' + _fmtRp(totalNominal) +
+        (pctDariOmset ? ' <span style="font-size:11px;font-weight:400;color:var(--ink3)">('+pctDariOmset+'% omset)</span>' : '') +
+      '</span>' +
+    '</div>';
 }
 
 // ─── AKTIVITAS FEED ───────────────────────────────────────────
@@ -547,7 +861,6 @@ async function loadDashboard() {
     const today    = new Date().toISOString().split('T')[0];
     const todayYM  = today.slice(0,7);
 
-    // Load semua data paralel — ambil produk + stok raw + semua jurnal penjualan + beban
     const [produkData, stokRaw, jurnalData, jpData, jurnalAllData, channelData, bebanData] = await Promise.all([
       dbGet('produk', '&order=katalog.asc,sku_variasi.asc'),
       dbGet('stok'),
@@ -558,21 +871,18 @@ async function loadDashboard() {
       dbGet('beban_operasional', '&tipe=eq.toko_utama').catch(() => [])
     ]);
 
-    // ─ Bangun stokMasukMap dari tabel stok (sama persis seperti stok.js)
     const stokMasukMap = {};
     (stokRaw || []).forEach(s => {
       const key = (s.sku_variasi || '').toUpperCase();
       if (key) stokMasukMap[key] = { id: s.id, qty: s.stok_masuk || 0 };
     });
 
-    // ─ Bangun keluarMap dari jurnal_penjualan (sama persis seperti stok.js)
     const keluarMap = {};
     (jpData || []).forEach(j => {
       const key = (j.sku || '').toUpperCase();
       if (key) keluarMap[key] = (keluarMap[key] || 0) + (j.qty || 0);
     });
 
-    // ─ Merge: setiap produk + stok masuk + stok keluar (sama persis seperti stok.js)
     _dashStokData = (produkData || []).map(p => {
       const skuKey = (p.sku_variasi || '').toUpperCase();
       const masuk  = stokMasukMap[skuKey] ? stokMasukMap[skuKey].qty : 0;
@@ -585,7 +895,7 @@ async function loadDashboard() {
         hpp:          p.hpp || 0,
         stok_masuk:   masuk,
         stok_keluar:  keluar,
-        sisa:         sisa,
+        sisa,
         nilai_stok:   sisa > 0 ? sisa * (p.hpp || 0) : 0
       };
     });
@@ -613,7 +923,6 @@ async function loadDashboard() {
     const omsetHari = jpHariIni.reduce((s,r)=>s+(Number(r.total)||0),0);
     const aov       = jpBulan.length>0 ? Math.round(omsetBln/jpBulan.length) : 0;
 
-    // Omset bulan + info harian
     document.getElementById('d-omset').textContent = _fmtRp(omsetBln);
     const omsetDeltaEl = document.getElementById('d-omset-delta');
     if (omsetDeltaEl) omsetDeltaEl.textContent = 'dari jurnal penjualan';
@@ -626,9 +935,60 @@ async function loadDashboard() {
     if (elOmHr)  elOmHr.textContent = omsetHari>0 ? _fmtRp(omsetHari) : 'Rp0';
     if (elDelta) elDelta.textContent = jpHariIni.length + ' transaksi hari ini';
 
-    // ─ Target Omset — Logika ekonomi: Target = Beban / (beban_persen / 100)
-    let target = _getTarget();
+    // ─ AOV — BARU
+    const elAov = document.getElementById('d-aov');
+    if (elAov) {
+      elAov.textContent = aov>0 ? _fmtRp(aov) : '—';
+    }
+
+    // ─ HPP terjual & Laba Kotor — BARU
+    const hppMap = {};
+    _dashStokData.forEach(r => { hppMap[(r.sku_variasi||'').toUpperCase()] = r.hpp||0; });
+    const totalHppTerjual = jpBulan.reduce((s,r) => {
+      const hpp = hppMap[(r.sku||'').toUpperCase()] || 0;
+      return s + hpp * (Number(r.qty)||0);
+    }, 0);
+    const labaKotor = omsetBln - totalHppTerjual;
+    const elLaba    = document.getElementById('d-laba');
+    const elLabaDelta = document.getElementById('d-laba-delta');
+    if (elLaba) {
+      elLaba.textContent = _fmtRp(labaKotor);
+      elLaba.style.color = labaKotor >= 0 ? 'var(--ok)' : 'var(--danger)';
+    }
+    if (elLabaDelta) {
+      const marjin = omsetBln>0 ? (labaKotor/omsetBln*100).toFixed(1) : 0;
+      elLabaDelta.textContent = 'marjin ' + marjin + '%';
+    }
+
+    // ─ Beban & Laba Bersih — BARU
+    let totalBebanNominal = 0;
     const bebanArr = bebanData || [];
+    bebanArr.forEach(r => { totalBebanNominal += Number(r.nominal || r.jumlah || 0); });
+
+    // Fallback kalau nominal 0: coba hitung dari persen × omset
+    if (totalBebanNominal === 0 && omsetBln > 0) {
+      bebanArr.forEach(r => { totalBebanNominal += (Number(r.beban_persen||0)/100) * omsetBln; });
+    }
+
+    const elBeban = document.getElementById('d-beban');
+    const elBebanDelta = document.getElementById('d-beban-delta');
+    if (elBeban) {
+      elBeban.textContent = totalBebanNominal>0 ? _fmtRp(totalBebanNominal) : '—';
+      elBeban.style.color = 'var(--danger)';
+    }
+    if (elBebanDelta && totalBebanNominal>0 && omsetBln>0) {
+      elBebanDelta.textContent = (totalBebanNominal/omsetBln*100).toFixed(1) + '% dari omset';
+    }
+
+    const labaBersih = labaKotor - totalBebanNominal;
+    const elLabaBersih = document.getElementById('d-laba-bersih');
+    if (elLabaBersih) {
+      elLabaBersih.textContent = omsetBln>0 ? _fmtRp(labaBersih) : '—';
+      elLabaBersih.style.color = labaBersih>=0 ? 'var(--ok)' : 'var(--danger)';
+    }
+
+    // ─ Target Omset
+    let target = _getTarget();
     if (bebanArr.length > 0) {
       const bebanRow   = bebanArr.find(r => r.nama_beban && !isNaN(Number(String(r.nama_beban).replace(/[\.,]/g,''))));
       const totalRasio = bebanArr.reduce((s,r) => s + (Number(r.beban_persen)||0), 0);
@@ -638,7 +998,6 @@ async function loadDashboard() {
       }
     }
 
-    // Target — tampil dari beban operasional, no edit button
     const targetEl = document.getElementById('d-target');
     if (targetEl) targetEl.textContent = target>0 ? _fmtRp(target) : '—';
     if (target>0) {
@@ -652,7 +1011,6 @@ async function loadDashboard() {
       if (pctEl)   pctEl.textContent = pct+'% tercapai';
     }
 
-    // ─ Target Harian = Target Bulanan ÷ Jumlah hari dalam bulan
     const hariDlmBulan  = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate();
     const targetHarian  = target>0 ? Math.round(target / hariDlmBulan) : 0;
     const thEl          = document.getElementById('d-target-harian');
@@ -670,27 +1028,22 @@ async function loadDashboard() {
     // ─ Alerts
     _renderAlerts(_dashStokData, saldo);
 
-    // ─ Tabel stok — 5 SKU PRIORITAS:
-    //   Kriteria: pernah terjual dalam 14 hari terakhir DAN stok habis/kritis (sisa ≤ 3)
-    //   Sorted: sisa terkecil dulu (paling urgent)
+    // ─ Distribusi Status Stok — BARU
+    _renderStokDist(_dashStokData);
+
+    // ─ Tabel stok dengan Turnover — DIUPDATE
     const today14 = new Date();
     today14.setDate(today14.getDate() - 14);
     const batas14 = today14.toISOString().split('T')[0];
-
-    // SKU yang terjual dalam 14 hari terakhir
     const skuTerjual14 = new Set(
       _dashJPData
         .filter(r => r.tanggal && String(r.tanggal).slice(0,10) >= batas14)
         .map(r => (r.sku||'').toUpperCase())
     );
-
-    // Filter: pernah terjual 14 hari + stok habis/kritis (sisa ≤ 3)
     const stokPrioritas = [..._dashStokData]
       .filter(r => r.sisa <= 3 && skuTerjual14.has((r.sku_variasi||'').toUpperCase()))
       .sort((a,b) => a.sisa - b.sisa)
       .slice(0, 5);
-
-    // Fallback: kalau tidak ada yg memenuhi kriteria ketat, tampil 5 yg paling kritis saja
     const stokTampil = stokPrioritas.length > 0
       ? stokPrioritas
       : [..._dashStokData].filter(r => r.sisa <= 3).sort((a,b) => a.sisa - b.sisa).slice(0,5);
@@ -698,7 +1051,7 @@ async function loadDashboard() {
     const stokSum = document.getElementById('dash-stok-summary');
     if (stokSum) stokSum.textContent = _dashStokData.length+' SKU · Nilai '+_fmtRp(nilaiStok);
     document.getElementById('dash-stok-tbody').innerHTML = stokTampil.length===0
-      ? '<tr><td colspan="5" style="color:var(--ok);font-style:italic;font-weight:600">✓ Semua stok aman</td></tr>'
+      ? '<tr><td colspan="6" style="color:var(--ok);font-style:italic;font-weight:600">✓ Semua stok aman</td></tr>'
       : stokTampil.map(r => {
           const sold = r.stok_keluar || 0;
           return '<tr>' +
@@ -706,6 +1059,7 @@ async function loadDashboard() {
             '<td>'+(r.boss||'—')+'</td>' +
             '<td><b><span style="color:'+(r.sisa<=0?'var(--danger)':'var(--warn)')+'">'+r.sisa+'</span></b></td>'+
             '<td>'+(sold>0?'<span style="color:var(--ok);font-weight:700">'+sold+'×</span>':'<span style="color:var(--ink4)">—</span>')+'</td>'+
+            '<td>'+_turnoverLabel(r.stok_masuk, r.stok_keluar)+'</td>'+
             '<td>'+statusBadgeDash(r.sisa)+'</td>' +
           '</tr>';
         }).join('');
@@ -716,15 +1070,17 @@ async function loadDashboard() {
       ? '<tr><td colspan="4" style="color:var(--ink3);font-style:italic">Belum ada jurnal</td></tr>'
       : jurnalRecent.map(r => '<tr><td>'+_fmtTgl(r.tanggal||r.created_at)+'</td><td>'+(r.keterangan||'—')+'</td><td style="color:var(--ok)">'+(r.debit?_fmtRp(r.debit):'—')+'</td><td style="color:var(--danger)">'+(r.kredit?_fmtRp(r.kredit):'—')+'</td></tr>').join('');
 
-    // ─ Chart penjualan + Boss — render setelah layout selesai
+    // ─ Render semua chart & widget
     const _jpForChart  = _dashJPData;
     const _jpForRender = jpBulan.length>0 ? jpBulan : _dashJPData;
     const _stokForBoss = _dashStokData;
-    // setTimeout 150ms: pastikan canvas sudah memiliki offsetWidth sebelum digambar
     setTimeout(() => {
       _renderChartPenjualan(_jpForChart);
       _renderTopSku(_jpForRender);
       _renderBoss(_jpForRender, _stokForBoss);
+      _renderChannel(_jpForRender);           // BARU
+      _renderKatalog(_jpForRender, _dashStokData); // BARU
+      _renderBeban(bebanArr, omsetBln);       // BARU
     }, 150);
 
     // ─ Aktivitas feed
