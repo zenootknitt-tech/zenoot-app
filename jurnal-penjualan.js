@@ -294,11 +294,12 @@ function _jpGetHpp(p) {
 }
 
 function _jpRenderDropdown(katalogs, katalogMap) {
-  const dd = document.getElementById('jp-sku-dropdown');
+  const dd  = document.getElementById('jp-sku-dropdown');
+  const inp = document.getElementById('jp-sku-induk');
   if (!katalogs.length) {
     dd.style.display = 'none';
-    // Tampilkan hint jika produk list kosong
     if (_jpProdukList.length === 0) {
+      _jpPositionDropdown();
       dd.innerHTML = '<div style="padding:10px 12px;color:var(--ink3);font-size:13px;font-style:italic">Produk belum ada — tambah di Kelola Produk</div>';
       dd.style.display = 'block';
     }
@@ -309,13 +310,14 @@ function _jpRenderDropdown(katalogs, katalogMap) {
     const safe = kat.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     return '<div class="jp-dd-item" data-katalog="' + safe + '" data-idx="' + i + '"'
       + ' style="padding:10px 12px;cursor:pointer;font-size:14px;'
-      + 'border-bottom:1px dashed var(--ink4);display:flex;justify-content:space-between;align-items:center;"'
+      + 'border-bottom:1px dashed var(--ink4);display:flex;justify-content:space-between;align-items:center;background:var(--cream)"'
       + ' onmouseenter="jpHighlightItem(this)"'
       + ' onclick="jpPilihKatalog(this.dataset.katalog)">'
       + '<span style="font-weight:600">' + kat + '</span>'
       + '<span style="font-size:11px;color:var(--ink3);margin-left:8px">' + katalogMap[kat] + ' var</span>'
       + '</div>';
   }).join('');
+  _jpPositionDropdown();
   dd.style.display = 'block';
 }
 
@@ -399,21 +401,52 @@ function jpPilihKatalog(katalog) {
   sel.innerHTML = '<option value="">— Pilih Variasi —</option>';
   varList.forEach(p => {
     const opt = document.createElement('option');
-    opt.value       = _jpGetSku(p);
-    opt.textContent = _jpGetSku(p);
-    opt.dataset.hpp = _jpGetHpp(p);
+    opt.value         = _jpGetSku(p);
+    opt.textContent   = _jpGetSku(p);
+    opt.dataset.hpp   = _jpGetHpp(p);
+    opt.dataset.sku   = _jpGetSku(p);
     sel.appendChild(opt);
   });
   setTimeout(() => sel.focus(), 60);
 }
 
+// ─── HITUNG HARGA DARI PRICE LIST ────────────────────────────
+// Ambil harga berdasarkan kategori channel yang dipilih
+async function _jpGetHargaFromPriceList(hpp) {
+  if (!hpp || hpp <= 0) return 0;
+  const chId  = document.getElementById('jp-channel').value;
+  const ch    = _jpChannelMap[chId];
+  const kat   = ch ? (ch.kategori || 'toko_utama') : 'toko_utama';
+  const tipe  = kat === 'reseller' ? 'reseller' : 'toko_utama';
+
+  try {
+    const beban = await dbGet('beban_operasional', '&tipe=eq.' + tipe);
+    const totalBeban = beban.reduce((s, r) => s + (r.beban_persen || 0), 0);
+    const totalNpm   = beban.reduce((s, r) => s + (r.npm_persen   || 0), 0);
+    const mult       = 1 + (totalBeban + totalNpm) / 100;
+    return Math.ceil(hpp * mult);
+  } catch(e) {
+    return hpp; // fallback ke HPP kalau gagal
+  }
+}
+
 function jpOnPilihVariasi() {
   const sel = document.getElementById('jp-sku-variasi');
   const opt = sel.options[sel.selectedIndex];
-  if (opt && opt.dataset.hpp && !document.getElementById('jp-harga').value) {
-    document.getElementById('jp-harga').value = opt.dataset.hpp;
+  if (!opt || !opt.dataset.hpp) return;
+
+  const hpp = parseInt(opt.dataset.hpp) || 0;
+  if (!hpp) return;
+
+  // Kalau harga sudah diisi manual, tanya dulu
+  const hargaEl = document.getElementById('jp-harga');
+  if (hargaEl.value && parseInt(hargaEl.value) > 0) return;
+
+  // Ambil harga dari price list berdasarkan channel
+  _jpGetHargaFromPriceList(hpp).then(harga => {
+    hargaEl.value = harga || hpp;
     hitungTotalJP();
-  }
+  });
 }
 
 function jpTutupDropdownSKU() {
