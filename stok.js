@@ -49,13 +49,13 @@ document.getElementById('page-stok').innerHTML = `
       </div>
 
       <!-- Submenu — di luar dd-filter-all, sejajar dengannya -->
-      <div id="dd-filter-boss" style="display:none;position:absolute;left:100%;top:0;z-index:1000;
+      <div id="dd-filter-boss" style="display:none;position:fixed;z-index:9999;
         background:var(--cream);border:2px solid var(--ink);min-width:170px;max-height:260px;overflow-y:auto;
         box-shadow:4px 4px 0 var(--ink4)"></div>
-      <div id="dd-filter-katalog" style="display:none;position:absolute;left:100%;top:0;z-index:1000;
+      <div id="dd-filter-katalog" style="display:none;position:fixed;z-index:9999;
         background:var(--cream);border:2px solid var(--ink);min-width:190px;max-height:260px;overflow-y:auto;
         box-shadow:4px 4px 0 var(--ink4)"></div>
-      <div id="dd-filter-status" style="display:none;position:absolute;left:100%;top:0;z-index:1000;
+      <div id="dd-filter-status" style="display:none;position:fixed;z-index:9999;
         background:var(--cream);border:2px solid var(--ink);min-width:160px;
         box-shadow:4px 4px 0 var(--ink4)"></div>
     </div>
@@ -493,9 +493,13 @@ function stokOpenSub(type) {
   el.style.background = 'var(--ink)';
   el.style.color = 'var(--cream)';
 
-  // Sesuaikan posisi top submenu dengan posisi menu item
+  // Posisi submenu pakai fixed + getBoundingClientRect agar tidak overlap
   var sub = document.getElementById('dd-filter-' + type);
-  if (sub) sub.style.top = el.offsetTop + 'px';
+  if (!sub) return;
+  var rect = el.getBoundingClientRect();
+  sub.style.position = 'fixed';
+  sub.style.left = rect.right + 'px';
+  sub.style.top  = rect.top + 'px';
 
   // Render isi submenu
   var opsi = [];
