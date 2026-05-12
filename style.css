@@ -228,7 +228,7 @@ body{display:flex;height:100vh;background:var(--cream);font-family:var(--f);colo
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tbl{width:100%;border-collapse:collapse;font-size:14px}
 .tbl th{
-  text-align:left;padding:6px 8px;font-size:12px;font-weight:700;color:var(--ink3);
+  text-align:left;padding:6px 8px;font-size:12px;font-weight:700;color:#000000;
   border-bottom:4px solid #2C1A0E;text-transform:uppercase;letter-spacing:.06em;
   white-space:nowrap;font-family:var(--f2);
   position:sticky;top:0;background:#C9A87C;z-index:2;
