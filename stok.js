@@ -9,36 +9,48 @@ function statusBadge(sisa) {
 
 document.getElementById('page-stok').innerHTML = `
   <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
-    <!-- KIRI: 1 tombol Filter dropdown -->
+    <!-- KIRI: Filter — nested submenu -->
     <div style="position:relative">
       <button class="btn btn-sm" id="btn-filter-all" onclick="stokToggleFilterAll()" style="min-width:90px;text-align:left;padding-right:24px">
         <i class="ti ti-adjustments-horizontal"></i> <span id="lbl-filter-all">Filter</span>
         <i class="ti ti-chevron-down" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px"></i>
       </button>
       <div id="dd-filter-all" style="display:none;position:absolute;left:0;top:calc(100% + 2px);z-index:999;
-        background:var(--cream);border:2px solid var(--ink);min-width:220px;
+        background:var(--cream);border:2px solid var(--ink);min-width:180px;
         box-shadow:4px 4px 0 var(--ink4)">
 
-        <!-- Supplier -->
-        <div style="padding:6px 10px;font-size:11px;font-weight:700;color:var(--ink3);border-bottom:1px dashed var(--ink4);letter-spacing:.04em">
-          <i class="ti ti-user" style="font-size:12px"></i> SUPPLIER
+        <!-- Menu: Supplier -->
+        <div id="mi-boss" onmouseenter="stokOpenSub('boss',this)"
+          style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4);position:relative">
+          <span><i class="ti ti-user" style="font-size:12px;margin-right:6px"></i>Supplier <span id="badge-boss" style="font-size:10px;color:var(--ink3)"></span></span>
+          <i class="ti ti-chevron-right" style="font-size:11px"></i>
+          <div id="dd-filter-boss" style="display:none;position:absolute;left:100%;top:-2px;z-index:1000;
+            background:var(--cream);border:2px solid var(--ink);min-width:160px;max-height:240px;overflow-y:auto;
+            box-shadow:4px 4px 0 var(--ink4)"></div>
         </div>
-        <div id="dd-filter-boss" style="max-height:160px;overflow-y:auto"></div>
 
-        <!-- SKU Induk -->
-        <div style="padding:6px 10px;font-size:11px;font-weight:700;color:var(--ink3);border-top:2px solid var(--ink4);border-bottom:1px dashed var(--ink4);letter-spacing:.04em">
-          <i class="ti ti-tag" style="font-size:12px"></i> SKU INDUK
+        <!-- Menu: SKU Induk -->
+        <div id="mi-katalog" onmouseenter="stokOpenSub('katalog',this)"
+          style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4);position:relative">
+          <span><i class="ti ti-tag" style="font-size:12px;margin-right:6px"></i>SKU Induk <span id="badge-katalog" style="font-size:10px;color:var(--ink3)"></span></span>
+          <i class="ti ti-chevron-right" style="font-size:11px"></i>
+          <div id="dd-filter-katalog" style="display:none;position:absolute;left:100%;top:-2px;z-index:1000;
+            background:var(--cream);border:2px solid var(--ink);min-width:180px;max-height:240px;overflow-y:auto;
+            box-shadow:4px 4px 0 var(--ink4)"></div>
         </div>
-        <div id="dd-filter-katalog" style="max-height:160px;overflow-y:auto"></div>
 
-        <!-- Status -->
-        <div style="padding:6px 10px;font-size:11px;font-weight:700;color:var(--ink3);border-top:2px solid var(--ink4);border-bottom:1px dashed var(--ink4);letter-spacing:.04em">
-          <i class="ti ti-circle-check" style="font-size:12px"></i> STATUS
+        <!-- Menu: Status -->
+        <div id="mi-status" onmouseenter="stokOpenSub('status',this)"
+          style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4);position:relative">
+          <span><i class="ti ti-circle-check" style="font-size:12px;margin-right:6px"></i>Status <span id="badge-status" style="font-size:10px;color:var(--ink3)"></span></span>
+          <i class="ti ti-chevron-right" style="font-size:11px"></i>
+          <div id="dd-filter-status" style="display:none;position:absolute;left:100%;top:-2px;z-index:1000;
+            background:var(--cream);border:2px solid var(--ink);min-width:150px;
+            box-shadow:4px 4px 0 var(--ink4)"></div>
         </div>
-        <div id="dd-filter-status"></div>
 
         <!-- Reset -->
-        <div style="padding:6px 10px;border-top:2px solid var(--ink)">
+        <div style="padding:6px 10px">
           <button class="btn btn-sm" onclick="stokResetAllFilter()" style="width:100%;font-size:12px">
             <i class="ti ti-x"></i> Reset Filter
           </button>
@@ -447,49 +459,83 @@ let _filterStatus  = null;
 function stokToggleFilterAll() {
   var dd = document.getElementById('dd-filter-all');
   if (!dd) return;
-  if (dd.style.display === 'block') { dd.style.display = 'none'; return; }
-
-  _stokRenderFilterSection('boss',
-    [{ val: null, label: 'Semua Supplier' }].concat(
-      [...new Set(_stokAllData.map(function(r){ return r.boss||''; }).filter(Boolean))].sort()
-      .map(function(v){ return { val: v, label: v }; })
-    )
-  );
-  _stokRenderFilterSection('katalog',
-    [{ val: null, label: 'Semua SKU Induk' }].concat(
-      [...new Set(_stokAllData.map(function(r){ return r.katalog||''; }).filter(Boolean))].sort()
-      .map(function(v){ return { val: v, label: v }; })
-    )
-  );
-  _stokRenderFilterSection('status', [
-    { val: null,     label: 'Semua Status' },
-    { val: 'habis',  label: '🔴 Habis' },
-    { val: 'kritis', label: '🟠 Kritis' },
-    { val: 'ati2',   label: '🟡 Ati2' },
-    { val: 'aman',   label: '🟢 Aman' },
-  ]);
-
+  if (dd.style.display === 'block') {
+    // Tutup semua submenu juga
+    ['boss','katalog','status'].forEach(function(t) {
+      var s = document.getElementById('dd-filter-' + t);
+      if (s) s.style.display = 'none';
+      var m = document.getElementById('mi-' + t);
+      if (m) { m.style.background = ''; m.style.color = ''; }
+    });
+    dd.style.display = 'none';
+    return;
+  }
   dd.style.display = 'block';
 }
 
-function _stokRenderFilterSection(type, opsi) {
+function stokOpenSub(type, el) {
+  // Tutup semua submenu lain, reset highlight
+  ['boss','katalog','status'].forEach(function(t) {
+    if (t !== type) {
+      var s = document.getElementById('dd-filter-' + t);
+      if (s) s.style.display = 'none';
+      var m = document.getElementById('mi-' + t);
+      if (m) { m.style.background = ''; m.style.color = ''; }
+    }
+  });
+
+  // Highlight item aktif
+  el.style.background = 'var(--ink)';
+  el.style.color = 'var(--cream)';
+
+  // Render isi submenu
+  var opsi = [];
+  if (type === 'boss') {
+    opsi = [{ val: null, label: 'Semua Supplier' }].concat(
+      [...new Set(_stokAllData.map(function(r){ return r.boss||''; }).filter(Boolean))].sort()
+      .map(function(v){ return { val: v, label: v }; })
+    );
+  } else if (type === 'katalog') {
+    opsi = [{ val: null, label: 'Semua SKU Induk' }].concat(
+      [...new Set(_stokAllData.map(function(r){ return r.katalog||''; }).filter(Boolean))].sort()
+      .map(function(v){ return { val: v, label: v }; })
+    );
+  } else if (type === 'status') {
+    opsi = [
+      { val: null,     label: 'Semua Status' },
+      { val: 'habis',  label: '🔴 Habis' },
+      { val: 'kritis', label: '🟠 Kritis' },
+      { val: 'ati2',   label: '🟡 Ati2' },
+      { val: 'aman',   label: '🟢 Aman' },
+    ];
+  }
+
   var currVal = type === 'boss' ? _filterBoss : type === 'katalog' ? _filterKatalog : _filterStatus;
-  var el = document.getElementById('dd-filter-' + type);
-  if (!el) return;
-  el.innerHTML = opsi.map(function(o) {
+  var sub = document.getElementById('dd-filter-' + type);
+  if (!sub) return;
+  sub.innerHTML = opsi.map(function(o) {
     var active = o.val === currVal;
     return '<div onclick="stokSetFilter(\'' + type + '\',' + JSON.stringify(o.val) + ')"' +
-      ' style="padding:7px 14px;cursor:pointer;font-size:13px;' +
+      ' style="padding:8px 14px;cursor:pointer;font-size:13px;' +
       'background:' + (active ? 'var(--ink)' : 'transparent') + ';' +
       'color:' + (active ? 'var(--cream)' : 'inherit') + ';' +
       'border-bottom:1px dashed var(--ink4)">' + o.label + '</div>';
   }).join('');
+  sub.style.display = 'block';
 }
 
 function stokResetAllFilter() {
   _filterBoss    = null;
   _filterKatalog = null;
   _filterStatus  = null;
+  ['boss','katalog','status'].forEach(function(t) {
+    var b = document.getElementById('badge-' + t);
+    if (b) b.textContent = '';
+    var s = document.getElementById('dd-filter-' + t);
+    if (s) s.style.display = 'none';
+    var m = document.getElementById('mi-' + t);
+    if (m) { m.style.background = ''; m.style.color = ''; }
+  });
   _stokUpdateFilterLabel();
   document.getElementById('dd-filter-all').style.display = 'none';
   filterStok();
@@ -509,20 +555,23 @@ function _stokUpdateFilterLabel() {
   }
 }
 
-// stokToggleFilter (per-tombol) sudah digantikan stokToggleFilterAll
-
 function stokSetFilter(type, val) {
   if (type === 'boss')    _filterBoss    = val;
   if (type === 'katalog') _filterKatalog = val;
   if (type === 'status')  _filterStatus  = val;
-  // Re-render seksi agar highlight aktif langsung keliatan
-  _stokRenderFilterSection(type,
-    document.getElementById('dd-filter-' + type).children.length
-      ? null  // sudah ada, re-render via toggle
-      : null
-  );
-  // Refresh dropdown yang sedang terbuka
-  stokToggleFilterAll(); // tutup dulu
+
+  // Update badge di menu item
+  var lblMap = { habis:'Habis', kritis:'Kritis', ati2:'Ati2', aman:'Aman' };
+  var badgeEl = document.getElementById('badge-' + type);
+  if (badgeEl) {
+    var bLabel = '';
+    if (type === 'status' && val) bLabel = '· ' + lblMap[val];
+    else if (val) bLabel = '· ' + val;
+    badgeEl.textContent = bLabel;
+  }
+
+  // Tutup semua
+  stokToggleFilterAll();
   _stokUpdateFilterLabel();
   filterStok();
 }
