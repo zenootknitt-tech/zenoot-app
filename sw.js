@@ -21,7 +21,7 @@ const ASSETS = [
   './rekap.js',
   './hpp.js',
   './supabase.js',
-  'https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Kalam:wght@300;400;700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Handlee&family=Caveat:wght@400;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css',
 ];
 
