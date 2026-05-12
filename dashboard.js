@@ -616,7 +616,6 @@ async function loadDashboard() {
 
     document.getElementById('d-order-hari').textContent       = jpHariIni.length + ' transaksi';
     document.getElementById('d-order-hari-delta').textContent = omsetHari>0 ? _fmtRp(omsetHari)+' hari ini' : 'belum ada order hari ini';
-    document.getElementById('d-aov').textContent              = _fmtRp(aov);
 
     // ─ Target Omset — Logika ekonomi: Target = Beban / (beban_persen / 100)
     let target = _getTarget();
