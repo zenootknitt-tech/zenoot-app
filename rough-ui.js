@@ -54,46 +54,11 @@
     }
   }
 
-  // ── 2. TOMBOL AKSI — pill: lingkaran icon kiri + rect label kanan
-  //    Jika icon-only (tidak ada .bl atau .bl kosong), cukup gambar lingkaran saja
+  // ── 2. TOMBOL AKSI — clean border, tanpa efek arsir/rough
   function sketchBtn(el) {
-    if (!el.offsetWidth) return;
+    // Hapus canvas rough lama kalau ada
     el.querySelectorAll('canvas.rough-btn').forEach(c => c.remove());
-    const W = el.offsetWidth, H = el.offsetHeight;
-    const cvs = document.createElement('canvas');
-    cvs.className = 'rough-btn';
-    cvs.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:0';
-    cvs.width = W; cvs.height = H;
-    el.appendChild(cvs);
-    const rc   = rough.canvas(cvs);
-    const r    = H / 2;
-    const isPrimary = el.classList.contains('btn-primary');
-    const isDanger  = el.classList.contains('btn-danger');
-    const stroke    = isDanger ? DANGER : INK;
-    const fill      = isPrimary ? INK : 'none';
-    const opt = { ...BASE, stroke, fill, fillStyle: isPrimary ? 'solid' : 'none' };
-
-    // Cek apakah tombol punya label teks (bl) atau icon-only
-    const blEl = el.querySelector('.bl');
-    const hasLabel = blEl && blEl.textContent.trim().length > 0;
-
-    if (!hasLabel) {
-      // Icon-only: gambar lingkaran saja, canvas pas dengan ukuran tombol
-      rc.circle(W / 2, H / 2, Math.min(W, H) - 4, opt);
-      return;
-    }
-
-    // Pill lengkap: lingkaran kiri + garis + tutup kanan
-    rc.circle(r, r, H - 4, opt);
-    rc.line(r, 2,   W - 4, 2,   { ...BASE, stroke, roughness:1.8 });
-    rc.line(r, H-2, W - 4, H-2, { ...BASE, stroke, roughness:1.8 });
-    rc.line(W-3, 2, W-3, H-2,   { ...BASE, stroke, roughness:1.5 });
-
-    if (isPrimary) {
-      rc.rectangle(r, 2, W - r - 4, H - 4, {
-        ...BASE, stroke:'none', fill:INK, fillStyle:'solid', roughness:0.5
-      });
-    }
+    // Tidak menggambar rough canvas — tombol pakai CSS border biasa
   }
 
   // ── 3. CARD / METRIC BOX
@@ -128,21 +93,9 @@
     });
   }
 
-  // ── Migrasi HTML: ubah .btn lama jadi struktur pill baru
+  // ── Migrasi HTML: dinonaktifkan — tombol tetap pakai struktur asli
   function migrateBtn(el) {
-    if (el.querySelector('.bi')) return; // sudah baru
-    const icon = el.querySelector('i');
-    const rawText = el.textContent.trim();
-    // Skip tombol simbol pendek (✎ ✕ × ✓ dll) — biarkan apa adanya
-    if (!icon && rawText.length <= 2) return;
-    const iconClass = icon ? icon.className : 'ti ti-check';
-    const labelText = rawText.replace(/^[^\w]*/, '').trim();
-    if (!labelText) {
-      // Icon-only: bungkus dalam .bi saja tanpa .bl agar sketchBtn deteksi dengan benar
-      el.innerHTML = `<span class="bi"><i class="${iconClass}" aria-hidden="true"></i></span>`;
-      return;
-    }
-    el.innerHTML = `<span class="bi"><i class="${iconClass}" aria-hidden="true"></i></span><span class="bl">${labelText}</span>`;
+    // Tidak mengubah HTML tombol, biarkan icon <i> dan teks tampil langsung
   }
 
   // ── Migrasi nav-item lama jadi struktur pill baru

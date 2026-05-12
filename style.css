@@ -186,35 +186,28 @@ body{display:flex;height:100vh;background:var(--cream);font-family:var(--f);colo
   background-image:repeating-linear-gradient(to bottom,transparent,transparent 26px,var(--paper-line) 26px,var(--paper-line) 27px);
 }
 
-/* ─── BUTTON — pill split style ──────────────────────────── */
+/* ─── BUTTON — clean style (tanpa efek arsir/rough) ─────── */
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .btn{
-  display:inline-flex;align-items:stretch;
-  background:none;border:none;cursor:pointer;
-  font-family:var(--f);position:relative;
-  min-height:40px;padding:0;
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--cream2);border:2px solid var(--ink);cursor:pointer;
+  font-family:var(--f);font-size:14px;font-weight:600;color:var(--ink);
+  padding:0 14px;min-height:40px;white-space:nowrap;
+  transition:background .12s, transform .08s;
+  position:relative;
 }
-.btn .bi{
-  width:40px;height:40px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  position:relative;z-index:1;
-}
-.btn .bi i{font-size:18px;color:var(--ink);position:relative;z-index:2}
-.btn .bl{
-  padding:0 16px;display:flex;align-items:center;
-  font-size:14px;font-weight:600;color:var(--ink);
-  position:relative;z-index:1;white-space:nowrap;
-}
-.btn canvas.rough-btn{position:absolute;top:0;left:0;pointer-events:none;z-index:0}
-.btn-primary .bi i{color:var(--cream)}
-.btn-primary .bl{color:var(--cream)}
-.btn-danger .bi i{color:var(--danger)}
-.btn-danger .bl{color:var(--danger)}
-/* legacy btn compat */
-.btn-sm{min-height:32px}
-.btn-sm .bi{width:32px;height:32px}
-.btn-sm .bi i{font-size:14px}
-.btn-sm .bl{font-size:12px;padding:0 12px}
+.btn:hover{background:var(--cream3);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn i{font-size:16px;color:inherit}
+/* Sembunyikan wrapper .bi .bl dari migrasi rough-ui lama */
+.btn .bi,.btn .bl{display:none}
+.btn canvas.rough-btn{display:none}
+.btn-primary{background:var(--ink);color:var(--cream)}
+.btn-primary:hover{background:var(--ink2)}
+.btn-danger{background:var(--cream2);border-color:var(--danger);color:var(--danger)}
+.btn-danger:hover{background:rgba(176,48,32,0.08)}
+.btn-sm{min-height:32px;font-size:12px;padding:0 10px}
+.btn-sm i{font-size:13px}
 
 /* ─── BAR ────────────────────────────────────────────────── */
 .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px}
