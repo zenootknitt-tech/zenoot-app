@@ -13,9 +13,38 @@ document.getElementById('page-stok').innerHTML = `
     <button class="btn btn-sm" onclick="showPasteStok()"><i class="ti ti-clipboard"></i> Paste Massal</button>
     <button class="btn btn-sm" onclick="loadStok()"><i class="ti ti-refresh"></i> Refresh</button>
     <button class="btn btn-sm" onclick="exportStok()"><i class="ti ti-download"></i> Export CSV</button>
-    <input type="text" id="stok-search" placeholder="Cari SKU / katalog..."
-      style="font-family:var(--f);font-size:13px;padding:4px 8px;border:2px solid var(--ink);background:var(--cream);width:180px;margin-left:auto"
-      oninput="filterStok()">
+    <div style="display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap">
+      <div style="position:relative">
+        <button class="btn btn-sm" id="btn-filter-boss" onclick="stokToggleFilter('boss')" style="min-width:110px;text-align:left;padding-right:22px">
+          <i class="ti ti-user"></i> <span id="lbl-filter-boss">Supplier</span>
+          <i class="ti ti-chevron-down" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px"></i>
+        </button>
+        <div id="dd-filter-boss" style="display:none;position:absolute;right:0;top:calc(100% + 2px);z-index:999;
+          background:var(--cream);border:2px solid var(--ink);min-width:160px;
+          max-height:220px;overflow-y:auto;box-shadow:4px 4px 0 var(--ink4)"></div>
+      </div>
+      <div style="position:relative">
+        <button class="btn btn-sm" id="btn-filter-katalog" onclick="stokToggleFilter('katalog')" style="min-width:120px;text-align:left;padding-right:22px">
+          <i class="ti ti-tag"></i> <span id="lbl-filter-katalog">SKU Induk</span>
+          <i class="ti ti-chevron-down" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px"></i>
+        </button>
+        <div id="dd-filter-katalog" style="display:none;position:absolute;right:0;top:calc(100% + 2px);z-index:999;
+          background:var(--cream);border:2px solid var(--ink);min-width:170px;
+          max-height:220px;overflow-y:auto;box-shadow:4px 4px 0 var(--ink4)"></div>
+      </div>
+      <div style="position:relative">
+        <button class="btn btn-sm" id="btn-filter-status" onclick="stokToggleFilter('status')" style="min-width:100px;text-align:left;padding-right:22px">
+          <i class="ti ti-circle-check"></i> <span id="lbl-filter-status">Status</span>
+          <i class="ti ti-chevron-down" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px"></i>
+        </button>
+        <div id="dd-filter-status" style="display:none;position:absolute;right:0;top:calc(100% + 2px);z-index:999;
+          background:var(--cream);border:2px solid var(--ink);min-width:140px;
+          max-height:220px;overflow-y:auto;box-shadow:4px 4px 0 var(--ink4)"></div>
+      </div>
+      <input type="text" id="stok-search" placeholder="Cari SKU / katalog..."
+        style="font-family:var(--f);font-size:13px;padding:4px 8px;border:2px solid var(--ink);background:var(--cream);width:180px"
+        oninput="filterStok()">
+    </div>
   </div>
 
   <!-- MODAL PASTE MASSAL STOK -->
@@ -196,12 +225,25 @@ function renderStok(data) {
 // ─── FILTER ───────────────────────────────────────────────────
 function filterStok() {
   const q = (document.getElementById('stok-search').value || '').toLowerCase().trim();
-  if (!q) { renderStok(_stokAllData); return; }
-  const filtered = _stokAllData.filter(r =>
-    (r.sku_variasi || '').toLowerCase().includes(q) ||
-    (r.katalog     || '').toLowerCase().includes(q) ||
-    (r.boss        || '').toLowerCase().includes(q)
-  );
+  const filtered = _stokAllData.filter(r => {
+    if (q) {
+      const match =
+        (r.sku_variasi || '').toLowerCase().includes(q) ||
+        (r.katalog     || '').toLowerCase().includes(q) ||
+        (r.boss        || '').toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    if (_filterBoss    && (r.boss    || '') !== _filterBoss)    return false;
+    if (_filterKatalog && (r.katalog || '') !== _filterKatalog) return false;
+    if (_filterStatus) {
+      const sisa = r.sisa;
+      if (_filterStatus === 'habis'  && !(sisa <= 0))              return false;
+      if (_filterStatus === 'kritis' && !(sisa > 0 && sisa <= 3))  return false;
+      if (_filterStatus === 'ati2'   && !(sisa > 3 && sisa <= 8))  return false;
+      if (_filterStatus === 'aman'   && !(sisa > 8))               return false;
+    }
+    return true;
+  });
   renderStok(filtered);
 }
 
@@ -407,5 +449,93 @@ async function exportStok() {
   });
   exportCSV('zenoot-stok.csv', headers, rows);
 }
+
+// ─── FILTER STATE ─────────────────────────────────────────────
+let _filterBoss    = null;
+let _filterKatalog = null;
+let _filterStatus  = null;
+
+function stokToggleFilter(type) {
+  var ddId = 'dd-filter-' + type;
+  var dd   = document.getElementById(ddId);
+  if (!dd) return;
+
+  ['boss','katalog','status'].forEach(function(t) {
+    if (t !== type) {
+      var el = document.getElementById('dd-filter-' + t);
+      if (el) el.style.display = 'none';
+    }
+  });
+
+  if (dd.style.display === 'block') { dd.style.display = 'none'; return; }
+
+  var opsi = [];
+  if (type === 'boss') {
+    var vals = _stokAllData.map(function(r){ return r.boss || ''; }).filter(Boolean);
+    vals = [...new Set(vals)].sort();
+    opsi = [{ val: null, label: 'Semua Supplier' }].concat(vals.map(function(v){ return { val: v, label: v }; }));
+  } else if (type === 'katalog') {
+    var vals2 = _stokAllData.map(function(r){ return r.katalog || ''; }).filter(Boolean);
+    vals2 = [...new Set(vals2)].sort();
+    opsi = [{ val: null, label: 'Semua SKU Induk' }].concat(vals2.map(function(v){ return { val: v, label: v }; }));
+  } else if (type === 'status') {
+    opsi = [
+      { val: null,     label: 'Semua Status' },
+      { val: 'habis',  label: 'Habis' },
+      { val: 'kritis', label: 'Kritis' },
+      { val: 'ati2',   label: 'Ati2' },
+      { val: 'aman',   label: 'Aman' },
+    ];
+  }
+
+  var currVal = type === 'boss' ? _filterBoss : type === 'katalog' ? _filterKatalog : _filterStatus;
+
+  dd.innerHTML = opsi.map(function(o) {
+    var active = o.val === currVal;
+    return '<div onclick="stokSetFilter(\'' + type + '\',' + JSON.stringify(o.val) + ')"' +
+      ' style="padding:8px 12px;cursor:pointer;font-size:13px;' +
+      'background:' + (active ? 'var(--ink)' : 'transparent') + ';' +
+      'color:' + (active ? 'var(--cream)' : 'inherit') + ';' +
+      'border-bottom:1px dashed var(--ink4)">' + o.label + '</div>';
+  }).join('');
+  dd.style.display = 'block';
+}
+
+function stokSetFilter(type, val) {
+  var lblMap = { habis:'Habis', kritis:'Kritis', ati2:'Ati2', aman:'Aman' };
+  if (type === 'boss') {
+    _filterBoss = val;
+    document.getElementById('lbl-filter-boss').textContent = val || 'Supplier';
+    var btn = document.getElementById('btn-filter-boss');
+    btn.style.background = val ? 'var(--ink)' : '';
+    btn.style.color = val ? 'var(--cream)' : '';
+  } else if (type === 'katalog') {
+    _filterKatalog = val;
+    document.getElementById('lbl-filter-katalog').textContent = val || 'SKU Induk';
+    var btn2 = document.getElementById('btn-filter-katalog');
+    btn2.style.background = val ? 'var(--ink)' : '';
+    btn2.style.color = val ? 'var(--cream)' : '';
+  } else if (type === 'status') {
+    _filterStatus = val;
+    document.getElementById('lbl-filter-status').textContent = val ? lblMap[val] : 'Status';
+    var btn3 = document.getElementById('btn-filter-status');
+    btn3.style.background = val ? 'var(--ink)' : '';
+    btn3.style.color = val ? 'var(--cream)' : '';
+  }
+  document.getElementById('dd-filter-' + type).style.display = 'none';
+  filterStok();
+}
+
+document.addEventListener('click', function(e) {
+  ['boss','katalog','status'].forEach(function(t) {
+    var dd  = document.getElementById('dd-filter-' + t);
+    var btn = document.getElementById('btn-filter-' + t);
+    if (dd && dd.style.display === 'block') {
+      if (!dd.contains(e.target) && btn && !btn.contains(e.target)) {
+        dd.style.display = 'none';
+      }
+    }
+  });
+});
 
 loadStok();
