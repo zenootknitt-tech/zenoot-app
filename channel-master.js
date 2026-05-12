@@ -222,7 +222,7 @@ document.getElementById('page-channel').addEventListener('click', function(e) {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
   const action = btn.dataset.action;
-  const id     = parseInt(btn.dataset.id);
+  const id     = btn.dataset.id;   // UUID string, jangan parseInt
   const kat    = btn.dataset.kat;
   if (action === 'edit-ch') {
     editChannel(id, kat);

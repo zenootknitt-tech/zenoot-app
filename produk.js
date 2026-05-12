@@ -278,7 +278,7 @@ document.getElementById('page-produk').addEventListener('click', function(e) {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
   const action = btn.dataset.action;
-  const id     = parseInt(btn.dataset.id);
+  const id     = btn.dataset.id;   // bisa UUID, jangan parseInt
   if (action === 'edit-prd') {
     editProduk(id);
   } else if (action === 'hapus-prd') {
