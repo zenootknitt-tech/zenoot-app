@@ -42,13 +42,10 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- MODAL TAMBAH / EDIT                                       -->
-  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- MODAL -->
   <div class="modal-overlay" id="modal-jp" onclick="jpOverlayClose(event)">
     <div class="modal" style="max-width:480px;width:100%">
 
-      <!-- Header -->
       <div style="display:flex;align-items:center;justify-content:space-between;
                   margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
         <div class="modal-title" id="jp-modal-title"
@@ -62,7 +59,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
 
       <input type="hidden" id="jp-id">
 
-      <!-- Baris 1 : Tanggal + Waktu + Channel -->
+      <!-- Tanggal + Waktu + Channel -->
       <div class="form-row" style="margin-bottom:12px">
         <div class="form-group" style="flex:1.2">
           <label>Tanggal</label>
@@ -72,7 +69,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
           <label>Waktu</label>
           <input type="time" id="jp-waktu"
             style="font-family:var(--f);font-size:14px;padding:6px 10px;
-                   border:2px solid var(--ink);background:var(--cream);color:var(--ink)">
+                   border:2px solid var(--ink);background:var(--cream)">
         </div>
         <div class="form-group" style="flex:1.5">
           <label>Channel</label>
@@ -84,15 +81,15 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
         </div>
       </div>
 
-      <!-- Baris 2 : SKU Induk (ketik + sugesti + tombol dropdown) -->
+      <!-- SKU Induk: ketik + dropdown -->
       <div class="form-row" style="margin-bottom:12px">
         <div class="form-group" style="flex:1;position:relative">
           <label>SKU Induk / Katalog</label>
-          <div style="display:flex;gap:0">
+          <div style="display:flex">
             <input type="text" id="jp-sku-induk"
               placeholder="Ketik nama katalog..."
               autocomplete="off"
-              style="border-right:none;flex:1;border-radius:0"
+              style="flex:1;border-right:none"
               oninput="jpSugestKatalog()"
               onkeydown="jpKatalogKeyNav(event)"
               onfocus="jpSugestKatalog()">
@@ -100,10 +97,8 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
               onclick="jpToggleKatalogFull()"
               title="Lihat semua katalog"
               style="background:var(--cream2);border:2px solid var(--ink);border-left:none;
-                     padding:0 10px;cursor:pointer;font-size:16px;color:var(--ink);
-                     font-family:var(--f);white-space:nowrap;flex-shrink:0">&#9660;</button>
+                     padding:0 12px;cursor:pointer;font-size:16px;color:var(--ink)">&#9660;</button>
           </div>
-          <!-- Dropdown sugesti / full list -->
           <div id="jp-sku-dropdown"
             style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;
                    background:var(--cream);border:2px solid var(--ink);border-top:none;
@@ -112,7 +107,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
         </div>
       </div>
 
-      <!-- Baris 3 : SKU Variasi -->
+      <!-- SKU Variasi -->
       <div class="form-row" style="margin-bottom:12px">
         <div class="form-group" style="flex:1">
           <label>SKU Variasi</label>
@@ -125,7 +120,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
         </div>
       </div>
 
-      <!-- Baris 4 : Qty + Harga + Total -->
+      <!-- Qty + Harga + Total -->
       <div class="form-row" style="margin-bottom:16px">
         <div class="form-group">
           <label>Qty Terjual</label>
@@ -142,7 +137,6 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
         </div>
       </div>
 
-      <!-- Footer modal -->
       <div class="modal-actions"
         style="justify-content:flex-end;border-top:1.5px dashed var(--ink3);padding-top:12px">
         <button class="btn btn-sm" onclick="closeModalJP()">Batal</button>
@@ -153,7 +147,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
     </div>
   </div>
 
-  <!-- TABEL JURNAL -->
+  <!-- TABEL -->
   <div class="card">
     <div class="card-title"
       style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -191,15 +185,12 @@ setTimeout(() => {
 
 // ─── STATE ───────────────────────────────────────────────────
 let _jpAllData    = [];
-let _jpChannelMap = {};
-let _jpProdukList = [];
+let _jpChannelMap = {};  // id -> {id, nama, kategori?}
+let _jpProdukList = [];  // [{katalog, sku, hpp}]
 let _jpSort       = { col: 'tanggal', dir: 'desc' };
 let _jpSkuIndex   = -1;
-let _jpDdMode     = 'suggest'; // 'suggest' | 'full'
+let _jpDdMode     = 'suggest';
 
-const _katLabel = { toko_utama: 'Toko Utama', reseller: 'Reseller', offline: 'Offline' };
-
-// ─── UTIL: waktu sekarang HH:MM ──────────────────────────────
 function _jpNowTime() {
   const n = new Date();
   return String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
@@ -217,52 +208,104 @@ function closeModalJP() {
   jpTutupDropdownSKU();
 }
 
-// ─── LOAD CHANNEL ────────────────────────────────────────────
+// ─── LOAD CHANNEL — tanpa asumsi kolom kategori ──────────────
 async function loadChannelDropdownJP() {
   try {
-    const data = await dbGet('channels', '&order=kategori.asc,nama.asc');
+    // Query tanpa filter kategori — ambil semua, sort nama saja
+    const data = await dbGet('channels', '&order=nama.asc');
     if (!data || !data.length) return;
+
     _jpChannelMap = {};
     data.forEach(ch => { _jpChannelMap[ch.id] = ch; });
 
-    const grouped = {};
-    data.forEach(ch => {
-      if (!grouped[ch.kategori]) grouped[ch.kategori] = [];
-      grouped[ch.kategori].push(ch);
-    });
-
     let fHtml = '<option value="">— Pilih Channel —</option>';
-    let filt  = '<option value="">Semua Channel</option>';
-    Object.entries(grouped).forEach(([kat, items]) => {
-      const lbl = _katLabel[kat] || kat;
-      fHtml += '<optgroup label="── ' + lbl + ' ──">';
-      filt  += '<optgroup label="── ' + lbl + ' ──">';
-      items.forEach(ch => {
-        fHtml += '<option value="' + ch.id + '">' + ch.nama + '</option>';
-        filt  += '<option value="' + ch.id + '">' + ch.nama + '</option>';
+    let filtHtml = '<option value="">Semua Channel</option>';
+
+    // Coba group by kategori kalau ada, kalau tidak ada tampilkan flat
+    const hasKategori = data[0] && data[0].kategori !== undefined;
+
+    if (hasKategori) {
+      const katLabel = { toko_utama: 'Toko Utama', reseller: 'Reseller', offline: 'Offline' };
+      const grouped = {};
+      data.forEach(ch => {
+        const k = ch.kategori || 'lainnya';
+        if (!grouped[k]) grouped[k] = [];
+        grouped[k].push(ch);
       });
-      fHtml += '</optgroup>'; filt += '</optgroup>';
-    });
-    document.getElementById('jp-channel').innerHTML      = fHtml;
-    document.getElementById('jp-filter-channel').innerHTML = filt;
-  } catch(e) { console.warn('channel dropdown:', e.message); }
+      Object.entries(grouped).forEach(([kat, items]) => {
+        const lbl = katLabel[kat] || kat;
+        fHtml    += '<optgroup label="── ' + lbl + ' ──">';
+        filtHtml += '<optgroup label="── ' + lbl + ' ──">';
+        items.forEach(ch => {
+          fHtml    += '<option value="' + ch.id + '">' + ch.nama + '</option>';
+          filtHtml += '<option value="' + ch.id + '">' + ch.nama + '</option>';
+        });
+        fHtml    += '</optgroup>';
+        filtHtml += '</optgroup>';
+      });
+    } else {
+      // Flat list — tidak ada kolom kategori
+      data.forEach(ch => {
+        fHtml    += '<option value="' + ch.id + '">' + ch.nama + '</option>';
+        filtHtml += '<option value="' + ch.id + '">' + ch.nama + '</option>';
+      });
+    }
+
+    document.getElementById('jp-channel').innerHTML        = fHtml;
+    document.getElementById('jp-filter-channel').innerHTML = filtHtml;
+
+  } catch(e) {
+    console.warn('channel dropdown error:', e.message);
+    // Tetap tampilkan opsi kosong agar tidak crash
+    document.getElementById('jp-channel').innerHTML = '<option value="">— Channel tidak tersedia —</option>';
+  }
 }
 
-// ─── LOAD PRODUK ─────────────────────────────────────────────
+// ─── LOAD PRODUK — toleran nama kolom ────────────────────────
 async function loadProdukListJP() {
   try {
-    const data = await dbGet('produk', '&order=katalog.asc,sku.asc');
+    // Coba order katalog dulu, kalau gagal fallback ke nama/sku
+    let data = null;
+    try {
+      data = await dbGet('produk', '&order=katalog.asc,sku.asc');
+    } catch(e) {
+      // Kolom mungkin bernama berbeda, coba tanpa order spesifik
+      try { data = await dbGet('produk', ''); } catch(e2) {}
+    }
     _jpProdukList = data || [];
-  } catch(e) { console.warn('produk list:', e.message); }
+    console.log('Produk list loaded:', _jpProdukList.length, 'items');
+    if (_jpProdukList.length > 0) console.log('Contoh kolom:', Object.keys(_jpProdukList[0]));
+  } catch(e) {
+    console.warn('produk list error:', e.message);
+    _jpProdukList = [];
+  }
 }
 
-// ─── SKU DROPDOWN RENDER ─────────────────────────────────────
+// ─── SKU AUTOCOMPLETE ────────────────────────────────────────
+// Deteksi nama kolom katalog secara dinamis
+function _jpGetKatalog(p) {
+  return p.katalog || p.nama_katalog || p.catalog || p.nama || '';
+}
+function _jpGetSku(p) {
+  return p.sku || p.sku_variasi || p.kode || '';
+}
+function _jpGetHpp(p) {
+  return p.hpp || p.harga_pokok || p.cost || 0;
+}
+
 function _jpRenderDropdown(katalogs, katalogMap) {
   const dd = document.getElementById('jp-sku-dropdown');
-  if (!katalogs.length) { dd.style.display = 'none'; return; }
+  if (!katalogs.length) {
+    dd.style.display = 'none';
+    // Tampilkan hint jika produk list kosong
+    if (_jpProdukList.length === 0) {
+      dd.innerHTML = '<div style="padding:10px 12px;color:var(--ink3);font-size:13px;font-style:italic">Produk belum ada — tambah di Kelola Produk</div>';
+      dd.style.display = 'block';
+    }
+    return;
+  }
   _jpSkuIndex = -1;
   dd.innerHTML = katalogs.map((kat, i) => {
-    const cnt = katalogMap[kat];
     const safe = kat.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     return '<div class="jp-dd-item" data-katalog="' + safe + '" data-idx="' + i + '"'
       + ' style="padding:10px 12px;cursor:pointer;font-size:14px;'
@@ -270,26 +313,25 @@ function _jpRenderDropdown(katalogs, katalogMap) {
       + ' onmouseenter="jpHighlightItem(this)"'
       + ' onclick="jpPilihKatalog(this.dataset.katalog)">'
       + '<span style="font-weight:600">' + kat + '</span>'
-      + '<span style="font-size:11px;color:var(--ink3);margin-left:8px">' + cnt + ' var</span>'
+      + '<span style="font-size:11px;color:var(--ink3);margin-left:8px">' + katalogMap[kat] + ' var</span>'
       + '</div>';
   }).join('');
   dd.style.display = 'block';
 }
 
-// Sugesti saat mengetik
 function jpSugestKatalog() {
   _jpDdMode = 'suggest';
   const q = (document.getElementById('jp-sku-induk').value || '').trim().toLowerCase();
   const katalogMap = {};
   _jpProdukList.forEach(p => {
-    if (!p.katalog) return;
-    if (q && !p.katalog.toLowerCase().includes(q)) return;
-    katalogMap[p.katalog] = (katalogMap[p.katalog] || 0) + 1;
+    const kat = _jpGetKatalog(p);
+    if (!kat) return;
+    if (q && !kat.toLowerCase().includes(q)) return;
+    katalogMap[kat] = (katalogMap[kat] || 0) + 1;
   });
   _jpRenderDropdown(Object.keys(katalogMap), katalogMap);
 }
 
-// Tombol panah → tampilkan SEMUA katalog
 function jpToggleKatalogFull() {
   const dd = document.getElementById('jp-sku-dropdown');
   if (dd.style.display !== 'none' && _jpDdMode === 'full') {
@@ -299,8 +341,9 @@ function jpToggleKatalogFull() {
   document.getElementById('jp-sku-induk').value = '';
   const katalogMap = {};
   _jpProdukList.forEach(p => {
-    if (!p.katalog) return;
-    katalogMap[p.katalog] = (katalogMap[p.katalog] || 0) + 1;
+    const kat = _jpGetKatalog(p);
+    if (!kat) return;
+    katalogMap[kat] = (katalogMap[kat] || 0) + 1;
   });
   _jpRenderDropdown(Object.keys(katalogMap), katalogMap);
   document.getElementById('jp-sku-induk').focus();
@@ -339,16 +382,16 @@ function jpKatalogKeyNav(e) {
 function jpPilihKatalog(katalog) {
   document.getElementById('jp-sku-induk').value = katalog;
   jpTutupDropdownSKU();
-  // Isi variasi
-  const varList = _jpProdukList.filter(p => p.katalog === katalog);
+  const varList = _jpProdukList.filter(p => _jpGetKatalog(p) === katalog);
   const sel = document.getElementById('jp-sku-variasi');
   sel.innerHTML = '<option value="">— Pilih Variasi —</option>';
   varList.forEach(p => {
     const opt = document.createElement('option');
-    opt.value = p.sku; opt.textContent = p.sku; opt.dataset.hpp = p.hpp || 0;
+    opt.value       = _jpGetSku(p);
+    opt.textContent = _jpGetSku(p);
+    opt.dataset.hpp = _jpGetHpp(p);
     sel.appendChild(opt);
   });
-  // Fokus ke variasi
   setTimeout(() => sel.focus(), 60);
 }
 
@@ -366,7 +409,6 @@ function jpTutupDropdownSKU() {
   if (dd) dd.style.display = 'none';
 }
 
-// Tutup dropdown jika klik di luar area SKU
 document.addEventListener('click', function(e) {
   const inp = document.getElementById('jp-sku-induk');
   const btn = document.getElementById('jp-sku-dd-btn');
@@ -397,12 +439,11 @@ async function loadJurnalPenjualan() {
       const to   = new Date(y, parseInt(m), 0).toISOString().split('T')[0];
       filter = '&tanggal=gte.' + from + '&tanggal=lte.' + to;
     }
-    const data = await dbGet('jurnal_penjualan', filter + '&order=tanggal.desc,waktu.desc');
+    const data = await dbGet('jurnal_penjualan', filter + '&order=tanggal.desc');
     _jpAllData = data || [];
     filterJP();
   } catch(err) {
-    document.getElementById('jp-tbody').innerHTML =
-      '<tr><td colspan="7" style="color:var(--danger)">Error: ' + err.message + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--danger)">Error: ' + err.message + '</td></tr>';
   }
 }
 
@@ -455,21 +496,17 @@ function renderTabelJP(data) {
   }
   tbody.innerHTML = data.map(row => {
     const tgl = new Date(row.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'2-digit'});
-    const jam = row.waktu ? row.waktu.slice(0,5) : '—';
+    const jam = row.waktu ? String(row.waktu).slice(0,5) : '—';
     const ch  = _jpChannelMap[row.channel_id];
-    const chBadge = ch
-      ? '<span style="font-size:11px;padding:2px 6px;border-radius:3px;background:var(--cream2);color:var(--ink2)">'
-        + ch.nama + '</span><br><span style="font-size:10px;color:var(--ink3)">'
-        + (_katLabel[ch.kategori]||ch.kategori) + '</span>'
-      : '—';
+    const chLabel = ch ? ch.nama : (row.channel_id ? '#'+row.channel_id : '—');
     return '<tr>'
-      + '<td style="white-space:nowrap"><span style="font-weight:600">' + tgl + '</span>'
-      + '<br><span style="font-size:11px;color:var(--ink3)">' + jam + '</span></td>'
-      + '<td>' + chBadge + '</td>'
-      + '<td><span style="font-weight:600;color:var(--accent)">' + (row.sku||'—') + '</span></td>'
+      + '<td style="white-space:nowrap"><b>' + tgl + '</b><br>'
+      + '<span style="font-size:11px;color:var(--ink3)">' + jam + '</span></td>'
+      + '<td><span style="font-size:12px;padding:2px 6px;border-radius:3px;background:var(--cream2)">' + chLabel + '</span></td>'
+      + '<td><b style="color:var(--accent)">' + (row.sku||'—') + '</b></td>'
       + '<td style="text-align:center">' + (row.qty||0) + '</td>'
       + '<td>' + fmtRp(row.harga_satuan) + '</td>'
-      + '<td style="color:var(--ok);font-weight:600">' + fmtRp(row.total) + '</td>'
+      + '<td><b style="color:var(--ok)">' + fmtRp(row.total) + '</b></td>'
       + '<td>'
       + '<button class="btn btn-sm" onclick="editJP(' + row.id + ')" style="margin-right:4px">&#9998;</button>'
       + '<button class="btn btn-sm btn-danger" onclick="hapusJP(' + row.id + ',\'' + (row.sku||'').replace(/'/g,"\\'") + '\')">&#10005;</button>'
@@ -478,7 +515,6 @@ function renderTabelJP(data) {
   document.getElementById('jp-footer').textContent = 'Menampilkan ' + data.length + ' entri';
 }
 
-// ─── METRICS ─────────────────────────────────────────────────
 function updateMetricsJP(data) {
   const tot  = data.reduce((s,r) => s+(r.total||0), 0);
   const item = data.reduce((s,r) => s+(r.qty||0), 0);
@@ -486,7 +522,7 @@ function updateMetricsJP(data) {
   document.getElementById('jp-total-item').textContent      = item.toLocaleString('id-ID') + ' item';
 }
 
-// ─── BUKA MODAL TAMBAH ────────────────────────────────────────
+// ─── BUKA MODAL ──────────────────────────────────────────────
 function showTambahJP() {
   document.getElementById('jp-modal-title').innerHTML = '<i class="ti ti-plus"></i> Tambah Penjualan';
   document.getElementById('jp-id').value         = '';
@@ -499,7 +535,8 @@ function showTambahJP() {
   document.getElementById('jp-harga').value      = '';
   document.getElementById('jp-total').value      = '';
   jpTutupDropdownSKU();
-  if (_jpProdukList.length === 0) loadProdukListJP();
+  // Reload produk list setiap buka modal agar selalu fresh
+  loadProdukListJP();
   document.getElementById('modal-jp').classList.add('open');
   setTimeout(() => document.getElementById('jp-channel').focus(), 100);
 }
@@ -513,7 +550,7 @@ async function editJP(id) {
     document.getElementById('jp-modal-title').innerHTML = '<i class="ti ti-edit"></i> Edit Penjualan';
     document.getElementById('jp-id').value      = r.id;
     document.getElementById('jp-tgl').value     = r.tanggal ? r.tanggal.split('T')[0] : '';
-    document.getElementById('jp-waktu').value   = r.waktu ? r.waktu.slice(0,5) : _jpNowTime();
+    document.getElementById('jp-waktu').value   = r.waktu ? String(r.waktu).slice(0,5) : _jpNowTime();
     document.getElementById('jp-channel').value = r.channel_id || '';
     document.getElementById('jp-qty').value     = r.qty          || '';
     document.getElementById('jp-harga').value   = r.harga_satuan || '';
@@ -521,15 +558,18 @@ async function editJP(id) {
     jpTutupDropdownSKU();
     if (_jpProdukList.length === 0) await loadProdukListJP();
     const skuVal = r.sku || '';
-    const found  = _jpProdukList.find(p => p.sku === skuVal);
+    const found  = _jpProdukList.find(p => _jpGetSku(p) === skuVal);
     if (found) {
-      document.getElementById('jp-sku-induk').value = found.katalog;
-      jpPilihKatalog(found.katalog);
+      const kat = _jpGetKatalog(found);
+      document.getElementById('jp-sku-induk').value = kat;
+      jpPilihKatalog(kat);
       setTimeout(() => { document.getElementById('jp-sku-variasi').value = skuVal; }, 80);
     } else {
       document.getElementById('jp-sku-induk').value = skuVal;
       const sel = document.getElementById('jp-sku-variasi');
-      sel.innerHTML = '<option value="' + skuVal + '">' + (skuVal||'—') + '</option>';
+      sel.innerHTML = skuVal
+        ? '<option value="' + skuVal + '">' + skuVal + '</option>'
+        : '<option value="">— Pilih Variasi —</option>';
     }
     document.getElementById('modal-jp').classList.add('open');
   } catch(err) { alert('Gagal load: ' + err.message); }
@@ -557,9 +597,9 @@ async function simpanJP() {
     total,
   };
 
-  if (!payload.tanggal) { alert('Tanggal wajib diisi!');    return; }
-  if (!sku)             { alert('SKU wajib diisi!');         return; }
-  if (qty <= 0)         { alert('Qty harus lebih dari 0!'); return; }
+  if (!payload.tanggal) { alert('Tanggal wajib diisi!');     return; }
+  if (!sku)             { alert('SKU wajib diisi!');          return; }
+  if (qty <= 0)         { alert('Qty harus lebih dari 0!');  return; }
   if (harga <= 0)       { alert('Harga satuan harus diisi!');return; }
 
   try {
@@ -582,10 +622,10 @@ async function hapusJP(id, sku) {
   });
 }
 
-// ─── EXPORT CSV ──────────────────────────────────────────────
+// ─── EXPORT ──────────────────────────────────────────────────
 async function exportJurnalPenjualan() {
   try {
-    const data = await dbGet('jurnal_penjualan', '&order=tanggal.asc,waktu.asc');
+    const data = await dbGet('jurnal_penjualan', '&order=tanggal.asc');
     if (!data || !data.length) { alert('Belum ada data penjualan'); return; }
     const headers = ['Tanggal','Waktu','Channel','SKU','Qty','Harga Satuan','Total'];
     const rows = data.map(r => {
@@ -598,5 +638,8 @@ async function exportJurnalPenjualan() {
 
 // ─── INIT ────────────────────────────────────────────────────
 document.getElementById('jp-filter-bulan').value = new Date().toISOString().slice(0,7);
-loadChannelDropdownJP().then(() => loadJurnalPenjualan());
-loadProdukListJP();
+// Load channel dan produk secara paralel
+Promise.all([
+  loadChannelDropdownJP(),
+  loadProdukListJP()
+]).then(() => loadJurnalPenjualan());
