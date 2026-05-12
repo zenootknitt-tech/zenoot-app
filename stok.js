@@ -20,21 +20,21 @@ document.getElementById('page-stok').innerHTML = `
         box-shadow:4px 4px 0 var(--ink4)">
 
         <!-- Menu: Supplier -->
-        <div id="mi-boss" onmouseenter="stokOpenSub('boss')"
+        <div id="mi-boss" onclick="stokOpenSub('boss',event)"
           style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4)">
           <span><i class="ti ti-user" style="font-size:12px;margin-right:6px"></i>Supplier <span id="badge-boss" style="font-size:10px;color:var(--ink3)"></span></span>
           <i class="ti ti-chevron-right" style="font-size:11px"></i>
         </div>
 
         <!-- Menu: SKU Induk -->
-        <div id="mi-katalog" onmouseenter="stokOpenSub('katalog')"
+        <div id="mi-katalog" onclick="stokOpenSub('katalog',event)"
           style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4)">
           <span><i class="ti ti-tag" style="font-size:12px;margin-right:6px"></i>SKU Induk <span id="badge-katalog" style="font-size:10px;color:var(--ink3)"></span></span>
           <i class="ti ti-chevron-right" style="font-size:11px"></i>
         </div>
 
         <!-- Menu: Status -->
-        <div id="mi-status" onmouseenter="stokOpenSub('status')"
+        <div id="mi-status" onclick="stokOpenSub('status',event)"
           style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4)">
           <span><i class="ti ti-circle-check" style="font-size:12px;margin-right:6px"></i>Status <span id="badge-status" style="font-size:10px;color:var(--ink3)"></span></span>
           <i class="ti ti-chevron-right" style="font-size:11px"></i>
@@ -475,7 +475,8 @@ function stokToggleFilterAll() {
   dd.style.display = 'block';
 }
 
-function stokOpenSub(type) {
+function stokOpenSub(type, e) {
+  if (e) e.stopPropagation();
   var el = document.getElementById('mi-' + type);
   if (!el) return;
 
@@ -592,8 +593,24 @@ function stokSetFilter(type, val) {
 document.addEventListener('click', function(e) {
   var dd  = document.getElementById('dd-filter-all');
   var btn = document.getElementById('btn-filter-all');
+  var subs = ['dd-filter-boss','dd-filter-katalog','dd-filter-status'];
+  // Cek apakah klik di dalam salah satu submenu
+  var inSub = subs.some(function(id) {
+    var s = document.getElementById(id);
+    return s && s.contains(e.target);
+  });
+  if (inSub) return; // jangan tutup kalau klik di submenu
   if (dd && dd.style.display === 'block') {
     if (!dd.contains(e.target) && btn && !btn.contains(e.target)) {
+      // Tutup semua submenu
+      subs.forEach(function(id) {
+        var s = document.getElementById(id);
+        if (s) s.style.display = 'none';
+      });
+      ['boss','katalog','status'].forEach(function(t) {
+        var m = document.getElementById('mi-' + t);
+        if (m) { m.style.background = ''; m.style.color = ''; }
+      });
       dd.style.display = 'none';
     }
   }
