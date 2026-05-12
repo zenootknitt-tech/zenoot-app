@@ -1,60 +1,57 @@
-// ─── SUPABASE.JS — file koneksi ke Supabase ──────────────────
+// ─── SUPABASE.JS ─────────────────────────────────────────────
 const SUPABASE_URL = 'https://hkhntwgurticesuwcmyz.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhraG50d2d1cnRpY2VzdXdjbXl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NzE1NjIsImV4cCI6MjA5NDA0NzU2Mn0.DSw0s6ik7ghdl947eEROgCQ00Qc6hA-h7sl3_RihcWc';
 
-const _h = () => ({
-  'apikey':        SUPABASE_KEY,
-  'Authorization': 'Bearer ' + SUPABASE_KEY,
-  'Content-Type':  'application/json',
-});
+function _headers(extra) {
+  const h = {
+    'apikey':        SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type':  'application/json'
+  };
+  if (extra) Object.assign(h, extra);
+  return h;
+}
 
-// ─── GET ─────────────────────────────────────────────────────
-async function dbGet(table, filter = '') {
+async function dbGet(table, filter) {
+  filter = filter || '';
   const res  = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?select=*' + filter, {
-    headers: _h()
+    headers: _headers()
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data?.message || data?.hint || 'GET "' + table + '" error (' + res.status + ')');
+  if (!res.ok) throw new Error(data.message || data.hint || 'GET ' + table + ' error ' + res.status);
   return Array.isArray(data) ? data : [];
 }
 
-// ─── INSERT ──────────────────────────────────────────────────
 async function dbInsert(table, payload) {
-  const hdrs = _h();
-  hdrs['Prefer'] = 'return=representation';
   const res  = await fetch(SUPABASE_URL + '/rest/v1/' + table, {
     method:  'POST',
-    headers: hdrs,
+    headers: _headers({ 'Prefer': 'return=representation' }),
     body:    JSON.stringify(payload)
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data?.message || data?.hint || 'INSERT "' + table + '" error (' + res.status + ')');
+  if (!res.ok) throw new Error(data.message || data.hint || 'INSERT ' + table + ' error ' + res.status);
   return data;
 }
 
-// ─── UPDATE ──────────────────────────────────────────────────
 async function dbUpdate(table, id, payload) {
-  const hdrs = _h();
-  hdrs['Prefer'] = 'return=representation';
   const res  = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + id, {
     method:  'PATCH',
-    headers: hdrs,
+    headers: _headers({ 'Prefer': 'return=representation' }),
     body:    JSON.stringify(payload)
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data?.message || data?.hint || 'UPDATE "' + table + '" error (' + res.status + ')');
+  if (!res.ok) throw new Error(data.message || data.hint || 'UPDATE ' + table + ' error ' + res.status);
   return data;
 }
 
-// ─── DELETE ──────────────────────────────────────────────────
 async function dbDelete(table, id) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + id, {
     method:  'DELETE',
-    headers: _h()
+    headers: _headers()
   });
   if (!res.ok) {
-    let msg = 'DELETE "' + table + '" error (' + res.status + ')';
-    try { const d = await res.json(); msg = d?.message || d?.hint || msg; } catch(e) {}
+    let msg = 'DELETE ' + table + ' error ' + res.status;
+    try { const d = await res.json(); msg = d.message || d.hint || msg; } catch(e) {}
     throw new Error(msg);
   }
 }
