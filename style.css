@@ -124,7 +124,7 @@ body{display:flex;height:100vh;background:var(--cream);font-family:var(--f);colo
 
 /* ─── CONTENT ────────────────────────────────────────────── */
 .content{
-  flex:1;overflow-y:auto;padding:16px;
+  flex:1;overflow-y:hidden;padding:16px;
   background-image:repeating-linear-gradient(to bottom,transparent,transparent 27px,var(--paper-line) 27px,var(--paper-line) 28px);
   background-attachment:local;
 }
@@ -230,6 +230,7 @@ body{display:flex;height:100vh;background:var(--cream);font-family:var(--f);colo
   text-align:left;padding:6px 8px;font-size:10px;font-weight:700;color:var(--ink3);
   border-bottom:2.5px solid var(--ink);text-transform:uppercase;letter-spacing:.06em;
   white-space:nowrap;font-family:var(--f2);
+  position:sticky;top:0;background:var(--cream);z-index:2;
 }
 .tbl td{padding:7px 8px;border-bottom:1.5px dashed var(--ink4);white-space:nowrap;font-size:14px;font-weight:500}
 .tbl tr:last-child td{border:none}
