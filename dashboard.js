@@ -72,8 +72,12 @@ document.getElementById('page-dashboard').innerHTML = `
     </div>
     <div class="metric">
       <div class="m-label">Order Hari Ini</div>
-      <div class="m-value" id="d-order-hari">—</div>
-      <div class="m-delta" id="d-order-hari-delta">transaksi masuk</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
+        <div class="m-value" id="d-order-qty" style="margin:0">—</div>
+        <div style="font-size:11px;color:var(--ink3);font-weight:400;line-height:1">pcs</div>
+        <div class="m-value" id="d-order-omset" style="margin:0;color:var(--ok)">—</div>
+      </div>
+      <div class="m-delta" id="d-order-hari-delta">belum ada order hari ini</div>
       <div class="doodle" style="bottom:6px;right:8px">🛍️</div>
     </div>
   </div>
@@ -614,8 +618,13 @@ async function loadDashboard() {
     const omsetDeltaEl = document.getElementById('d-omset-delta');
     if (omsetDeltaEl) omsetDeltaEl.textContent = 'dari jurnal penjualan';
 
-    document.getElementById('d-order-hari').textContent       = jpHariIni.length + ' transaksi';
-    document.getElementById('d-order-hari-delta').textContent = omsetHari>0 ? _fmtRp(omsetHari)+' hari ini' : 'belum ada order hari ini';
+    const qtyHariIni = jpHariIni.reduce((s,r) => s + (Number(r.qty)||0), 0);
+    const elQty  = document.getElementById('d-order-qty');
+    const elOmHr = document.getElementById('d-order-omset');
+    const elDelta = document.getElementById('d-order-hari-delta');
+    if (elQty)   elQty.textContent  = qtyHariIni || '0';
+    if (elOmHr)  elOmHr.textContent = omsetHari>0 ? _fmtRp(omsetHari) : 'Rp0';
+    if (elDelta) elDelta.textContent = jpHariIni.length + ' transaksi hari ini';
 
     // ─ Target Omset — Logika ekonomi: Target = Beban / (beban_persen / 100)
     let target = _getTarget();
