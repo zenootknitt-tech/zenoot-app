@@ -63,7 +63,7 @@ document.getElementById('page-produk').innerHTML = `
         style="font-family:var(--f);font-size:13px;padding:4px 8px;border:2px solid var(--ink);background:var(--cream);width:180px"
         oninput="filterProduk()">
     </div>
-    <div class="tbl-wrap"><table class="tbl">
+    <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto"><table class="tbl">
       <thead><tr><th>Katalog</th><th>SKU Variasi</th><th>HPP</th><th>Boss</th><th>Aksi</th></tr></thead>
       <tbody id="produk-tbody">
         <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>

@@ -28,7 +28,7 @@ document.getElementById('page-dataorder').innerHTML = `
       </div>
     </div>
     <div id="order-info" style="font-size:12px;color:var(--ink3);margin-bottom:8px">Belum ada file diupload. Upload file Shopee di atas.</div>
-    <div class="tbl-wrap"><table class="tbl">
+    <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto"><table class="tbl">
       <thead>
         <tr>
           <th>No. Pesanan</th><th>SKU</th><th>Variasi</th><th>Qty</th>
