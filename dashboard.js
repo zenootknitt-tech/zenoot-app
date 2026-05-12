@@ -596,14 +596,19 @@ async function loadDashboard() {
     document.getElementById('d-order-hari-delta').textContent = omsetHari>0 ? _fmtRp(omsetHari)+' hari ini' : 'belum ada order hari ini';
     document.getElementById('d-aov').textContent            = _fmtRp(aov);
 
-    // ─ Target Omset: ambil dari beban_operasional toko_utama
-    //   Cari baris yang nama_beban-nya adalah angka (misal "4000000") → itu target omset
-    //   Fallback ke localStorage kalau tidak ada
+    // ─ Target Omset — Logika ekonomi: Target = Beban / (beban_persen / 100)
+    //   Contoh: beban Rp4.000.000, rasio 10% → Target = 4.000.000 / 0.10 = Rp40.000.000
     let target = _getTarget();
     const bebanArr = bebanData || [];
-    const targetRow = bebanArr.find(r => r.nama_beban && !isNaN(Number(String(r.nama_beban).replace(/\./g,'').replace(/,/g,''))));
-    if (targetRow) {
-      target = parseInt(String(targetRow.nama_beban).replace(/\./g,'').replace(/,/g,'')) || target;
+    if (bebanArr.length > 0) {
+      // Ambil baris pertama yang nama_beban-nya angka = nominal beban operasional
+      const bebanRow = bebanArr.find(r => r.nama_beban && !isNaN(Number(String(r.nama_beban).replace(/[\.,]/g,''))));
+      // Total rasio beban dari semua baris
+      const totalRasio = bebanArr.reduce((s,r) => s + (Number(r.beban_persen)||0), 0);
+      if (bebanRow && totalRasio > 0) {
+        const nominalBeban = Number(String(bebanRow.nama_beban).replace(/[\.,]/g,''));
+        target = Math.round(nominalBeban / (totalRasio / 100));
+      }
     }
 
     // Target
@@ -626,22 +631,42 @@ async function loadDashboard() {
     // ─ Alerts
     _renderAlerts(_dashStokData, saldo);
 
-    // ─ Tabel stok — hanya tampilkan SKU kritis (sisa ≤ 8), sorted dari paling kritis
-    const stokKritis = [..._dashStokData]
-      .filter(r => r.sisa <= 8)
+    // ─ Tabel stok — 5 SKU PRIORITAS:
+    //   Kriteria: pernah terjual dalam 14 hari terakhir DAN stok habis/kritis (sisa ≤ 3)
+    //   Sorted: sisa terkecil dulu (paling urgent)
+    const today14 = new Date();
+    today14.setDate(today14.getDate() - 14);
+    const batas14 = today14.toISOString().split('T')[0];
+
+    // SKU yang terjual dalam 14 hari terakhir
+    const skuTerjual14 = new Set(
+      _dashJPData
+        .filter(r => r.tanggal && String(r.tanggal).slice(0,10) >= batas14)
+        .map(r => (r.sku||'').toUpperCase())
+    );
+
+    // Filter: pernah terjual 14 hari + stok habis/kritis (sisa ≤ 3)
+    const stokPrioritas = [..._dashStokData]
+      .filter(r => r.sisa <= 3 && skuTerjual14.has((r.sku_variasi||'').toUpperCase()))
       .sort((a,b) => a.sisa - b.sisa)
-      .slice(0, 15);
+      .slice(0, 5);
+
+    // Fallback: kalau tidak ada yg memenuhi kriteria ketat, tampil 5 yg paling kritis saja
+    const stokTampil = stokPrioritas.length > 0
+      ? stokPrioritas
+      : [..._dashStokData].filter(r => r.sisa <= 3).sort((a,b) => a.sisa - b.sisa).slice(0,5);
+
     const stokSum = document.getElementById('dash-stok-summary');
     if (stokSum) stokSum.textContent = _dashStokData.length+' SKU · Nilai '+_fmtRp(nilaiStok);
-    document.getElementById('dash-stok-tbody').innerHTML = stokKritis.length===0
-      ? '<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Semua stok aman ✓</td></tr>'
-      : stokKritis.map(r => {
+    document.getElementById('dash-stok-tbody').innerHTML = stokTampil.length===0
+      ? '<tr><td colspan="5" style="color:var(--ok);font-style:italic;font-weight:600">✓ Semua stok aman</td></tr>'
+      : stokTampil.map(r => {
           const sold = r.stok_keluar || 0;
           return '<tr>' +
             '<td><b>'+r.sku_variasi+'</b></td>' +
             '<td>'+(r.boss||'—')+'</td>' +
-            '<td><b>'+(r.sisa <= 0 ? '<span style="color:var(--danger)">'+r.sisa+'</span>' : r.sisa)+'</b></td>'+
-            '<td>'+(sold>0?'<span style="color:var(--ok);font-weight:700">'+sold+'</span>':'<span style="color:var(--ink4)">—</span>')+'</td>'+
+            '<td><b><span style="color:'+(r.sisa<=0?'var(--danger)':'var(--warn)')+'">'+r.sisa+'</span></b></td>'+
+            '<td>'+(sold>0?'<span style="color:var(--ok);font-weight:700">'+sold+'×</span>':'<span style="color:var(--ink4)">—</span>')+'</td>'+
             '<td>'+statusBadgeDash(r.sisa)+'</td>' +
           '</tr>';
         }).join('');
