@@ -38,7 +38,7 @@ document.getElementById('page-price-list').innerHTML = `
   <!-- TABEL PRICE LIST -->
   <div class="card">
     <div class="card-title"><i class="ti ti-tag"></i> Price List</div>
-    <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto"><table class="tbl">
+    <div style="max-height:65vh;overflow-y:auto"><div class="tbl-wrap"><table class="tbl">
       <thead>
         <tr>
           <th>Katalog</th>
@@ -53,7 +53,7 @@ document.getElementById('page-price-list').innerHTML = `
       <tbody id="pl-tbody">
         <tr><td colspan="7" style="color:var(--ink3);font-style:italic">Memuat data...</td></tr>
       </tbody>
-    </table></div>
+    </table></div></div>
     <div id="pl-footer" style="font-size:12px;color:var(--ink3);margin-top:8px;text-align:right"></div>
   </div>
 `;

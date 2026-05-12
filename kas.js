@@ -80,12 +80,12 @@ document.getElementById('page-kas').innerHTML = `
 
   <div class="card">
     <div class="card-title"><i class="ti ti-list"></i>Jurnal Harian</div>
-    <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto"><table class="tbl">
+    <div style="max-height:65vh;overflow-y:auto"><div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Debit</th><th>Kredit</th><th>Saldo</th><th>Aksi</th></tr></thead>
       <tbody id="jurnal-tbody">
         <tr><td colspan="6" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
       </tbody>
-    </table></div>
+    </table></div></div>
   </div>
 `;
 

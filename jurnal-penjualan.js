@@ -158,7 +158,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
                border:2px solid var(--ink);background:var(--cream);width:200px"
         oninput="filterJP()">
     </div>
-    <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto"><table class="tbl">
+    <div style="max-height:65vh;overflow-y:auto"><div class="tbl-wrap"><table class="tbl">
       <thead>
         <tr>
           <th onclick="sortJP('tanggal')" style="cursor:pointer">Tgl &amp; Waktu <span id="sort-tanggal">&#8597;</span></th>
@@ -173,7 +173,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
       <tbody id="jp-tbody">
         <tr><td colspan="7" style="color:var(--ink3);font-style:italic">Memuat data...</td></tr>
       </tbody>
-    </table></div>
+    </table></div></div>
     <div id="jp-footer" style="font-size:12px;color:var(--ink3);margin-top:8px;text-align:right"></div>
   </div>
 `;
