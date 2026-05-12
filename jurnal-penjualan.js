@@ -138,10 +138,14 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
       </div>
 
       <div class="modal-actions"
-        style="justify-content:flex-end;border-top:1.5px dashed var(--ink3);padding-top:12px">
-        <button class="btn btn-sm" onclick="closeModalJP()">Batal</button>
-        <button class="btn btn-primary btn-sm" onclick="simpanJP()">
-          <i class="ti ti-check"></i> Simpan Transaksi
+        style="justify-content:flex-end;gap:10px;border-top:1.5px dashed var(--ink3);padding-top:12px">
+        <button class="btn btn-sm" onclick="closeModalJP()"
+          style="min-width:80px">
+          <i class="ti ti-x"></i> Batal
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="simpanJP()"
+          style="min-width:140px;font-weight:700;font-size:14px;padding:8px 16px">
+          <i class="ti ti-device-floppy"></i> SIMPAN
         </button>
       </div>
     </div>
@@ -626,7 +630,8 @@ async function simpanJP() {
   const qty   = parseInt(document.getElementById('jp-qty').value)   || 0;
   const harga = parseInt(document.getElementById('jp-harga').value) || 0;
   const total = parseInt(document.getElementById('jp-total').value) || qty * harga;
-  const chId  = document.getElementById('jp-channel').value;
+  const chIdRaw = document.getElementById('jp-channel').value;
+  const chId    = chIdRaw ? parseInt(chIdRaw) : null;
   const skuV  = document.getElementById('jp-sku-variasi').value;
   const skuI  = document.getElementById('jp-sku-induk').value.trim().toUpperCase();
   const sku   = (skuV || skuI).trim().toUpperCase();
@@ -635,7 +640,7 @@ async function simpanJP() {
   const payload = {
     tanggal:      document.getElementById('jp-tgl').value,
     waktu:        waktu,
-    channel_id:   chId ? chId : null,
+    channel_id:   chId,
     sku:          sku,
     qty,
     harga_satuan: harga,
@@ -643,17 +648,23 @@ async function simpanJP() {
   };
 
   if (!payload.tanggal) { alert('Tanggal wajib diisi!');     return; }
-  if (!sku)             { alert('SKU wajib diisi!');          return; }
+  if (!sku)             { alert('SKU wajib diisi! Pilih dari dropdown atau ketik nama SKU.'); return; }
   if (qty <= 0)         { alert('Qty harus lebih dari 0!');  return; }
   if (harga <= 0)       { alert('Harga satuan harus diisi!');return; }
 
+  const btnSimpan = document.querySelector('#modal-jp .btn-primary');
+  if (btnSimpan) { btnSimpan.textContent = 'Menyimpan...'; btnSimpan.disabled = true; }
   try {
     if (id) await dbUpdate('jurnal_penjualan', id, payload);
     else    await dbInsert('jurnal_penjualan', payload);
     closeModalJP();
     loadJurnalPenjualan();
     if (typeof loadDashboard === 'function') loadDashboard();
-  } catch(err) { alert('Gagal simpan: ' + err.message); }
+  } catch(err) {
+    alert('Gagal simpan: ' + err.message);
+  } finally {
+    if (btnSimpan) { btnSimpan.innerHTML = '<i class="ti ti-check"></i> Simpan Transaksi'; btnSimpan.disabled = false; }
+  }
 }
 
 // ─── HAPUS ───────────────────────────────────────────────────

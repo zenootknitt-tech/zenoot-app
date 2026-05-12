@@ -139,16 +139,17 @@ async function loadChannelByKategori(kat) {
       tbody.innerHTML = `<tr><td colspan="3" style="color:var(--ink3);font-style:italic">Belum ada data</td></tr>`;
       return;
     }
-    tbody.innerHTML = data.map(row => `
-      <tr>
+    tbody.innerHTML = data.map(row => {
+      const safeNama = (row.nama||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      return `<tr>
         <td style="font-weight:600">${row.nama || '—'}</td>
         <td style="color:var(--ink3);font-size:13px">${row.keterangan || '—'}</td>
         <td>
-          <button class="btn btn-sm" onclick="editChannel(${row.id},'${kat}')" style="margin-right:4px"><i class="ti ti-edit"></i></button>
-          <button class="btn btn-sm btn-danger" onclick="hapusChannel(${row.id},'${(row.nama||'').replace(/'/g,"\\'")}','${kat}')"><i class="ti ti-trash"></i></button>
+          <button class="btn btn-sm" data-action="edit-ch" data-id="${row.id}" data-kat="${kat}" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-sm btn-danger" data-action="hapus-ch" data-id="${row.id}" data-kat="${kat}" data-nama="${safeNama}"><i class="ti ti-trash"></i></button>
         </td>
-      </tr>
-    `).join('');
+      </tr>`;
+    }).join('');
     // Refresh dropdown JP kalau sudah diload
     if (typeof loadChannelDropdownJP === 'function') loadChannelDropdownJP();
   } catch(err) {
@@ -215,6 +216,21 @@ async function hapusChannel(id, nama, kat) {
     } catch(err) { alert('Gagal hapus: ' + err.message); }
   });
 }
+
+// ─── EVENT DELEGATION untuk tombol edit/hapus di tabel channel ─
+document.getElementById('page-channel').addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id     = parseInt(btn.dataset.id);
+  const kat    = btn.dataset.kat;
+  if (action === 'edit-ch') {
+    editChannel(id, kat);
+  } else if (action === 'hapus-ch') {
+    const nama = btn.dataset.nama;
+    hapusChannel(id, nama, kat);
+  }
+});
 
 // ─── INIT ────────────────────────────────────────────────────
 loadChannelMaster();

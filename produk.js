@@ -105,17 +105,19 @@ function renderProduk(data) {
     tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Belum ada data produk</td></tr>';
     return;
   }
-  tbody.innerHTML = data.map(row => `
-    <tr>
+  tbody.innerHTML = data.map(row => {
+    const safeSku = (row.sku_variasi||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return `<tr>
       <td>${row.katalog || '—'}</td>
       <td><b>${row.sku_variasi}</b></td>
       <td>Rp${(row.hpp||0).toLocaleString('id-ID')}</td>
       <td>${row.boss || '—'}</td>
       <td>
-        <button class="btn btn-sm" onclick="editProduk(${row.id})" style="margin-right:4px"><i class="ti ti-edit"></i></button>
-        <button class="btn btn-sm btn-danger" onclick="hapusProduk(${row.id},'${row.sku_variasi}')"><i class="ti ti-trash"></i></button>
+        <button class="btn btn-sm" data-action="edit-prd" data-id="${row.id}" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-sm btn-danger" data-action="hapus-prd" data-id="${row.id}" data-sku="${safeSku}"><i class="ti ti-trash"></i></button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function filterProduk() {
@@ -154,6 +156,7 @@ async function editProduk(id) {
   document.getElementById('prd-hpp').value     = r.hpp || 0;
   document.getElementById('prd-boss').value    = r.boss || '';
   document.getElementById('form-produk').style.display = 'block';
+  sketchForm('form-produk');
   document.getElementById('form-produk').scrollIntoView({behavior:'smooth'});
 }
 
@@ -269,3 +272,17 @@ async function exportProduk() {
 }
 
 loadProduk();
+
+// ─── EVENT DELEGATION untuk tombol edit/hapus di tabel produk ──
+document.getElementById('page-produk').addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id     = parseInt(btn.dataset.id);
+  if (action === 'edit-prd') {
+    editProduk(id);
+  } else if (action === 'hapus-prd') {
+    const sku = btn.dataset.sku;
+    hapusProduk(id, sku);
+  }
+});

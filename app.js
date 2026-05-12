@@ -73,8 +73,12 @@ function gotoPage(page, btn) {
 
 // ─── MODAL ───────────────────────────────────────────────────
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+
+// Delegated: tangkap semua klik di document, tutup modal jika klik tepat di overlay
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.classList && e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('open');
+  }
 });
 
 // ─── CONFIRM DELETE HELPER ────────────────────────────────────
