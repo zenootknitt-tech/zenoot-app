@@ -1,6 +1,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
-html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%;color-scheme:light}
 :root{
+  color-scheme: light;
   --ink:#1c1a14;--ink2:#3d3a2e;--ink3:#6b6354;--ink4:#a89f8a;
   --cream:#f5f0e8;--cream2:#ede7d9;--cream3:#e4dccb;--cream4:#d9d0bc;
   --paper-line:rgba(160,145,110,0.18);
@@ -396,20 +397,21 @@ body.sidebar-mini .sidebar-footer::before{
 }
 .metric{
   background:var(--cream2);border:none;
-  padding:10px 12px;position:relative;
+  padding:10px 12px;position:relative;overflow:hidden;
 }
-.metric canvas.rough-card{position:absolute;top:0;left:0;pointer-events:none}
+.metric canvas.rough-card{position:absolute;top:0;left:0;pointer-events:none;z-index:0}
 .m-label{
   font-size:10px;font-weight:700;color:var(--ink3);
   text-transform:uppercase;letter-spacing:.07em;
-  font-family:var(--f2);position:relative;z-index:1;
+  font-family:var(--f2);position:relative;z-index:2;
 }
 .m-value{
   font-size:26px;font-weight:700;line-height:1.15;
   margin:4px 0 2px;letter-spacing:-.5px;
-  font-family:var(--f2);position:relative;z-index:1;
+  font-family:var(--f2);position:relative;z-index:2;
 }
-.m-delta{font-size:11px;color:var(--ink3);font-family:var(--f2);position:relative;z-index:1}
+.m-delta{font-size:11px;color:var(--ink3);font-family:var(--f2);position:relative;z-index:2}
+.doodle{position:absolute;bottom:8px;right:10px;color:var(--ink4);font-size:22px;line-height:1;opacity:0.45;z-index:1;pointer-events:none}
 
 /* ─── GRID ───────────────────────────────────────────────── */
 .grid2{
@@ -422,9 +424,10 @@ body.sidebar-mini .sidebar-footer::before{
 /* ─── CARD ───────────────────────────────────────────────── */
 .card{
   background:var(--cream2);border:none;
-  padding:12px 14px;margin-bottom:12px;position:relative;
+  padding:12px 14px;margin-bottom:12px;position:relative;overflow:hidden;
 }
 .card canvas.rough-card{position:absolute;top:0;left:0;pointer-events:none;z-index:0}
+.card > *:not(canvas){position:relative;z-index:1}
 .card-title,.tbl-wrap,.tbl,.tbl td,.form-row,.form-group{position:relative;z-index:1}
 .card-title{
   font-size:17px;font-weight:700;margin-bottom:10px;padding-bottom:7px;
@@ -585,9 +588,6 @@ body.sidebar-mini .sidebar-footer::before{
 }
 .sticky::before{content:'📌';display:block;font-size:13px;margin-bottom:2px}
 
-/* ─── DOODLE ─────────────────────────────────────────────── */
-.doodle{position:absolute;bottom:8px;right:10px;color:var(--ink4);font-size:22px;line-height:1;opacity:0.45;}
-
 /* ─── PAGE VISIBILITY ────────────────────────────────────── */
 .page{display:none}
 .page.active{display:block}
@@ -615,13 +615,14 @@ body.sidebar-mini .sidebar-footer::before{
   .sidebar-minimize-btn{display:-webkit-flex;display:flex}
 }
 @media (max-width:768px){
-  .sidebar-footer{display:none}
+  .sidebar-footer{display:none !important}
   .hamburger{display:-webkit-flex;display:flex}
   .spiral{display:none}
   .sidebar{
     position:fixed;top:0;left:0;height:100vh;height:100dvh;
     -webkit-transform:translateX(-100%);transform:translateX(-100%);
     box-shadow:4px 0 16px rgba(0,0,0,0.2);
+    overflow:hidden;
   }
   .sidebar.open{-webkit-transform:translateX(0);transform:translateX(0)}
   .sidebar-overlay.open{display:block}
@@ -666,12 +667,13 @@ body.sidebar-mini .sidebar-footer::before{
     height:100vh;height:100dvh;
     -webkit-transform:translateX(-100%);transform:translateX(-100%);
     box-shadow:4px 0 16px rgba(0,0,0,0.2);
+    overflow:hidden;
   }
   .sidebar.open{-webkit-transform:translateX(0);transform:translateX(0)}
   .sidebar-overlay.open{display:block}
   .main{width:100%}
   .content{padding:10px;padding-bottom:70px}
-  .sidebar-footer{display:none}
+  .sidebar-footer{display:none !important}
   .sidebar-minimize-btn{display:none !important}
 }
 
@@ -692,83 +694,6 @@ body.sidebar-mini .sidebar-footer::before{
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   FIX: Rough canvas SELALU di bawah konten
-   Canvas rough di-insert sebagai firstChild dengan z-index:0
-   Semua konten HTML di dalam .card dan .metric harus z-index:1+
-   ═══════════════════════════════════════════════════════════ */
-
-/* Canvas rough selalu z:0 — tidak boleh menutupi konten */
-.card canvas.rough-card,
-.metric canvas.rough-card {
-  z-index: 0 !important;
-  pointer-events: none !important;
-}
-
-/* Semua direct children .metric punya z-index di atas canvas */
-.metric > *:not(canvas) {
-  position: relative;
-  z-index: 1;
-}
-
-/* Semua direct children .card punya z-index di atas canvas */
-.card > *:not(canvas) {
-  position: relative;
-  z-index: 1;
-}
-
-/* Fix metric grid row — pakai flex bukan grid-template-columns */
-.metrics {
-  display: -webkit-flex;
-  display: flex;
-  -webkit-flex-wrap: wrap;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-/* Pastikan metric di dalam .metrics mengisi rata */
-.metrics > .metric {
-  -webkit-flex: 1 1 calc(25% - 10px);
-  flex: 1 1 calc(25% - 10px);
-  min-width: 140px;
-  position: relative;
-}
-
-/* m-label, m-value, m-delta: pastikan z-index di atas canvas */
-.m-label, .m-value, .m-delta, .doodle {
-  position: relative;
-  z-index: 1;
-}
-
-/* card-title, tbl-wrap selalu di atas canvas */
-.card-title {
-  position: relative;
-  z-index: 1;
-}
-.tbl-wrap {
-  position: relative;
-  z-index: 1;
-}
-
-/* Fix: elemen di dalam card yang belum punya position:relative */
-.card > div:not(canvas),
-.card > table:not(canvas),
-.card > form:not(canvas) {
-  position: relative;
-  z-index: 1;
-}
-
-/* Nav canvas selalu z:0 */
-.nav-item canvas.rough-nav {
-  z-index: 0 !important;
-}
-/* Nav item content selalu z:1 */
-.nav-item .ni-icon,
-.nav-item .ni-label {
-  position: relative;
-  z-index: 1;
-}
 
 /* ═══════════════════════════════════════════════════════════
    FIX: Donat chart layout — responsive 50:50
@@ -867,7 +792,7 @@ body.sidebar-mini .sidebar-footer::before{
 
 /* ─── MOBILE FOOTER ──────────────────────────────────────────
    Footer "conceptualized by burhanmology" versi mobile.
-   - Di desktop (> 768px): disembunyikan, karena sudah ada .sidebar-footer
+   - Di desktop (> 768px): disembunyikan, sudah ada .sidebar-footer
    - Di mobile (≤ 768px): tampil di bawah konten, dalam .content flow
    ──────────────────────────────────────────────────────────── */
 .mobile-footer {

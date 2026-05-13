@@ -1,6 +1,6 @@
-// ─── SERVICE WORKER — zenOt PWA v5 ───────────────────────────
+// ─── SERVICE WORKER — zenOt PWA v6 ───────────────────────────
 // Cache lengkap: semua file JS + font + icons
-// v5: logo hitam, fix update banner
+// v6: fix dark mode, fix mobile footer, fix sidebar overflow
 
 var CACHE = 'zenot-auto';
 
