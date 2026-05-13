@@ -162,8 +162,8 @@ document.getElementById('page-dashboard').innerHTML = `
 
     <div class="card">
       <div class="card-title"><i class="ti ti-users"></i> Performa per Boss</div>
-      <div style="display:flex;gap:12px;align-items:flex-start">
-        <div style="flex:1;min-width:0">
+      <div class="donut-split-wrap">
+        <div class="donut-split-table">
           <div class="tbl-wrap"><table class="tbl">
             <thead><tr><th>Boss</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
             <tbody id="dash-boss-tbody">
@@ -171,11 +171,9 @@ document.getElementById('page-dashboard').innerHTML = `
             </tbody>
           </table></div>
         </div>
-        <div style="flex:0 0 160px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px">
-          <div style="position:relative;width:160px;height:160px">
-            <canvas id="dash-chart-boss" style="width:160px;height:160px;display:block"></canvas>
-          </div>
-          <div id="dash-boss-legend" style="margin-top:8px;width:100%"></div>
+        <div class="donut-split-chart">
+          <canvas id="dash-chart-boss" class="donut-canvas"></canvas>
+          <div id="dash-boss-legend" class="donut-legend"></div>
         </div>
       </div>
     </div>
@@ -187,8 +185,8 @@ document.getElementById('page-dashboard').innerHTML = `
 
     <div class="card">
       <div class="card-title"><i class="ti ti-building-store"></i> Performa per Channel / Toko</div>
-      <div style="display:flex;gap:12px;align-items:flex-start">
-        <div style="flex:1;min-width:0">
+      <div class="donut-split-wrap">
+        <div class="donut-split-table">
           <div class="tbl-wrap"><table class="tbl">
             <thead><tr><th>Channel</th><th>Trx</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
             <tbody id="dash-channel-tbody">
@@ -196,11 +194,9 @@ document.getElementById('page-dashboard').innerHTML = `
             </tbody>
           </table></div>
         </div>
-        <div style="flex:0 0 160px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px">
-          <div style="position:relative;width:160px;height:160px">
-            <canvas id="dash-chart-channel" style="width:160px;height:160px;display:block"></canvas>
-          </div>
-          <div id="dash-channel-legend" style="margin-top:8px;width:100%"></div>
+        <div class="donut-split-chart">
+          <canvas id="dash-chart-channel" class="donut-canvas"></canvas>
+          <div id="dash-channel-legend" class="donut-legend"></div>
         </div>
       </div>
     </div>
@@ -577,13 +573,20 @@ function _renderBoss(jpData, stokData) {
 
   const canvas = document.getElementById('dash-chart-boss');
   if (!canvas || !sorted.length || totalOmset===0) return;
+  // Ukuran canvas dari container (50% card width)
+  const container = canvas.parentElement;
   const dpr = window.devicePixelRatio||1;
-  const W = 160, H = 160;
-  canvas.width  = W*dpr;
-  canvas.height = H*dpr;
+  const W = container ? container.offsetWidth : 180;
+  const H = W; // bujur sangkar penuh
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
   const ctx = canvas.getContext('2d');
-  ctx.scale(dpr,dpr);
-  const cx=W/2, cy=H/2, r=Math.min(cx,cy)-10, inner=r*0.48;
+  ctx.scale(dpr, dpr);
+  const cx = W/2, cy = H/2;
+  const r  = Math.min(cx, cy) - 10;
+  const inner = r * 0.46;
   let angle = -Math.PI/2;
   sorted.forEach(([,d],i) => {
     const slice = (d.omset/totalOmset)*Math.PI*2;
@@ -597,21 +600,21 @@ function _renderBoss(jpData, stokData) {
   });
   ctx.beginPath(); ctx.arc(cx,cy,inner,0,Math.PI*2);
   ctx.fillStyle='#ede7d9'; ctx.fill();
-  ctx.fillStyle='#1c1a14'; ctx.font='bold 11px sans-serif';
+  ctx.fillStyle='#1c1a14'; ctx.font='bold 12px sans-serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(_fmtRp(totalOmset),cx,cy-6);
-  ctx.font='9px sans-serif'; ctx.fillStyle='#6b6354';
-  ctx.fillText('total omset',cx,cy+7);
+  ctx.fillText(_fmtRp(totalOmset),cx,cy-7);
+  ctx.font='10px sans-serif'; ctx.fillStyle='#6b6354';
+  ctx.fillText('total omset',cx,cy+8);
 
-  // Legend warna di bawah donat
+  // Legend
   const legendEl = document.getElementById('dash-boss-legend');
   if (legendEl) {
     legendEl.innerHTML = sorted.map(([boss,d],i) => {
       const pct = totalOmset>0?(d.omset/totalOmset*100).toFixed(0):0;
-      return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:11px">' +
-        '<span style="width:10px;height:10px;border-radius:50%;background:'+colors[i%colors.length]+';flex-shrink:0;display:inline-block"></span>' +
+      return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px">' +
+        '<span style="width:11px;height:11px;border-radius:50%;background:'+colors[i%colors.length]+';flex-shrink:0;display:inline-block"></span>' +
         '<span style="font-weight:600;color:var(--ink2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+boss+'</span>' +
-        '<span style="color:var(--ink3);font-weight:700">'+pct+'%</span>' +
+        '<span style="color:var(--ink3);font-weight:700;flex-shrink:0">'+pct+'%</span>' +
       '</div>';
     }).join('');
   }
@@ -659,14 +662,19 @@ function _renderChannel(jpData) {
     '</tr>';
   }).join('');
 
-  // Donut chart channel — 160x160 fixed
+  // Donut chart channel — ukuran dinamis dari container (50%)
   if (!canvas || totalOmset===0) return;
+  const container2 = canvas.parentElement;
   const dpr = window.devicePixelRatio||1;
-  const W = 160, H = 160;
-  canvas.width = W*dpr; canvas.height = H*dpr;
+  const W = container2 ? container2.offsetWidth : 180;
+  const H = W;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
   const ctx = canvas.getContext('2d');
-  ctx.scale(dpr,dpr);
-  const cx=W/2, cy=H/2, r=Math.min(cx,cy)-10, inner=r*0.48;
+  ctx.scale(dpr, dpr);
+  const cx=W/2, cy=H/2, r=Math.min(cx,cy)-10, inner=r*0.46;
   let angle=-Math.PI/2;
   sorted.forEach(([,d],i) => {
     const slice=(d.omset/totalOmset)*Math.PI*2;
@@ -680,21 +688,21 @@ function _renderChannel(jpData) {
   });
   ctx.beginPath(); ctx.arc(cx,cy,inner,0,Math.PI*2);
   ctx.fillStyle='#ede7d9'; ctx.fill();
-  ctx.fillStyle='#1c1a14'; ctx.font='bold 11px sans-serif';
+  ctx.fillStyle='#1c1a14'; ctx.font='bold 12px sans-serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(_fmtRp(totalOmset),cx,cy-6);
-  ctx.font='9px sans-serif'; ctx.fillStyle='#6b6354';
-  ctx.fillText(sorted.length+' channel',cx,cy+7);
+  ctx.fillText(_fmtRp(totalOmset),cx,cy-7);
+  ctx.font='10px sans-serif'; ctx.fillStyle='#6b6354';
+  ctx.fillText(sorted.length+' channel',cx,cy+8);
 
-  // Legend warna di bawah donat
+  // Legend
   const legendEl = document.getElementById('dash-channel-legend');
   if (legendEl) {
     legendEl.innerHTML = sorted.map(([ch,d],i) => {
       const pct = totalOmset>0?(d.omset/totalOmset*100).toFixed(0):0;
-      return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:11px">' +
-        '<span style="width:10px;height:10px;border-radius:50%;background:'+colors[i%colors.length]+';flex-shrink:0;display:inline-block"></span>' +
+      return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px">' +
+        '<span style="width:11px;height:11px;border-radius:50%;background:'+colors[i%colors.length]+';flex-shrink:0;display:inline-block"></span>' +
         '<span style="font-weight:600;color:var(--ink2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+ch+'</span>' +
-        '<span style="color:var(--ink3);font-weight:700">'+pct+'%</span>' +
+        '<span style="color:var(--ink3);font-weight:700;flex-shrink:0">'+pct+'%</span>' +
       '</div>';
     }).join('');
   }
