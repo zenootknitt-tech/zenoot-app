@@ -671,6 +671,7 @@ body.sidebar-mini .sidebar-footer::before{
   .sidebar-overlay.open{display:block}
   .main{width:100%}
   .content{padding:10px;padding-bottom:70px}
+  .sidebar-footer{display:none}
   .sidebar-minimize-btn{display:none !important}
 }
 

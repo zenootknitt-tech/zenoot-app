@@ -9,11 +9,16 @@ function toggleMinimize() {
   var isMini = document.body.classList.toggle('sidebar-mini');
   try { localStorage.setItem('zenoot_mini', isMini ? '1' : '0'); } catch(e) {}
 }
-// Restore sidebar state (default: TERBUKA)
+// Sidebar: desktop = terbuka by default, HP/touch = tidak (CSS handle sebagai overlay)
 (function() {
-  try {
-    if (localStorage.getItem('zenoot_mini') === '1') document.body.classList.add('sidebar-mini');
-  } catch(e) {}
+  var isTouch = (window.matchMedia('(hover:none) and (pointer:coarse)').matches);
+  if (!isTouch) {
+    // Desktop — restore dari localStorage, default terbuka
+    try {
+      if (localStorage.getItem('zenoot_mini') === '1') document.body.classList.add('sidebar-mini');
+    } catch(e) {}
+  }
+  // HP/touch — tidak tambah class apapun, CSS sudah handle sidebar sebagai fixed overlay
 })();
 
 // ─── COLLAPSIBLE NAV GROUPS ──────────────────────────────────
