@@ -4,11 +4,6 @@
 // Tidak pakai channel switcher — 1 data untuk semua operasional
 
 document.getElementById('page-price-list').innerHTML = `
-  <div style="margin-bottom:14px;padding:10px 14px;background:var(--cream2);border:2px dashed var(--ink3);border-radius:4px;font-size:13px;color:var(--ink2);line-height:1.7">
-    <b>Cara baca:</b> Harga jual dihitung otomatis dari <b>HPP × (1 + Total Beban% + Target NPM%)</b>.<br>
-    Ubah % beban di halaman <b>Beban Operasional</b> — Price List ini akan ikut terupdate otomatis.
-  </div>
-
   <!-- TOMBOL -->
   <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
     <button class="btn btn-sm btn-primary" onclick="loadPriceList()">
