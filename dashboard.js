@@ -162,20 +162,12 @@ document.getElementById('page-dashboard').innerHTML = `
 
     <div class="card">
       <div class="card-title"><i class="ti ti-users"></i> Performa Supplier</div>
-      <div class="donut-split-wrap">
-        <div class="donut-split-table">
-          <div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Supplier</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
-            <tbody id="dash-boss-tbody">
-              <tr><td colspan="4" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
-            </tbody>
-          </table></div>
-        </div>
-        <div class="donut-split-chart">
-          <canvas id="dash-chart-boss" class="donut-canvas"></canvas>
-          <div class="donut-legend" id="dash-boss-legend"></div>
-        </div>
-      </div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Supplier</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
+        <tbody id="dash-boss-tbody">
+          <tr><td colspan="4" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+        </tbody>
+      </table></div>
     </div>
 
   </div>
@@ -185,20 +177,12 @@ document.getElementById('page-dashboard').innerHTML = `
 
     <div class="card">
       <div class="card-title"><i class="ti ti-building-store"></i> Performa per Channel / Toko</div>
-      <div class="donut-split-wrap">
-        <div class="donut-split-table">
-          <div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Channel</th><th>Trx</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
-            <tbody id="dash-channel-tbody">
-              <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
-            </tbody>
-          </table></div>
-        </div>
-        <div class="donut-split-chart">
-          <canvas id="dash-chart-channel" class="donut-canvas"></canvas>
-          <div class="donut-legend" id="dash-channel-legend"></div>
-        </div>
-      </div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Channel</th><th>Trx</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
+        <tbody id="dash-channel-tbody">
+          <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+        </tbody>
+      </table></div>
     </div>
 
     <div class="card">
