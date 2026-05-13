@@ -9,8 +9,34 @@ function toggleMinimize() {
   var isMini = document.body.classList.toggle('sidebar-mini');
   try { localStorage.setItem('zenoot_mini', isMini ? '1' : '0'); } catch(e) {}
 }
-// Sidebar mini sebagai default permanen
-document.body.classList.add('sidebar-mini');
+// Restore sidebar state dari localStorage
+// Di MOBILE: tidak pernah pakai sidebar-mini (sidebar jadi full overlay)
+// Di DESKTOP: baca localStorage, default full/terbuka
+try {
+  var isMobile = window.innerWidth <= 768;
+  if (!isMobile) {
+    var savedMini = localStorage.getItem('zenoot_mini');
+    if (savedMini === '1') {
+      document.body.classList.add('sidebar-mini');
+    }
+  }
+} catch(e) {}
+
+// Juga handle resize: kalau user rotate HP jadi landscape/desktop, re-check
+window.addEventListener('resize', function() {
+  try {
+    if (window.innerWidth <= 768) {
+      // Mobile: paksa hapus sidebar-mini
+      document.body.classList.remove('sidebar-mini');
+    } else {
+      // Desktop: restore dari localStorage
+      var savedMini = localStorage.getItem('zenoot_mini');
+      if (savedMini === '1') {
+        document.body.classList.add('sidebar-mini');
+      }
+    }
+  } catch(e) {}
+});
 
 // ─── COLLAPSIBLE NAV GROUPS ──────────────────────────────────
 function toggleNavGroup(id) {
