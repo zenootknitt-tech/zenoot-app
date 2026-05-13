@@ -37,7 +37,7 @@ document.getElementById('page-dashboard').innerHTML = `
   </div>
 
   <!-- ═══ ROW 2: 4 METRIC CARDS ════════════════════════════════ -->
-  <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+  <div class="metrics">
     <div class="metric">
       <div class="m-label">Omset Bulan Ini</div>
       <div class="m-value" id="d-omset">—</div>
@@ -83,7 +83,7 @@ document.getElementById('page-dashboard').innerHTML = `
   </div>
 
   <!-- ═══ ROW 2b: METRIC BARU — AOV + LABA KOTOR + BEBAN ═══════ -->
-  <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+  <div class="metrics">
     <div class="metric">
       <div class="m-label">AOV Bulan Ini</div>
       <div class="m-value" id="d-aov">—</div>
@@ -288,7 +288,6 @@ document.getElementById('page-dashboard').innerHTML = `
   document.head.appendChild(s);
 })();
 
-setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-dashboard')); }, 80);
 
 // ─── STATE ────────────────────────────────────────────────────
 let _dashPeriod     = 7;
@@ -1081,6 +1080,7 @@ async function loadDashboard() {
       _renderChannel(_jpForRender);           // BARU
       _renderKatalog(_jpForRender, _dashStokData); // BARU
       _renderBeban(bebanArr, omsetBln);       // BARU
+      if (typeof rerenderUI === "function") rerenderUI(document.getElementById("page-dashboard"));
     }, 150);
 
     // ─ Aktivitas feed

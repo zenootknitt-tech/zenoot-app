@@ -642,3 +642,81 @@ body.sidebar-mini .sidebar-footer::before{
   .form-group input,.form-group select{-webkit-appearance:none}
   body{height:-webkit-fill-available}
 }
+
+/* ═══════════════════════════════════════════════════════════
+   FIX: Rough canvas SELALU di bawah konten
+   Canvas rough di-insert sebagai firstChild dengan z-index:0
+   Semua konten HTML di dalam .card dan .metric harus z-index:1+
+   ═══════════════════════════════════════════════════════════ */
+
+/* Canvas rough selalu z:0 — tidak boleh menutupi konten */
+.card canvas.rough-card,
+.metric canvas.rough-card {
+  z-index: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Semua direct children .metric punya z-index di atas canvas */
+.metric > *:not(canvas) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Semua direct children .card punya z-index di atas canvas */
+.card > *:not(canvas) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Fix metric grid row — pakai flex bukan grid-template-columns */
+.metrics {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+/* Pastikan metric di dalam .metrics mengisi rata */
+.metrics > .metric {
+  -webkit-flex: 1 1 calc(25% - 10px);
+  flex: 1 1 calc(25% - 10px);
+  min-width: 140px;
+  position: relative;
+}
+
+/* m-label, m-value, m-delta: pastikan z-index di atas canvas */
+.m-label, .m-value, .m-delta, .doodle {
+  position: relative;
+  z-index: 1;
+}
+
+/* card-title, tbl-wrap selalu di atas canvas */
+.card-title {
+  position: relative;
+  z-index: 1;
+}
+.tbl-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+/* Fix: elemen di dalam card yang belum punya position:relative */
+.card > div:not(canvas),
+.card > table:not(canvas),
+.card > form:not(canvas) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Nav canvas selalu z:0 */
+.nav-item canvas.rough-nav {
+  z-index: 0 !important;
+}
+/* Nav item content selalu z:1 */
+.nav-item .ni-icon,
+.nav-item .ni-label {
+  position: relative;
+  z-index: 1;
+}
