@@ -621,9 +621,25 @@ body.sidebar-mini .sidebar-footer::before{
     position:fixed;top:0;left:0;height:100vh;height:100dvh;
     -webkit-transform:translateX(-100%);transform:translateX(-100%);
     box-shadow:4px 0 16px rgba(0,0,0,0.2);
+    /* FIX: pastikan sidebar flex column dengan height penuh agar footer selalu tampil */
+    display:-webkit-flex;display:flex;
+    -webkit-flex-direction:column;flex-direction:column;
+    overflow:hidden;
   }
   .sidebar.open{-webkit-transform:translateX(0);transform:translateX(0)}
   .sidebar-overlay.open{display:block}
+  /* FIX: sidebar-nav-scroll harus shrinkable agar footer tidak terdorong keluar */
+  .sidebar-nav-scroll{
+    -webkit-flex:1 1 0;flex:1 1 0;
+    min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  /* FIX: footer tidak boleh shrink — selalu tampil di bawah */
+  .sidebar-footer{
+    -webkit-flex-shrink:0;flex-shrink:0;
+    position:relative;
+  }
   .main{width:100%}
   .topbar{padding:10px 14px}
   .topbar::before{display:none}
