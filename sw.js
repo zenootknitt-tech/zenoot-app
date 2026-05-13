@@ -31,7 +31,14 @@ var ASSETS = [
   'https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.min.js',
 ];
 
-// ─── INSTALL ─────────────────────────────────────────────────
+// ─── SKIP WAITING (trigger dari tombol Update di app) ────────
+self.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+
 self.addEventListener('install', function(e) {
   CACHE = 'zenot-' + Date.now();
   e.waitUntil(
@@ -44,7 +51,7 @@ self.addEventListener('install', function(e) {
           });
         })
       );
-    }).then(function() { return self.skipWaiting(); })
+    })
   );
 });
 
@@ -59,7 +66,16 @@ self.addEventListener('activate', function(e) {
           return caches.delete(k);
         })
       );
-    }).then(function() { return self.clients.claim(); })
+    }).then(function() {
+      return self.clients.claim();
+    }).then(function() {
+      // Beritahu semua tab: ada versi baru yang aktif
+      return self.clients.matchAll({ type: 'window' }).then(function(clients) {
+        clients.forEach(function(client) {
+          client.postMessage({ type: 'SW_UPDATED' });
+        });
+      });
+    })
   );
 });
 

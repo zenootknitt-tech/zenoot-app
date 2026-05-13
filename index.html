@@ -150,27 +150,59 @@
 <script src="beban-operasional.js?v=1"></script>
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(function() {});
+    navigator.serviceWorker.register('sw.js').then(function(reg) {
 
-    // Dengarkan pesan dari SW — tampilkan popup update
-    navigator.serviceWorker.addEventListener('message', function(e) {
-      if (e.data && e.data.type === 'SW_UPDATED') {
+      function showUpdateBanner() {
         var banner = document.getElementById('update-banner');
         if (banner) banner.style.display = 'flex';
+      }
+
+      // Kalau saat register sudah ada SW waiting → langsung tampil banner
+      if (reg.waiting) {
+        showUpdateBanner();
+      }
+
+      // SW baru selesai install dan nunggu giliran → tampil banner
+      reg.addEventListener('updatefound', function() {
+        var newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', function() {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateBanner();
+          }
+        });
+      });
+
+      // Cek update setiap buka app (force check)
+      reg.update();
+
+    }).catch(function() {});
+
+    // Reload otomatis setelah SW baru take over
+    var _reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      if (!_reloading) {
+        _reloading = true;
+        window.location.reload();
       }
     });
   }
 
   function _doUpdate() {
-    // Hapus semua cache lama, lalu reload
-    if ('caches' in window) {
-      caches.keys().then(function(keys) {
-        Promise.all(keys.map(function(k) { return caches.delete(k); }))
-          .then(function() { window.location.reload(true); });
-      });
-    } else {
-      window.location.reload(true);
-    }
+    navigator.serviceWorker.getRegistration().then(function(reg) {
+      if (reg && reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      } else {
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            Promise.all(keys.map(function(k) { return caches.delete(k); }))
+              .then(function() { window.location.reload(true); });
+          });
+        } else {
+          window.location.reload(true);
+        }
+      }
+    });
   }
 
   function _dismissUpdate() {
