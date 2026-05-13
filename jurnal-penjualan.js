@@ -59,20 +59,20 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
 
       <input type="hidden" id="jp-id">
 
-      <!-- Tanggal + Waktu + Channel -->
-      <div class="form-row" style="margin-bottom:12px">
+      <!-- BARIS 1: Tanggal + Waktu + Channel -->
+      <div class="form-row jp-row-1" style="margin-bottom:12px">
         <div class="form-group" style="flex:1.2">
           <label>Tanggal</label>
           <input type="date" id="jp-tgl">
         </div>
-        <div class="form-group" style="flex:0.8">
+        <div class="form-group" style="flex:0.9">
           <label>Waktu</label>
           <input type="time" id="jp-waktu"
             style="font-family:var(--f);font-size:14px;padding:6px 10px;
                    border:2px solid var(--ink);background:var(--cream)">
         </div>
         <div class="form-group" style="flex:1.5">
-          <label>Channel</label>
+          <label>[ Channel ]</label>
           <select id="jp-channel"
             style="font-family:var(--f);font-size:14px;padding:6px 10px;
                    border:2px solid var(--ink);background:var(--cream)">
@@ -81,30 +81,8 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
         </div>
       </div>
 
-      <!-- SKU Induk: ketik + dropdown -->
-      <div class="form-row" style="margin-bottom:12px">
-        <div class="form-group" style="flex:1;position:relative">
-          <label>SKU Induk / Katalog</label>
-          <div style="display:flex">
-            <input type="text" id="jp-sku-induk"
-              placeholder="Ketik nama katalog..."
-              autocomplete="off"
-              style="flex:1;border-right:none"
-              oninput="jpSugestKatalog()"
-              onkeydown="jpKatalogKeyNav(event)"
-              onfocus="jpSugestKatalog()">
-            <button id="jp-sku-dd-btn"
-              onclick="jpToggleKatalogFull()"
-              title="Lihat semua katalog"
-              style="background:var(--cream2);border:2px solid var(--ink);border-left:none;
-                     padding:0 12px;cursor:pointer;font-size:16px;color:var(--ink)">&#9660;</button>
-          </div>
-          <!-- dropdown SKU diinject ke body via JS -->
-        </div>
-      </div>
-
-      <!-- SKU Variasi -->
-      <div class="form-row" style="margin-bottom:12px">
+      <!-- BARIS 2: SKU Variasi (kiri) + SKU Induk/Katalog (kanan) -->
+      <div class="form-row jp-row-2" style="margin-bottom:12px;align-items:flex-end">
         <div class="form-group" style="flex:1">
           <label>SKU Variasi</label>
           <select id="jp-sku-variasi"
@@ -114,22 +92,42 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
             <option value="">— Pilih Variasi —</option>
           </select>
         </div>
+        <div class="form-group" style="flex:1;position:relative">
+          <label>SKU Induk</label>
+          <div style="display:flex">
+            <input type="text" id="jp-sku-induk"
+              placeholder="Ketik nama katalog..."
+              autocomplete="off"
+              style="flex:1;border-right:none;font-family:var(--f);font-size:14px;
+                     padding:6px 10px;border:2px solid var(--ink);background:var(--cream)"
+              oninput="jpSugestKatalog()"
+              onkeydown="jpKatalogKeyNav(event)"
+              onfocus="jpSugestKatalog()">
+            <button id="jp-sku-dd-btn"
+              onclick="jpToggleKatalogFull()"
+              title="Lihat semua katalog"
+              style="background:var(--cream2);border:2px solid var(--ink);border-left:none;
+                     padding:0 10px;cursor:pointer;font-size:14px;color:var(--ink);
+                     min-height:44px">&#9660;</button>
+          </div>
+          <!-- dropdown SKU diinject ke body via JS -->
+        </div>
       </div>
 
-      <!-- Qty + Harga + Total -->
-      <div class="form-row" style="margin-bottom:16px">
-        <div class="form-group">
-          <label>Qty Terjual</label>
-          <input type="number" id="jp-qty" placeholder="0" min="1" oninput="hitungTotalJP()">
-        </div>
-        <div class="form-group">
-          <label>Harga Satuan (Rp)</label>
-          <input type="number" id="jp-harga" placeholder="0" oninput="hitungTotalJP()">
-        </div>
-        <div class="form-group">
+      <!-- BARIS 3: Total + Harga Satuan + Qty -->
+      <div class="form-row jp-row-3" style="margin-bottom:16px">
+        <div class="form-group" style="flex:1.2">
           <label>Total (otomatis)</label>
           <input type="number" id="jp-total" placeholder="0" readonly
             style="background:var(--cream2);cursor:not-allowed;font-weight:700;color:var(--ok)">
+        </div>
+        <div class="form-group" style="flex:1.2">
+          <label>Harga Satuan (Rp)</label>
+          <input type="number" id="jp-harga" placeholder="0" oninput="hitungTotalJP()">
+        </div>
+        <div class="form-group" style="flex:0.7">
+          <label>QTY</label>
+          <input type="number" id="jp-qty" placeholder="0" min="1" oninput="hitungTotalJP()">
         </div>
       </div>
 

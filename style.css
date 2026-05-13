@@ -689,6 +689,41 @@ body.sidebar-mini .sidebar-footer::before{
   .sidebar-minimize-btn{display:none !important}
 }
 
+/* ─── JURNAL PENJUALAN MODAL — layout override ───────────── */
+/* Baris 1 (Tgl+Waktu+Channel), Baris 2 (SKU Var+SKU Induk), */
+/* Baris 3 (Total+Harga+QTY): tetap row di semua ukuran       */
+@media (max-width:768px){
+  .jp-row-1,.jp-row-2,.jp-row-3{
+    -webkit-flex-direction:row !important;
+    flex-direction:row !important;
+    -webkit-flex-wrap:nowrap !important;
+    flex-wrap:nowrap !important;
+    gap:6px !important;
+  }
+  .jp-row-1 .form-group input,
+  .jp-row-1 .form-group select,
+  .jp-row-2 .form-group input,
+  .jp-row-2 .form-group select,
+  .jp-row-3 .form-group input{
+    font-size:13px !important;
+    padding:6px 6px !important;
+    min-height:40px !important;
+  }
+  .jp-row-1 .form-group label,
+  .jp-row-2 .form-group label,
+  .jp-row-3 .form-group label{
+    font-size:9px !important;
+  }
+  .jp-row-1 .form-group:nth-child(1){flex:1.1 !important}
+  .jp-row-1 .form-group:nth-child(2){flex:0.8 !important}
+  .jp-row-1 .form-group:nth-child(3){flex:1.3 !important}
+  .jp-row-2 .form-group{flex:1 !important}
+  .jp-row-3 .form-group:nth-child(1){flex:1.1 !important}
+  .jp-row-3 .form-group:nth-child(2){flex:1.1 !important}
+  .jp-row-3 .form-group:nth-child(3){flex:0.7 !important}
+  #jp-sku-dd-btn{padding:0 7px !important;font-size:12px !important;min-height:40px !important}
+}
+
 /* ─── SAFARI-SPECIFIC FIXES ──────────────────────────────── */
 @supports (-webkit-touch-callout:none){
   .btn{-webkit-appearance:none}
