@@ -173,8 +173,8 @@ document.getElementById('page-dashboard').innerHTML = `
         </div>
         <div class="donut-split-chart">
           <canvas id="dash-chart-boss" class="donut-canvas"></canvas>
+          <div class="donut-legend" id="dash-boss-legend"></div>
         </div>
-        <div class="donut-legend" id="dash-boss-legend"></div>
       </div>
     </div>
 
@@ -196,8 +196,8 @@ document.getElementById('page-dashboard').innerHTML = `
         </div>
         <div class="donut-split-chart">
           <canvas id="dash-chart-channel" class="donut-canvas"></canvas>
+          <div class="donut-legend" id="dash-channel-legend"></div>
         </div>
-        <div class="donut-legend" id="dash-channel-legend"></div>
       </div>
     </div>
 
@@ -574,7 +574,8 @@ function _renderBoss(jpData, stokData) {
   const canvas = document.getElementById('dash-chart-boss');
   if (!canvas || !sorted.length || totalOmset===0) return;
   const dpr = window.devicePixelRatio||1;
-  const W = 160, H = 160;
+  const W = canvas.parentElement ? (canvas.parentElement.offsetWidth||260) : 260;
+  const H = 180;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.width  = W + 'px';
@@ -603,15 +604,14 @@ function _renderBoss(jpData, stokData) {
   ctx.font='10px sans-serif'; ctx.fillStyle='#6b6354';
   ctx.fillText('total omset',cx,cy+8);
 
-  // Legend
   const legendEl = document.getElementById('dash-boss-legend');
   if (legendEl) {
     legendEl.innerHTML = sorted.map(([boss,d],i) => {
       const pct = totalOmset>0?(d.omset/totalOmset*100).toFixed(0):0;
-      return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px">' +
-        '<span style="width:11px;height:11px;border-radius:50%;background:'+colors[i%colors.length]+';flex-shrink:0;display:inline-block"></span>' +
-        '<span style="font-weight:600;color:var(--ink2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+boss+'</span>' +
-        '<span style="color:var(--ink3);font-weight:700;flex-shrink:0">'+pct+'%</span>' +
+      return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;white-space:nowrap">' +
+        '<span style="width:9px;height:9px;border-radius:50%;background:'+colors[i%colors.length]+';flex-shrink:0;display:inline-block;box-shadow:0 0 0 1px rgba(255,255,255,0.6)"></span>' +
+        '<span style="font-size:11px;font-weight:700;color:var(--ink);text-shadow:0 0 3px rgba(237,231,217,0.9),0 0 6px rgba(237,231,217,0.9)">'+boss+'</span>' +
+        '<span style="font-size:11px;font-weight:700;color:'+colors[i%colors.length]+';text-shadow:0 0 3px rgba(237,231,217,0.9),0 0 6px rgba(237,231,217,0.9)">'+pct+'%</span>' +
       '</div>';
     }).join('');
   }
@@ -659,10 +659,11 @@ function _renderChannel(jpData) {
     '</tr>';
   }).join('');
 
-  // Donut chart channel — 160x160
+  // Donut chart channel — full width, height 180
   if (!canvas || totalOmset===0) return;
   const dpr = window.devicePixelRatio||1;
-  const W = 160, H = 160;
+  const W = canvas.parentElement ? (canvas.parentElement.offsetWidth||260) : 260;
+  const H = 180;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.width  = W + 'px';
@@ -694,10 +695,10 @@ function _renderChannel(jpData) {
   if (legendEl) {
     legendEl.innerHTML = sorted.map(([ch,d],i) => {
       const pct = totalOmset>0?(d.omset/totalOmset*100).toFixed(0):0;
-      return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px">' +
-        '<span style="width:11px;height:11px;border-radius:50%;background:'+colors[i%colors.length]+';flex-shrink:0;display:inline-block"></span>' +
-        '<span style="font-weight:600;color:var(--ink2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+ch+'</span>' +
-        '<span style="color:var(--ink3);font-weight:700;flex-shrink:0">'+pct+'%</span>' +
+      return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;white-space:nowrap">' +
+        '<span style="width:9px;height:9px;border-radius:50%;background:'+colors[i%colors.length]+';flex-shrink:0;display:inline-block;box-shadow:0 0 0 1px rgba(255,255,255,0.6)"></span>' +
+        '<span style="font-size:11px;font-weight:700;color:var(--ink);text-shadow:0 0 3px rgba(237,231,217,0.9),0 0 6px rgba(237,231,217,0.9)">'+ch+'</span>' +
+        '<span style="font-size:11px;font-weight:700;color:'+colors[i%colors.length]+';text-shadow:0 0 3px rgba(237,231,217,0.9),0 0 6px rgba(237,231,217,0.9)">'+pct+'%</span>' +
       '</div>';
     }).join('');
   }

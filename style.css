@@ -791,7 +791,7 @@ body.sidebar-mini .sidebar-footer::before{
 }
 
 /* ═══════════════════════════════════════════════════════════
-   DONUT SPLIT LAYOUT — tabel 50% | donat 30% | legend 20%
+   DONUT SPLIT LAYOUT — tabel 50% | donat 50% (legend overlay)
    ═══════════════════════════════════════════════════════════ */
 .donut-split-wrap {
   display: -webkit-flex;
@@ -812,42 +812,35 @@ body.sidebar-mini .sidebar-footer::before{
   z-index: 2;
 }
 
-/* Tengah: canvas donat — 30% */
+/* Kanan: wrapper donat — 50%, position relative untuk overlay legend */
 .donut-split-chart {
-  -webkit-flex: 0 0 28%;
-  flex: 0 0 28%;
+  -webkit-flex: 0 0 calc(50% - 10px);
+  flex: 0 0 calc(50% - 10px);
   min-width: 0;
-  display: -webkit-flex;
-  display: flex;
-  -webkit-justify-content: center;
-  justify-content: center;
-  -webkit-align-items: flex-start;
-  align-items: flex-start;
   position: relative;
   z-index: 2;
 }
 
-/* Canvas donat: 160px — lebih besar, proporsional */
+/* Canvas donat: full width dalam kolom 50% */
 .donut-canvas {
   display: block;
-  width: 160px !important;
-  height: 160px !important;
+  width: 100% !important;
+  height: 180px !important;
   -webkit-flex-shrink: 0;
   flex-shrink: 0;
 }
 
-/* Kanan: legend — 22%, sejajar dengan baris data tabel */
-/* padding-top setara tinggi thead tabel (th ~34px) */
+/* Legend overlay — absolute kiri bawah di dalam .donut-split-chart */
 .donut-legend {
-  -webkit-flex: 0 0 22%;
-  flex: 0 0 22%;
-  min-width: 0;
-  padding-top: 34px; /* sejajar baris pertama data di tabel */
-  position: relative;
-  z-index: 2;
+  position: absolute;
+  bottom: 10px;
+  left: 8px;
+  z-index: 3;
+  background: transparent;
+  padding: 0;
 }
 
-/* Mobile: stack vertikal — tabel atas, donat & legend bawah */
+/* Mobile: stack vertikal */
 @media (max-width: 520px) {
   .donut-split-wrap {
     -webkit-flex-wrap: wrap;
@@ -859,16 +852,14 @@ body.sidebar-mini .sidebar-footer::before{
     width: 100%;
   }
   .donut-split-chart {
-    -webkit-flex: 0 0 45%;
-    flex: 0 0 45%;
-  }
-  .donut-legend {
-    -webkit-flex: 0 0 50%;
-    flex: 0 0 50%;
-    padding-top: 0;
+    -webkit-flex: 0 0 100%;
+    flex: 0 0 100%;
   }
   .donut-canvas {
-    max-width: 120px !important;
-    height: 120px !important;
+    height: 160px !important;
+  }
+  .donut-legend {
+    bottom: 8px;
+    left: 6px;
   }
 }
