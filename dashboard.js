@@ -573,13 +573,9 @@ function _renderBoss(jpData, stokData) {
 
   const canvas = document.getElementById('dash-chart-boss');
   if (!canvas || !sorted.length || totalOmset===0) return;
-  // Ukuran canvas dari container (50% card width)
-  const container = canvas.parentElement;
+  // Canvas fixed 160x160 — sesuai CSS .donut-canvas
   const dpr = window.devicePixelRatio||1;
-  const W = container ? container.offsetWidth : 180;
-  const H = W; // bujur sangkar penuh
-  canvas.style.width  = W + 'px';
-  canvas.style.height = H + 'px';
+  const W = 160, H = 160;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   const ctx = canvas.getContext('2d');
@@ -662,14 +658,10 @@ function _renderChannel(jpData) {
     '</tr>';
   }).join('');
 
-  // Donut chart channel — ukuran dinamis dari container (50%)
+  // Donut chart channel — fixed 160x160 sesuai CSS .donut-canvas
   if (!canvas || totalOmset===0) return;
-  const container2 = canvas.parentElement;
   const dpr = window.devicePixelRatio||1;
-  const W = container2 ? container2.offsetWidth : 180;
-  const H = W;
-  canvas.style.width  = W + 'px';
-  canvas.style.height = H + 'px';
+  const W = 160, H = 160;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   const ctx = canvas.getContext('2d');
