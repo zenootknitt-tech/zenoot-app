@@ -225,7 +225,7 @@ async function loadChannelDropdownJP() {
     const hasKategori = data[0] && data[0].kategori !== undefined;
 
     if (hasKategori) {
-      const katLabel = { toko_utama: 'Toko Utama', reseller: 'Reseller', offline: 'Offline' };
+      const katLabel = { toko_utama: 'Shopee', reseller: 'Reseller', offline: 'Offline', lazada: 'Lazada', tiktok: 'TikTok' };
       const grouped = {};
       data.forEach(ch => {
         const k = ch.kategori || 'lainnya';

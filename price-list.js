@@ -26,7 +26,7 @@ document.getElementById('page-price-list').innerHTML = `
   <!-- INFO BEBAN AKTIF -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
     <div class="card" style="padding:10px 14px">
-      <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px;text-transform:uppercase">⚙ Beban Toko Utama</div>
+      <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px;text-transform:uppercase">⚙ Beban Shopee</div>
       <div id="pl-info-toko" style="font-size:13px;color:var(--ink2)">Memuat...</div>
     </div>
     <div class="card" style="padding:10px 14px">
@@ -44,7 +44,7 @@ document.getElementById('page-price-list').innerHTML = `
           <th>Katalog</th>
           <th>SKU Variasi</th>
           <th style="text-align:right">HPP</th>
-          <th style="text-align:right">Harga Toko Utama</th>
+          <th style="text-align:right">Harga Shopee</th>
           <th style="text-align:right">Harga Reseller</th>
           <th style="text-align:center">Margin Toko</th>
           <th style="text-align:center">Margin Reseller</th>
@@ -180,7 +180,7 @@ function filterPriceList() {
 // ─── EXPORT CSV ──────────────────────────────────────────────
 function exportPriceList() {
   if (!_plRendered || _plRendered.length === 0) { alert('Belum ada data'); return; }
-  const headers = ['Katalog','SKU Variasi','HPP','Harga Toko Utama','Harga Reseller','Margin Toko (%)','Margin Reseller (%)'];
+  const headers = ['Katalog','SKU Variasi','HPP','Harga Shopee','Harga Reseller','Margin Shopee (%)','Margin Reseller (%)'];
   const rows = _plRendered.map(r => [
     r.katalog, r.sku, r.hpp,
     r.hargaToko, r.hargaReseller,
