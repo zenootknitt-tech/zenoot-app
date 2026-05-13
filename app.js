@@ -4,6 +4,19 @@
 function $id(id) { return document.getElementById(id); }
 function $all(sel, root) { return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
 
+// ─── SIDEBAR MINIMIZE (DESKTOP) ──────────────────────────────
+function toggleMinimize() {
+  var isMini = document.body.classList.toggle('sidebar-mini');
+  try { localStorage.setItem('zenoot_mini', isMini ? '1' : '0'); } catch(e) {}
+}
+(function() {
+  try {
+    if (localStorage.getItem('zenoot_mini') === '1') {
+      document.body.classList.add('sidebar-mini');
+    }
+  } catch(e) {}
+})();
+
 // ─── COLLAPSIBLE NAV GROUPS ──────────────────────────────────
 function toggleNavGroup(id) {
   var group = $id(id);

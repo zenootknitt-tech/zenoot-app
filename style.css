@@ -86,21 +86,120 @@ body{
   border-bottom:2.5px solid var(--ink);
   -webkit-flex-shrink:0;flex-shrink:0;
   display:-webkit-flex;display:flex;
-  -webkit-flex-direction:column;flex-direction:column;
+  -webkit-flex-direction:row;flex-direction:row;
   -webkit-align-items:center;align-items:center;
-  gap:4px;
+  gap:8px;
 }
 .logo-img{
-  width:108px;height:auto;display:block;
-  /* logo putih → recolor jadi ink gelap */
+  width:38px;height:38px;display:block;
+  object-fit:contain;
   filter:invert(1) brightness(0.12);
   -webkit-filter:invert(1) brightness(0.12);
+  -webkit-flex-shrink:0;flex-shrink:0;
+}
+.logo-text-group{
+  display:-webkit-flex;display:flex;
+  -webkit-flex-direction:column;flex-direction:column;
+  gap:0px;
+  overflow:hidden;
+}
+.logo-name{
+  font-size:17px;font-weight:700;color:var(--ink);
+  font-family:var(--f2);letter-spacing:-.3px;line-height:1.1;
+  white-space:nowrap;
 }
 .logo-tag{
-  font-size:10px;color:var(--ink3);
+  font-size:9.5px;color:var(--ink3);
   display:block;
   font-family:var(--f);font-weight:400;
   letter-spacing:.08em;text-transform:lowercase;
+  white-space:nowrap;
+}
+
+/* ─── SIDEBAR MINIMIZE (DESKTOP) ────────────────────────── */
+.sidebar-minimize-btn{
+  display:none;
+  position:absolute;top:10px;right:-14px;
+  width:26px;height:26px;
+  background:var(--cream2);border:2px solid var(--ink);
+  cursor:pointer;z-index:300;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
+  border-radius:50%;font-size:13px;color:var(--ink);
+  box-shadow:2px 2px 0 var(--ink4);
+  -webkit-transition:opacity .15s;transition:opacity .15s;
+  -webkit-flex-shrink:0;flex-shrink:0;
+}
+.sidebar-minimize-btn:hover{background:var(--cream3)}
+
+/* minimized sidebar */
+body.sidebar-mini .sidebar{
+  width:54px;min-width:54px;
+}
+body.sidebar-mini .sidebar .logo-text-group,
+body.sidebar-mini .sidebar .logo-tag,
+body.sidebar-mini .sidebar .nav-group-label,
+body.sidebar-mini .sidebar .nav-group-arrow,
+body.sidebar-mini .sidebar .ni-label,
+body.sidebar-mini .sidebar .sticky,
+body.sidebar-mini .sidebar .ch-sidebar-section,
+body.sidebar-mini .sidebar .ch-sidebar-actions{
+  display:none;
+}
+body.sidebar-mini .sidebar .logo-block{
+  -webkit-justify-content:center;justify-content:center;
+  padding:10px 0;
+}
+body.sidebar-mini .sidebar .logo-img{
+  width:30px;height:30px;
+}
+body.sidebar-mini .sidebar .nav-group-header{
+  -webkit-justify-content:center;justify-content:center;
+  padding:8px 0;
+}
+body.sidebar-mini .sidebar .nav-item{
+  width:calc(100% - 8px);margin:2px 4px;
+  -webkit-justify-content:center;justify-content:center;
+}
+body.sidebar-mini .sidebar .nav-item .ni-icon{
+  width:100%;
+}
+body.sidebar-mini .spiral{
+  left:44px;
+}
+body.sidebar-mini .sidebar-minimize-btn i{
+  -webkit-transform:rotate(180deg);transform:rotate(180deg);
+}
+
+/* ─── FOOTER ─────────────────────────────────────────────── */
+.sidebar-footer{
+  margin-top:auto;
+  padding:10px 10px 14px;
+  border-top:1.5px dashed var(--ink4);
+  text-align:center;
+  -webkit-flex-shrink:0;flex-shrink:0;
+}
+.footer-by{
+  font-size:9px;color:var(--ink4);
+  font-family:var(--f);letter-spacing:.06em;
+  text-transform:lowercase;display:block;line-height:1.3;
+}
+.footer-name{
+  font-size:13px;font-weight:700;color:var(--ink3);
+  font-family:var(--f2);letter-spacing:.02em;
+  display:block;line-height:1.2;
+}
+body.sidebar-mini .sidebar-footer .footer-by,
+body.sidebar-mini .sidebar-footer .footer-name{
+  display:none;
+}
+body.sidebar-mini .sidebar-footer{
+  padding:8px 0;
+  border-top:none;
+}
+body.sidebar-mini .sidebar-footer::before{
+  content:'✦';
+  display:block;font-size:10px;color:var(--ink4);text-align:center;
 }
 
 /* ─── COLLAPSIBLE NAV GROUP ──────────────────────────────── */
@@ -500,7 +599,9 @@ body{
 .badge-kredit  {color:#7a1a4f;background:#f9e3ef}
 .badge-lainnya {color:var(--ink2);background:var(--cream2)}
 
-/* ─── RESPONSIVE MOBILE ──────────────────────────────────── */
+@media (min-width:769px){
+  .sidebar-minimize-btn{display:-webkit-flex;display:flex}
+}
 @media (max-width:768px){
   .hamburger{display:-webkit-flex;display:flex}
   .spiral{display:none}

@@ -33,9 +33,15 @@
 </div>
 
 <div class="sidebar" id="sidebar">
+  <button class="sidebar-minimize-btn" id="btn-minimize" onclick="toggleMinimize()" title="Minimize sidebar">
+    <i class="ti ti-chevron-left"></i>
+  </button>
   <div class="logo-block">
     <img src="logo.png" alt="zenOt" class="logo-img">
-    <span class="logo-tag">trax operasional</span>
+    <div class="logo-text-group">
+      <span class="logo-name">zenOt</span>
+      <span class="logo-tag">trax operasional</span>
+    </div>
   </div>
 
   <!-- OPERASIONAL -->
@@ -45,11 +51,11 @@
       <span class="nav-group-arrow">▾</span>
     </div>
     <div class="nav-group-body">
-      <button class="nav-item active" onclick="gotoPage('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
-      <button class="nav-item" onclick="gotoPage('jurnal-penjualan',this)"><i class="ti ti-receipt"></i>Jurnal Penjualan</button>
-      <button class="nav-item" onclick="gotoPage('stok',this)"><i class="ti ti-package"></i>Stok Produk</button>
-      <button class="nav-item" onclick="gotoPage('restock',this)"><i class="ti ti-refresh"></i>Re-Stock</button>
-      <button class="nav-item" onclick="gotoPage('kas',this)"><i class="ti ti-cash"></i>Kas & Jurnal</button>
+      <button class="nav-item active" onclick="gotoPage('dashboard',this)"><span class="ni-icon"><i class="ti ti-layout-dashboard"></i></span><span class="ni-label">Dashboard</span></button>
+      <button class="nav-item" onclick="gotoPage('jurnal-penjualan',this)"><span class="ni-icon"><i class="ti ti-receipt"></i></span><span class="ni-label">Jurnal Penjualan</span></button>
+      <button class="nav-item" onclick="gotoPage('stok',this)"><span class="ni-icon"><i class="ti ti-package"></i></span><span class="ni-label">Stok Produk</span></button>
+      <button class="nav-item" onclick="gotoPage('restock',this)"><span class="ni-icon"><i class="ti ti-refresh"></i></span><span class="ni-label">Re-Stock</span></button>
+      <button class="nav-item" onclick="gotoPage('kas',this)"><span class="ni-icon"><i class="ti ti-cash"></i></span><span class="ni-label">Kas & Jurnal</span></button>
     </div>
   </div>
 
@@ -60,8 +66,8 @@
       <span class="nav-group-arrow">▾</span>
     </div>
     <div class="nav-group-body">
-      <button class="nav-item" onclick="gotoPage('dataorder',this)"><i class="ti ti-shopping-cart"></i>Data Order</button>
-      <button class="nav-item" onclick="gotoPage('rekap',this)"><i class="ti ti-chart-bar"></i>Rekap & P&L</button>
+      <button class="nav-item" onclick="gotoPage('dataorder',this)"><span class="ni-icon"><i class="ti ti-shopping-cart"></i></span><span class="ni-label">Data Order</span></button>
+      <button class="nav-item" onclick="gotoPage('rekap',this)"><span class="ni-icon"><i class="ti ti-chart-bar"></i></span><span class="ni-label">Rekap & P&L</span></button>
     </div>
   </div>
 
@@ -72,14 +78,19 @@
       <span class="nav-group-arrow">▾</span>
     </div>
     <div class="nav-group-body">
-      <button class="nav-item" onclick="gotoPage('produk',this)"><i class="ti ti-box"></i>Kelola Produk</button>
-      <button class="nav-item" onclick="gotoPage('price-list',this)"><i class="ti ti-tag"></i>Price List</button>
-      <button class="nav-item" onclick="gotoPage('channel',this)"><i class="ti ti-antenna"></i>Channel</button>
-      <button class="nav-item" onclick="gotoPage('beban-operasional',this)"><i class="ti ti-chart-pie"></i>Beban Operasional</button>
+      <button class="nav-item" onclick="gotoPage('produk',this)"><span class="ni-icon"><i class="ti ti-box"></i></span><span class="ni-label">Kelola Produk</span></button>
+      <button class="nav-item" onclick="gotoPage('price-list',this)"><span class="ni-icon"><i class="ti ti-tag"></i></span><span class="ni-label">Price List</span></button>
+      <button class="nav-item" onclick="gotoPage('channel',this)"><span class="ni-icon"><i class="ti ti-antenna"></i></span><span class="ni-label">Channel</span></button>
+      <button class="nav-item" onclick="gotoPage('beban-operasional',this)"><span class="ni-icon"><i class="ti ti-chart-pie"></i></span><span class="ni-label">Beban Operasional</span></button>
     </div>
   </div>
 
   <div class="sticky" id="sticky-note">restock MAYRA_MAUVE<br>minggu ini!!</div>
+
+  <div class="sidebar-footer">
+    <span class="footer-by">conceptualized by</span>
+    <span class="footer-name">burhanmology</span>
+  </div>
 </div>
 
 <div class="main">
