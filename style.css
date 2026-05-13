@@ -797,8 +797,8 @@ body.sidebar-mini .sidebar-footer::before{
   display: -webkit-flex;
   display: flex;
   gap: 10px;
-  -webkit-align-items: flex-start;
-  align-items: flex-start;
+  -webkit-align-items: stretch;
+  align-items: stretch;
   position: relative;
   z-index: 1;
 }
@@ -812,32 +812,36 @@ body.sidebar-mini .sidebar-footer::before{
   z-index: 2;
 }
 
-/* Kanan: wrapper donat — 50%, position relative untuk overlay legend */
+/* Kanan: wrapper donat — 50%, stretch setinggi tabel */
 .donut-split-chart {
   -webkit-flex: 0 0 calc(50% - 10px);
   flex: 0 0 calc(50% - 10px);
   min-width: 0;
   position: relative;
   z-index: 2;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
-/* Canvas donat: full width dalam kolom 50% */
+/* Canvas donat: isi penuh wrapper — lebar & tinggi 100% */
 .donut-canvas {
   display: block;
   width: 100% !important;
-  height: 180px !important;
-  -webkit-flex-shrink: 0;
-  flex-shrink: 0;
+  height: 100% !important;
+  min-height: 160px;
+  position: absolute;
+  top: 0; left: 0;
 }
 
-/* Legend overlay — absolute kiri bawah di dalam .donut-split-chart */
+/* Legend overlay — absolute kiri bawah, transparan */
 .donut-legend {
   position: absolute;
   bottom: 10px;
-  left: 8px;
+  left: 10px;
   z-index: 3;
   background: transparent;
   padding: 0;
+  pointer-events: none;
 }
 
 /* Mobile: stack vertikal */

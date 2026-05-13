@@ -574,8 +574,9 @@ function _renderBoss(jpData, stokData) {
   const canvas = document.getElementById('dash-chart-boss');
   if (!canvas || !sorted.length || totalOmset===0) return;
   const dpr = window.devicePixelRatio||1;
-  const W = canvas.parentElement ? (canvas.parentElement.offsetWidth||260) : 260;
-  const H = 180;
+  const wrap = canvas.parentElement;
+  const W = wrap ? (wrap.offsetWidth  || 260) : 260;
+  const H = wrap ? (wrap.offsetHeight || 200) : 200;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.width  = W + 'px';
@@ -659,11 +660,12 @@ function _renderChannel(jpData) {
     '</tr>';
   }).join('');
 
-  // Donut chart channel — full width, height 180
+  // Donut chart channel — full wrapper size
   if (!canvas || totalOmset===0) return;
   const dpr = window.devicePixelRatio||1;
-  const W = canvas.parentElement ? (canvas.parentElement.offsetWidth||260) : 260;
-  const H = 180;
+  const wrap = canvas.parentElement;
+  const W = wrap ? (wrap.offsetWidth  || 260) : 260;
+  const H = wrap ? (wrap.offsetHeight || 200) : 200;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.width  = W + 'px';
