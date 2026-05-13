@@ -162,14 +162,21 @@ document.getElementById('page-dashboard').innerHTML = `
 
     <div class="card">
       <div class="card-title"><i class="ti ti-users"></i> Performa per Boss</div>
-      <div class="tbl-wrap"><table class="tbl">
-        <thead><tr><th>Boss</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
-        <tbody id="dash-boss-tbody">
-          <tr><td colspan="4" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
-        </tbody>
-      </table></div>
-      <div style="position:relative;height:150px;margin-top:10px">
-        <canvas id="dash-chart-boss" style="width:100%;height:150px;display:block"></canvas>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div style="flex:1;min-width:0">
+          <div class="tbl-wrap"><table class="tbl">
+            <thead><tr><th>Boss</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
+            <tbody id="dash-boss-tbody">
+              <tr><td colspan="4" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div style="flex:0 0 160px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px">
+          <div style="position:relative;width:160px;height:160px">
+            <canvas id="dash-chart-boss" style="width:160px;height:160px;display:block"></canvas>
+          </div>
+          <div id="dash-boss-legend" style="margin-top:8px;width:100%"></div>
+        </div>
       </div>
     </div>
 
@@ -180,14 +187,21 @@ document.getElementById('page-dashboard').innerHTML = `
 
     <div class="card">
       <div class="card-title"><i class="ti ti-building-store"></i> Performa per Channel / Toko</div>
-      <div class="tbl-wrap"><table class="tbl">
-        <thead><tr><th>Channel</th><th>Transaksi</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
-        <tbody id="dash-channel-tbody">
-          <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
-        </tbody>
-      </table></div>
-      <div style="position:relative;height:130px;margin-top:10px">
-        <canvas id="dash-chart-channel" style="width:100%;height:130px;display:block"></canvas>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div style="flex:1;min-width:0">
+          <div class="tbl-wrap"><table class="tbl">
+            <thead><tr><th>Channel</th><th>Trx</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
+            <tbody id="dash-channel-tbody">
+              <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div style="flex:0 0 160px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px">
+          <div style="position:relative;width:160px;height:160px">
+            <canvas id="dash-chart-channel" style="width:160px;height:160px;display:block"></canvas>
+          </div>
+          <div id="dash-channel-legend" style="margin-top:8px;width:100%"></div>
+        </div>
       </div>
     </div>
 
@@ -564,15 +578,12 @@ function _renderBoss(jpData, stokData) {
   const canvas = document.getElementById('dash-chart-boss');
   if (!canvas || !sorted.length || totalOmset===0) return;
   const dpr = window.devicePixelRatio||1;
-  const W = canvas.offsetWidth || canvas.parentElement?.offsetWidth || 300;
-  const H = 150;
-  canvas.style.width  = W+'px';
-  canvas.style.height = H+'px';
+  const W = 160, H = 160;
   canvas.width  = W*dpr;
   canvas.height = H*dpr;
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr,dpr);
-  const cx=W/2, cy=H/2, r=Math.min(cx,cy)-14, inner=r*0.52;
+  const cx=W/2, cy=H/2, r=Math.min(cx,cy)-10, inner=r*0.48;
   let angle = -Math.PI/2;
   sorted.forEach(([,d],i) => {
     const slice = (d.omset/totalOmset)*Math.PI*2;
@@ -581,7 +592,7 @@ function _renderBoss(jpData, stokData) {
     ctx.arc(cx,cy,r,angle,angle+slice);
     ctx.closePath();
     ctx.fillStyle=colors[i%colors.length]; ctx.fill();
-    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2.5; ctx.stroke();
     angle += slice;
   });
   ctx.beginPath(); ctx.arc(cx,cy,inner,0,Math.PI*2);
@@ -590,7 +601,20 @@ function _renderBoss(jpData, stokData) {
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText(_fmtRp(totalOmset),cx,cy-6);
   ctx.font='9px sans-serif'; ctx.fillStyle='#6b6354';
-  ctx.fillText('omset',cx,cy+6);
+  ctx.fillText('total omset',cx,cy+7);
+
+  // Legend warna di bawah donat
+  const legendEl = document.getElementById('dash-boss-legend');
+  if (legendEl) {
+    legendEl.innerHTML = sorted.map(([boss,d],i) => {
+      const pct = totalOmset>0?(d.omset/totalOmset*100).toFixed(0):0;
+      return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:11px">' +
+        '<span style="width:10px;height:10px;border-radius:50%;background:'+colors[i%colors.length]+';flex-shrink:0;display:inline-block"></span>' +
+        '<span style="font-weight:600;color:var(--ink2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+boss+'</span>' +
+        '<span style="color:var(--ink3);font-weight:700">'+pct+'%</span>' +
+      '</div>';
+    }).join('');
+  }
 }
 
 // ─── PERFORMA CHANNEL — BARU ──────────────────────────────────
@@ -635,16 +659,14 @@ function _renderChannel(jpData) {
     '</tr>';
   }).join('');
 
-  // Donut chart channel
+  // Donut chart channel — 160x160 fixed
   if (!canvas || totalOmset===0) return;
   const dpr = window.devicePixelRatio||1;
-  const W = canvas.offsetWidth || canvas.parentElement?.offsetWidth || 280;
-  const H = 130;
-  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  const W = 160, H = 160;
   canvas.width = W*dpr; canvas.height = H*dpr;
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr,dpr);
-  const cx=W/2, cy=H/2, r=Math.min(cx,cy)-10, inner=r*0.5;
+  const cx=W/2, cy=H/2, r=Math.min(cx,cy)-10, inner=r*0.48;
   let angle=-Math.PI/2;
   sorted.forEach(([,d],i) => {
     const slice=(d.omset/totalOmset)*Math.PI*2;
@@ -653,19 +675,29 @@ function _renderChannel(jpData) {
     ctx.arc(cx,cy,r,angle,angle+slice);
     ctx.closePath();
     ctx.fillStyle=colors[i%colors.length]; ctx.fill();
-    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2.5; ctx.stroke();
     angle+=slice;
   });
   ctx.beginPath(); ctx.arc(cx,cy,inner,0,Math.PI*2);
   ctx.fillStyle='#ede7d9'; ctx.fill();
-  ctx.fillStyle='#1c1a14'; ctx.font='bold 10px sans-serif';
+  ctx.fillStyle='#1c1a14'; ctx.font='bold 11px sans-serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(sorted.length+' ch',cx,cy-5);
+  ctx.fillText(_fmtRp(totalOmset),cx,cy-6);
   ctx.font='9px sans-serif'; ctx.fillStyle='#6b6354';
-  ctx.fillText(_fmtRp(totalOmset),cx,cy+7);
+  ctx.fillText(sorted.length+' channel',cx,cy+7);
 
-  // Legend kecil di samping donut
-  // (sudah ada di tabel, cukup)
+  // Legend warna di bawah donat
+  const legendEl = document.getElementById('dash-channel-legend');
+  if (legendEl) {
+    legendEl.innerHTML = sorted.map(([ch,d],i) => {
+      const pct = totalOmset>0?(d.omset/totalOmset*100).toFixed(0):0;
+      return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:11px">' +
+        '<span style="width:10px;height:10px;border-radius:50%;background:'+colors[i%colors.length]+';flex-shrink:0;display:inline-block"></span>' +
+        '<span style="font-weight:600;color:var(--ink2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+ch+'</span>' +
+        '<span style="color:var(--ink3);font-weight:700">'+pct+'%</span>' +
+      '</div>';
+    }).join('');
+  }
 }
 
 // ─── GRAFIK OMSET PER KATALOG — BARU ─────────────────────────
