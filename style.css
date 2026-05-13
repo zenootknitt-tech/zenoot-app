@@ -724,6 +724,50 @@ body.sidebar-mini .sidebar-footer::before{
   #jp-sku-dd-btn{padding:0 7px !important;font-size:12px !important;min-height:40px !important}
 }
 
+/* ─── MODAL JP — KEYBOARD-SAFE FIX (mobile) ─────────────── */
+/* Masalah: keyboard virtual Android menyusutkan viewport sehingga
+   modal (position:fixed + align-items:center) terpotong di bawah.
+   Fix: di mobile, modal overlay rata ke atas + bisa di-scroll.      */
+@media (max-width:768px){
+  #modal-jp{
+    -webkit-align-items:flex-start;
+    align-items:flex-start;
+    padding:12px 12px 0 12px;
+    /* Gunakan dynamic viewport height agar aware terhadap keyboard */
+    height:100vh;
+    height:100dvh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    /* Pastikan box-sizing benar */
+    box-sizing:border-box;
+  }
+  #modal-jp .modal{
+    /* Ambil full lebar layar, simetris kiri-kanan */
+    width:100% !important;
+    max-width:100% !important;
+    /* Padding simetris dan sedikit lebih compact */
+    padding:16px 14px 80px 14px !important;
+    /* Tidak pakai max-height fixed agar bisa scroll bebas */
+    max-height:none !important;
+    /* Shadow tetap ada */
+    box-shadow:4px 4px 0 var(--ink) !important;
+    /* Margin bawah agar konten tidak tertutup keyboard */
+    margin-bottom:20px;
+    box-sizing:border-box;
+  }
+  /* Tombol aksi: full width biar mudah dipencet */
+  #modal-jp .modal-actions{
+    -webkit-flex-direction:row;
+    flex-direction:row;
+    gap:8px !important;
+  }
+  #modal-jp .modal-actions .btn{
+    -webkit-flex:1;flex:1;
+    font-size:13px !important;
+    min-height:44px !important;
+  }
+}
+
 /* ─── SAFARI-SPECIFIC FIXES ──────────────────────────────── */
 @supports (-webkit-touch-callout:none){
   .btn{-webkit-appearance:none}
