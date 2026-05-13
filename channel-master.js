@@ -81,37 +81,73 @@ document.getElementById('page-channel').innerHTML = `
     </table></div>
   </div>
 
-  <!-- MARKETPLACE -->
+  <!-- LAZADA -->
   <div class="card" style="margin-bottom:14px">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <span><i class="ti ti-building-store"></i> Marketplace</span>
-      <button class="btn btn-sm btn-primary" onclick="showFormChannel('marketplace')">
+      <span><i class="ti ti-shopping-bag"></i> Lazada</span>
+      <button class="btn btn-sm btn-primary" onclick="showFormChannel('lazada')">
         <i class="ti ti-plus"></i> Tambah
       </button>
     </div>
-    <div id="form-channel-marketplace" style="display:none;margin-bottom:10px">
+    <div id="form-channel-lazada" style="display:none;margin-bottom:10px">
       <div style="background:var(--cream2);border:2px solid var(--ink3);padding:10px;border-radius:4px">
-        <input type="hidden" id="ch-id-marketplace">
+        <input type="hidden" id="ch-id-lazada">
         <div class="form-row">
           <div class="form-group">
-            <label>Nama Channel</label>
-            <input type="text" id="ch-nama-marketplace" placeholder="mis: TikTok Shop, Lazada">
+            <label>Nama Toko Lazada</label>
+            <input type="text" id="ch-nama-lazada" placeholder="mis: LZD.ZenOot, LZD.Alley">
           </div>
           <div class="form-group">
             <label>Keterangan</label>
-            <input type="text" id="ch-ket-marketplace" placeholder="opsional">
+            <input type="text" id="ch-ket-lazada" placeholder="opsional">
           </div>
           <div class="form-group" style="flex:0;justify-content:flex-end">
             <label>&nbsp;</label>
-            <button class="btn btn-primary btn-sm" onclick="simpanChannel('marketplace')">Simpan</button>
-            <button class="btn btn-sm" onclick="cancelFormChannel('marketplace')" style="margin-top:4px">Batal</button>
+            <button class="btn btn-primary btn-sm" onclick="simpanChannel('lazada')">Simpan</button>
+            <button class="btn btn-sm" onclick="cancelFormChannel('lazada')" style="margin-top:4px">Batal</button>
           </div>
         </div>
       </div>
     </div>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>Nama Channel</th><th>Keterangan</th><th>Aksi</th></tr></thead>
-      <tbody id="ch-tbody-marketplace">
+      <thead><tr><th>Nama Toko Lazada</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+      <tbody id="ch-tbody-lazada">
+        <tr><td colspan="3" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- TIKTOK -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <span><i class="ti ti-brand-tiktok"></i> TikTok</span>
+      <button class="btn btn-sm btn-primary" onclick="showFormChannel('tiktok')">
+        <i class="ti ti-plus"></i> Tambah
+      </button>
+    </div>
+    <div id="form-channel-tiktok" style="display:none;margin-bottom:10px">
+      <div style="background:var(--cream2);border:2px solid var(--ink3);padding:10px;border-radius:4px">
+        <input type="hidden" id="ch-id-tiktok">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nama Toko TikTok</label>
+            <input type="text" id="ch-nama-tiktok" placeholder="mis: TTK.ZenOot, TTK.Alley">
+          </div>
+          <div class="form-group">
+            <label>Keterangan</label>
+            <input type="text" id="ch-ket-tiktok" placeholder="opsional">
+          </div>
+          <div class="form-group" style="flex:0;justify-content:flex-end">
+            <label>&nbsp;</label>
+            <button class="btn btn-primary btn-sm" onclick="simpanChannel('tiktok')">Simpan</button>
+            <button class="btn btn-sm" onclick="cancelFormChannel('tiktok')" style="margin-top:4px">Batal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>Nama Toko TikTok</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+      <tbody id="ch-tbody-tiktok">
         <tr><td colspan="3" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
       </tbody>
     </table></div>
@@ -162,7 +198,8 @@ async function loadChannelMaster() {
   await Promise.all([
     loadChannelByKategori('toko_utama'),
     loadChannelByKategori('reseller'),
-    loadChannelByKategori('marketplace'),
+    loadChannelByKategori('lazada'),
+    loadChannelByKategori('tiktok'),
     loadChannelByKategori('offline'),
   ]);
 }
