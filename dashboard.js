@@ -173,8 +173,8 @@ document.getElementById('page-dashboard').innerHTML = `
         </div>
         <div class="donut-split-chart">
           <canvas id="dash-chart-boss" class="donut-canvas"></canvas>
-          <div id="dash-boss-legend" class="donut-legend"></div>
         </div>
+        <div class="donut-legend" id="dash-boss-legend"></div>
       </div>
     </div>
 
@@ -196,8 +196,8 @@ document.getElementById('page-dashboard').innerHTML = `
         </div>
         <div class="donut-split-chart">
           <canvas id="dash-chart-channel" class="donut-canvas"></canvas>
-          <div id="dash-channel-legend" class="donut-legend"></div>
         </div>
+        <div class="donut-legend" id="dash-channel-legend"></div>
       </div>
     </div>
 
@@ -573,11 +573,13 @@ function _renderBoss(jpData, stokData) {
 
   const canvas = document.getElementById('dash-chart-boss');
   if (!canvas || !sorted.length || totalOmset===0) return;
-  // Canvas fixed 160x160 — sesuai CSS .donut-canvas
   const dpr = window.devicePixelRatio||1;
-  const W = 160, H = 160;
+  const S = Math.min(canvas.parentElement ? canvas.parentElement.offsetWidth : 130, 130);
+  const W = S||130, H = S||130;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
   const cx = W/2, cy = H/2;
@@ -658,12 +660,15 @@ function _renderChannel(jpData) {
     '</tr>';
   }).join('');
 
-  // Donut chart channel — fixed 160x160 sesuai CSS .donut-canvas
+  // Donut chart channel — responsive sesuai kolom 30%
   if (!canvas || totalOmset===0) return;
   const dpr = window.devicePixelRatio||1;
-  const W = 160, H = 160;
+  const S = Math.min(canvas.parentElement ? canvas.parentElement.offsetWidth : 130, 130);
+  const W = S||130, H = S||130;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
   const cx=W/2, cy=H/2, r=Math.min(cx,cy)-10, inner=r*0.46;
