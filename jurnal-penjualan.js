@@ -405,7 +405,13 @@ function jpPilihKatalog(katalog) {
     opt.dataset.sku   = _jpGetSku(p);
     sel.appendChild(opt);
   });
-  setTimeout(() => sel.focus(), 60);
+  // Auto-select & auto-isi harga kalau variasi hanya 1
+  if (varList.length === 1) {
+    sel.selectedIndex = 1;
+    jpOnPilihVariasi();
+  } else {
+    setTimeout(() => sel.focus(), 60);
+  }
 }
 
 // ─── HITUNG HARGA DARI PRICE LIST ────────────────────────────
@@ -581,9 +587,7 @@ function showTambahJP() {
   // Reload produk list setiap buka modal agar selalu fresh
   loadProdukListJP();
   document.getElementById('modal-jp').classList.add('open');
-  // Re-render sketchy UI untuk modal agar tombol SIMPAN tampil benar
   setTimeout(() => {
-    if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('modal-jp'));
     document.getElementById('jp-channel').focus();
   }, 80);
 }
@@ -619,7 +623,6 @@ async function editJP(id) {
         : '<option value="">— Pilih Variasi —</option>';
     }
     document.getElementById('modal-jp').classList.add('open');
-    setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('modal-jp')); }, 80);
   } catch(err) { alert('Gagal load: ' + err.message); }
 }
 
