@@ -1,179 +1,561 @@
-// ─── KAS.JS — CRUD lengkap + export CSV ──────────────────────
+// ─── KAS.JS — Double Entry Bookkeeping + Kategori Custom ─────
+// Struktur: Chart of Accounts (COA) + Jurnal Umum + Laporan otomatis
 
-async function loadJurnal() {
-  const tbody = document.getElementById('jurnal-tbody');
-  tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink3);font-style:italic">Memuat data...</td></tr>';
+// ─── STATE ───────────────────────────────────────────────────
+let _kasAkunMap   = {};
+let _kasJurnalAll = [];
 
-  try {
-    const data = await dbGet('jurnal');
-    if (!data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink3);font-style:italic">Belum ada entri jurnal</td></tr>';
-      updateSummary([]);
-      return;
-    }
-    updateSummary(data);
-    let saldo = 0;
-    tbody.innerHTML = data.map(row => {
-      saldo += (row.debit || 0) - (row.kredit || 0);
-      const tgl = new Date(row.tanggal).toLocaleDateString('id-ID', {day:'2-digit',month:'2-digit',year:'2-digit'});
-      const saldoFmt = saldo >= 0
-        ? `+Rp${saldo.toLocaleString('id-ID')}`
-        : `-Rp${Math.abs(saldo).toLocaleString('id-ID')}`;
-      return `
-        <tr>
-          <td>${tgl}</td>
-          <td>${row.keterangan || '—'}</td>
-          <td style="color:var(--ok)">${row.debit  ? 'Rp' + row.debit.toLocaleString('id-ID')  : '—'}</td>
-          <td style="color:var(--danger)">${row.kredit ? 'Rp' + row.kredit.toLocaleString('id-ID') : '—'}</td>
-          <td style="color:${saldo >= 0 ? 'var(--ok)' : 'var(--danger)'}">${saldoFmt}</td>
-          <td>
-            <button class="btn btn-sm" data-action="edit-kas" data-id="${row.id}" style="margin-right:4px"><i class="ti ti-edit"></i></button>
-            <button class="btn btn-sm btn-danger" data-action="hapus-kas" data-id="${row.id}" data-ket="${(row.keterangan||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"><i class="ti ti-trash"></i></button>
-          </td>
-        </tr>\`;
-    }).join('');
-  } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger)">Error: ${err.message}</td></tr>`;
-  }
-}
-
-function updateSummary(data) {
-  const masuk  = data.reduce((s, r) => s + (r.debit  || 0), 0);
-  const keluar = data.reduce((s, r) => s + (r.kredit || 0), 0);
-  const saldo  = masuk - keluar;
-  document.getElementById('kas-masuk').textContent  = 'Rp' + masuk.toLocaleString('id-ID');
-  document.getElementById('kas-keluar').textContent = 'Rp' + keluar.toLocaleString('id-ID');
-  document.getElementById('kas-saldo').textContent  = (saldo >= 0 ? '+' : '') + 'Rp' + saldo.toLocaleString('id-ID');
-  document.getElementById('kas-saldo').style.color  = saldo >= 0 ? 'var(--ok)' : 'var(--danger)';
-}
-
+// ─── HTML PAGE ───────────────────────────────────────────────
 document.getElementById('page-kas').innerHTML = `
-  <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-    <button class="btn btn-sm btn-primary" onclick="showTambahJurnal()"><i class="ti ti-plus"></i> Tambah Entri</button>
-    <button class="btn btn-sm" onclick="loadJurnal()"><i class="ti ti-refresh"></i> Refresh</button>
-    <button class="btn btn-sm" onclick="exportJurnal()"><i class="ti ti-download"></i> Export CSV</button>
+<style>
+  .kas-tabs { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .kas-tab  { padding:6px 14px; border:2px solid var(--ink); background:var(--cream); font-family:var(--f); font-size:13px; font-weight:700; cursor:pointer; border-radius:2px; color:var(--ink); }
+  .kas-tab.active { background:var(--ink); color:var(--cream); }
+  .kas-panel { display:none; }
+  .kas-panel.active { display:block; }
+  .akun-badge { display:inline-block; padding:2px 7px; border-radius:2px; font-size:11px; font-weight:700; border:1.5px solid currentColor; }
+  .akun-aset      { color:#2a6e3a; }
+  .akun-kewajiban { color:#b03020; }
+  .akun-modal     { color:#1a4a8a; }
+  .akun-pendapatan{ color:#2a6e3a; }
+  .akun-beban     { color:#b03020; }
+  .kas-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+  @media(max-width:520px){ .kas-summary{ grid-template-columns:1fr 1fr; } }
+  .lap-head td  { font-weight:700; background:var(--cream2); border-top:2px solid var(--ink); }
+  .lap-sub  td  { padding-left:24px !important; color:var(--ink2); }
+  .lap-total td { font-weight:700; border-top:2px dashed var(--ink3); }
+  .lap-result td{ font-weight:700; font-size:15px; border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); }
+</style>
+
+<div class="kas-tabs">
+  <button class="kas-tab active" onclick="kasGotoTab('jurnal')">📒 Jurnal Harian</button>
+  <button class="kas-tab" onclick="kasGotoTab('laporan')">📊 Laporan</button>
+  <button class="kas-tab" onclick="kasGotoTab('akun')">⚙ Kelola Akun</button>
+</div>
+
+<!-- PANEL: JURNAL -->
+<div id="kas-panel-jurnal" class="kas-panel active">
+  <div class="kas-summary">
+    <div class="metric"><div class="m-label">Kas Masuk</div><div class="m-value" id="kas-total-masuk">—</div><div class="m-delta">total debit kas</div></div>
+    <div class="metric"><div class="m-label">Kas Keluar</div><div class="m-value" id="kas-total-keluar">—</div><div class="m-delta">total kredit kas</div></div>
+    <div class="metric"><div class="m-label">Saldo Kas</div><div class="m-value" id="kas-saldo">—</div><div class="m-delta">saldo akhir</div></div>
   </div>
-  <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
-    <div class="metric"><div class="m-label">Kas Masuk</div><div class="m-value" id="kas-masuk">—</div><div class="m-delta">total debit</div></div>
-    <div class="metric"><div class="m-label">Kas Keluar</div><div class="m-value" id="kas-keluar">—</div><div class="m-delta">total kredit</div></div>
-    <div class="metric"><div class="m-label">Saldo</div><div class="m-value" id="kas-saldo">—</div><div class="m-delta">saldo akhir</div></div>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+    <button class="btn btn-sm btn-primary" onclick="kasShowForm()"><i class="ti ti-plus"></i> Tambah Transaksi</button>
+    <button class="btn btn-sm" onclick="loadKasJurnal()"><i class="ti ti-refresh"></i> Refresh</button>
+    <button class="btn btn-sm" onclick="kasExportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      <label style="font-size:12px;color:var(--ink2)">Bulan:</label>
+      <input type="month" id="kas-filter-bulan" style="font-family:var(--f);font-size:12px;padding:4px 8px;border:2px solid var(--ink);background:var(--cream)" onchange="kasApplyFilter()">
+      <button class="btn btn-sm" onclick="kasResetFilter()">Semua</button>
+    </div>
   </div>
 
-  <!-- FORM TAMBAH/EDIT JURNAL -->
-  <div id="form-tambah-jurnal" style="display:none;margin-bottom:12px">
+  <div id="kas-form-wrap" style="display:none;margin-bottom:12px">
     <div class="card">
-      <div class="card-title" id="kas-form-title"><i class="ti ti-plus"></i> Tambah Entri Jurnal</div>
-      <input type="hidden" id="jrn-id">
-      <div class="form-row">
-        <div class="form-group"><label>Tanggal</label><input type="date" id="jrn-tgl"></div>
-        <div class="form-group"><label>Keterangan</label><input type="text" id="jrn-ket" placeholder="mis: iklan shopee"></div>
-        <div class="form-group"><label>Debit (masuk)</label><input type="number" id="jrn-debit" placeholder="0"></div>
-        <div class="form-group"><label>Kredit (keluar)</label><input type="number" id="jrn-kredit" placeholder="0"></div>
-        <div class="form-group" style="flex:0;justify-content:flex-end">
-          <label>&nbsp;</label>
-          <button class="btn btn-primary btn-sm" onclick="simpanJurnal()">Simpan</button>
-          <button class="btn btn-sm" onclick="cancelJurnalForm()" style="margin-top:4px">Batal</button>
+      <div class="card-title" id="kas-form-title"><i class="ti ti-plus"></i> Tambah Transaksi</div>
+      <input type="hidden" id="kas-jrn-id">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        <div class="form-group" style="flex:1 1 120px;min-width:110px"><label>Tanggal</label><input type="date" id="kas-jrn-tgl"></div>
+        <div class="form-group" style="flex:1 1 140px;min-width:130px"><label>Tipe</label>
+          <select id="kas-jrn-tipe" onchange="kasOnTipeChange()" style="width:100%">
+            <option value="masuk">💰 Uang Masuk</option>
+            <option value="keluar">💸 Uang Keluar</option>
+            <option value="jurnal">📋 Jurnal Umum</option>
+          </select>
         </div>
+        <div class="form-group" style="flex:1 1 130px;min-width:120px"><label>Nominal (Rp)</label><input type="number" id="kas-jrn-nominal" placeholder="0" oninput="kasHitungJurnal()"></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        <div class="form-group" style="flex:1 1 160px;min-width:140px">
+          <label id="kas-lbl-debit">Akun Debit (Masuk ke)</label>
+          <select id="kas-jrn-akun-debit" style="width:100%" onchange="kasHitungJurnal()"><option value="">— Pilih Akun —</option></select>
+        </div>
+        <div class="form-group" style="flex:1 1 160px;min-width:140px">
+          <label id="kas-lbl-kredit">Akun Kredit (Keluar dari)</label>
+          <select id="kas-jrn-akun-kredit" style="width:100%" onchange="kasHitungJurnal()"><option value="">— Pilih Akun —</option></select>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        <div class="form-group" style="flex:2 1 200px"><label>Keterangan</label><input type="text" id="kas-jrn-ket" placeholder="mis: bayar iklan Shopee..."></div>
+        <div class="form-group" style="flex:1 1 120px"><label>No. Referensi <span style="color:var(--ink3);font-weight:400">(opsional)</span></label><input type="text" id="kas-jrn-ref" placeholder="mis: INV-001"></div>
+      </div>
+      <div id="kas-preview-entry" style="display:none;background:var(--cream2);border:1.5px dashed var(--ink3);padding:8px 12px;border-radius:2px;font-size:12px;margin-bottom:10px;color:var(--ink2)">
+        <b>Preview Jurnal:</b><br><span id="kas-preview-text"></span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="kasSimpanJurnal()"><i class="ti ti-device-floppy"></i> Simpan</button>
+        <button class="btn btn-sm" onclick="kasCancelForm()"><i class="ti ti-x"></i> Batal</button>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-title"><i class="ti ti-list"></i>Jurnal Harian</div>
-    <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:auto"><table class="tbl">
-      <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Debit</th><th>Kredit</th><th>Saldo</th><th>Aksi</th></tr></thead>
-      <tbody id="jurnal-tbody">
-        <tr><td colspan="6" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
-      </tbody>
+    <div class="card-title"><i class="ti ti-list"></i> Buku Jurnal Harian</div>
+    <div class="tbl-wrap" style="max-height:60vh;overflow-y:auto;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr><th>Tanggal</th><th>Ref</th><th>Keterangan</th><th>Akun Debit</th><th>Akun Kredit</th><th style="text-align:right">Debit</th><th style="text-align:right">Kredit</th><th>Aksi</th></tr></thead>
+        <tbody id="kas-jurnal-tbody"><tr><td colspan="8" style="color:var(--ink3);font-style:italic">Memuat...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL: LAPORAN -->
+<div id="kas-panel-laporan" class="kas-panel">
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+    <button class="btn btn-sm btn-primary" onclick="kasRenderLaporan()"><i class="ti ti-refresh"></i> Refresh Laporan</button>
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      <label style="font-size:12px;color:var(--ink2)">Periode:</label>
+      <input type="month" id="kas-lap-bulan" style="font-family:var(--f);font-size:12px;padding:4px 8px;border:2px solid var(--ink);background:var(--cream)" onchange="kasRenderLaporan()">
+      <button class="btn btn-sm" onclick="document.getElementById('kas-lap-bulan').value='';kasRenderLaporan()">Semua</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title"><i class="ti ti-scale"></i> Neraca Saldo</div>
+    <div class="tbl-wrap" style="overflow-x:auto"><table class="tbl">
+      <thead><tr><th>Kode</th><th>Nama Akun</th><th>Kelompok</th><th style="text-align:right">Debit</th><th style="text-align:right">Kredit</th><th style="text-align:right">Saldo</th></tr></thead>
+      <tbody id="kas-neraca-tbody"></tbody>
     </table></div>
   </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title"><i class="ti ti-chart-line"></i> Laporan Laba Rugi</div>
+    <div class="tbl-wrap" style="overflow-x:auto"><table class="tbl">
+      <thead><tr><th>Uraian</th><th style="text-align:right">Jumlah</th></tr></thead>
+      <tbody id="kas-labarugi-tbody"></tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-arrows-exchange"></i> Arus Kas</div>
+    <div class="tbl-wrap" style="overflow-x:auto"><table class="tbl">
+      <thead><tr><th>Tanggal</th><th>Keterangan</th><th style="text-align:right">Masuk</th><th style="text-align:right">Keluar</th><th style="text-align:right">Saldo</th></tr></thead>
+      <tbody id="kas-aruskas-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- PANEL: KELOLA AKUN -->
+<div id="kas-panel-akun" class="kas-panel">
+  <div style="margin-bottom:10px;padding:10px 14px;background:var(--cream2);border:2px dashed var(--ink3);font-size:13px;color:var(--ink2);line-height:1.7">
+    <b>Chart of Accounts</b> — daftar akun keuangan bisnis kamu.<br>
+    Kelompok sudah fixed (Aset, Kewajiban, Modal, Pendapatan, Beban) — tambah akun baru di dalam kelompok yang sesuai.
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title" id="akun-form-title"><i class="ti ti-plus"></i> Tambah Akun Baru</div>
+    <input type="hidden" id="akun-edit-id">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div class="form-group" style="flex:0 1 100px;min-width:90px"><label>Kode Akun</label><input type="text" id="akun-kode" placeholder="mis: 1-001"></div>
+      <div class="form-group" style="flex:1 1 160px;min-width:140px"><label>Nama Akun</label><input type="text" id="akun-nama" placeholder="mis: Kas Tunai"></div>
+      <div class="form-group" style="flex:1 1 140px;min-width:120px"><label>Kelompok</label>
+        <select id="akun-kelompok" style="width:100%">
+          <option value="aset">Aset</option>
+          <option value="kewajiban">Kewajiban</option>
+          <option value="modal">Modal</option>
+          <option value="pendapatan">Pendapatan</option>
+          <option value="beban">Beban</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:1 1 140px;min-width:120px"><label>Sub Kelompok <span style="color:var(--ink3);font-weight:400">(opsional)</span></label><input type="text" id="akun-sub" placeholder="mis: Kas & Bank"></div>
+      <div style="display:flex;gap:6px;padding-bottom:2px">
+        <button class="btn btn-primary btn-sm" onclick="kasSimpanAkun()"><i class="ti ti-device-floppy"></i> Simpan</button>
+        <button class="btn btn-sm" id="akun-batal-btn" style="display:none" onclick="kasResetFormAkun()">Batal</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-list"></i> Daftar Akun (Chart of Accounts)</div>
+    <div class="tbl-wrap" style="overflow-x:auto"><table class="tbl">
+      <thead><tr><th>Kode</th><th>Nama Akun</th><th>Kelompok</th><th>Sub Kelompok</th><th>Aksi</th></tr></thead>
+      <tbody id="kas-akun-tbody"><tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
 `;
 
-// render sketchy UI untuk halaman kas setelah innerHTML siap
 setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-kas')); }, 80);
 
-function showTambahJurnal() {
-  document.getElementById('kas-form-title').innerHTML = '<i class="ti ti-plus"></i> Tambah Entri Jurnal';
-  document.getElementById('jrn-id').value = '';
-  document.getElementById('jrn-tgl').value = new Date().toISOString().split('T')[0];
-  document.getElementById('jrn-ket').value = '';
-  document.getElementById('jrn-debit').value = '';
-  document.getElementById('jrn-kredit').value = '';
-  document.getElementById('form-tambah-jurnal').style.display = 'block';
-  sketchForm('form-tambah-jurnal');
+// ─── TAB ─────────────────────────────────────────────────────
+function kasGotoTab(tab) {
+  const tabs = ['jurnal','laporan','akun'];
+  document.querySelectorAll('.kas-tab').forEach((t,i) => t.classList.toggle('active', tabs[i] === tab));
+  document.querySelectorAll('.kas-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('kas-panel-' + tab).classList.add('active');
+  if (tab === 'laporan') kasRenderLaporan();
+  if (tab === 'akun')    kasLoadAkun();
 }
 
-function cancelJurnalForm() {
-  document.getElementById('form-tambah-jurnal').style.display = 'none';
-}
-
-async function editJurnal(id) {
+// ─── LOAD AKUN ───────────────────────────────────────────────
+async function kasLoadAkun() {
   try {
-    const data = await dbGet('jurnal', `&id=eq.${id}`);
-    if (!data || !data[0]) return;
-    const r = data[0];
-    document.getElementById('kas-form-title').innerHTML = '<i class="ti ti-edit"></i> Edit Entri';
-    document.getElementById('jrn-id').value     = r.id;
-    document.getElementById('jrn-tgl').value    = r.tanggal ? r.tanggal.split('T')[0] : '';
-    document.getElementById('jrn-ket').value    = r.keterangan || '';
-    document.getElementById('jrn-debit').value  = r.debit || 0;
-    document.getElementById('jrn-kredit').value = r.kredit || 0;
-    document.getElementById('form-tambah-jurnal').style.display = 'block';
-    document.getElementById('form-tambah-jurnal').scrollIntoView({behavior:'smooth'});
-  } catch(err) { alert('Gagal load: ' + err.message); }
+    const data = await dbGet('kas_akun', '&order=kode.asc');
+    _kasAkunMap = {};
+    (data || []).forEach(a => { _kasAkunMap[a.id] = a; });
+    kasRenderAkunTabel(data || []);
+    kasPopulateAkunDropdown(data || []);
+  } catch(e) {
+    document.getElementById('kas-akun-tbody').innerHTML = `<tr><td colspan="5" style="color:var(--danger)">Error: ${e.message}</td></tr>`;
+  }
 }
 
-async function simpanJurnal() {
-  const id = document.getElementById('jrn-id').value;
-  const data = {
-    tanggal:    document.getElementById('jrn-tgl').value,
-    keterangan: document.getElementById('jrn-ket').value.trim(),
-    debit:      parseInt(document.getElementById('jrn-debit').value)  || 0,
-    kredit:     parseInt(document.getElementById('jrn-kredit').value) || 0,
-  };
-  if (!data.tanggal) { alert('Tanggal wajib diisi!'); return; }
+function kasKelompokLabel(k) {
+  return { aset:'Aset', kewajiban:'Kewajiban', modal:'Modal', pendapatan:'Pendapatan', beban:'Beban' }[k] || k;
+}
+
+function kasRenderAkunTabel(data) {
+  const tbody = document.getElementById('kas-akun-tbody');
+  if (!data.length) { tbody.innerHTML = `<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Belum ada akun</td></tr>`; return; }
+  const order = ['aset','kewajiban','modal','pendapatan','beban'];
+  const sorted = [...data].sort((a,b) => { const ki = order.indexOf(a.kelompok) - order.indexOf(b.kelompok); return ki !== 0 ? ki : (a.kode||'').localeCompare(b.kode||''); });
+  tbody.innerHTML = sorted.map(a => {
+    const safeNama = (a.nama||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    return `<tr>
+      <td style="font-weight:700;font-family:monospace">${a.kode||'—'}</td>
+      <td>${a.nama||'—'}</td>
+      <td><span class="akun-badge akun-${a.kelompok}">${kasKelompokLabel(a.kelompok)}</span></td>
+      <td style="color:var(--ink3);font-size:12px">${a.sub_kelompok||'—'}</td>
+      <td>
+        <button class="btn btn-sm" data-action="edit-akun" data-id="${a.id}" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-sm btn-danger" data-action="hapus-akun" data-id="${a.id}" data-nama="${safeNama}"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function kasPopulateAkunDropdown(data) {
+  const order = ['aset','kewajiban','modal','pendapatan','beban'];
+  const grouped = {}; order.forEach(k => grouped[k] = []);
+  data.forEach(a => { if (grouped[a.kelompok]) grouped[a.kelompok].push(a); });
+  let html = '<option value="">— Pilih Akun —</option>';
+  order.forEach(k => {
+    if (!grouped[k].length) return;
+    html += `<optgroup label="── ${kasKelompokLabel(k)} ──">`;
+    grouped[k].forEach(a => { html += `<option value="${a.id}">${a.kode ? a.kode+' · ' : ''}${a.nama}</option>`; });
+    html += '</optgroup>';
+  });
+  ['kas-jrn-akun-debit','kas-jrn-akun-kredit'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
+}
+
+async function kasSimpanAkun() {
+  const id   = document.getElementById('akun-edit-id').value;
+  const data = { kode: document.getElementById('akun-kode').value.trim(), nama: document.getElementById('akun-nama').value.trim(), kelompok: document.getElementById('akun-kelompok').value, sub_kelompok: document.getElementById('akun-sub').value.trim() || null };
+  if (!data.nama) { alert('Nama akun wajib diisi!'); return; }
   try {
-    if (id) {
-      await dbUpdate('jurnal', id, data);
-    } else {
-      await dbInsert('jurnal', data);
-    }
-    cancelJurnalForm();
-    loadJurnal();
-    loadDashboard();
-  } catch(err) { alert('Gagal simpan: ' + err.message); }
+    if (id) { await dbUpdate('kas_akun', id, data); } else { await dbInsert('kas_akun', data); }
+    kasResetFormAkun(); kasLoadAkun();
+  } catch(e) { alert('Gagal simpan: ' + e.message); }
 }
 
-async function hapusJurnal(id, ket) {
-  confirmDelete(`Hapus entri "${ket}"?`, async () => {
-    try {
-      await dbDelete('jurnal', id);
-      loadJurnal();
-      loadDashboard();
-    } catch(err) { alert('Gagal hapus: ' + err.message); }
+function kasResetFormAkun() {
+  ['akun-edit-id','akun-kode','akun-nama','akun-sub'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('akun-kelompok').value = 'aset';
+  document.getElementById('akun-form-title').innerHTML = '<i class="ti ti-plus"></i> Tambah Akun Baru';
+  document.getElementById('akun-batal-btn').style.display = 'none';
+}
+
+async function kasEditAkun(id) {
+  const a = _kasAkunMap[id]; if (!a) return;
+  document.getElementById('akun-edit-id').value  = a.id;
+  document.getElementById('akun-kode').value     = a.kode || '';
+  document.getElementById('akun-nama').value     = a.nama || '';
+  document.getElementById('akun-kelompok').value = a.kelompok || 'aset';
+  document.getElementById('akun-sub').value      = a.sub_kelompok || '';
+  document.getElementById('akun-form-title').innerHTML = '<i class="ti ti-edit"></i> Edit Akun';
+  document.getElementById('akun-batal-btn').style.display = 'inline-block';
+  document.getElementById('kas-panel-akun').scrollIntoView({behavior:'smooth'});
+}
+
+async function kasHapusAkun(id, nama) {
+  confirmDelete(`Hapus akun "${nama}"?`, async () => {
+    try { await dbDelete('kas_akun', id); kasLoadAkun(); } catch(e) { alert('Gagal hapus: ' + e.message); }
   });
 }
 
-async function exportJurnal() {
+// ─── FORM JURNAL ─────────────────────────────────────────────
+function kasShowForm() {
+  document.getElementById('kas-form-title').innerHTML = '<i class="ti ti-plus"></i> Tambah Transaksi';
+  document.getElementById('kas-jrn-id').value = '';
+  document.getElementById('kas-jrn-tgl').value = new Date().toISOString().split('T')[0];
+  document.getElementById('kas-jrn-tipe').value = 'masuk';
+  document.getElementById('kas-jrn-nominal').value = '';
+  document.getElementById('kas-jrn-ket').value = '';
+  document.getElementById('kas-jrn-ref').value = '';
+  document.getElementById('kas-preview-entry').style.display = 'none';
+  kasOnTipeChange();
+  document.getElementById('kas-form-wrap').style.display = 'block';
+  sketchForm('kas-form-wrap');
+  document.getElementById('kas-form-wrap').scrollIntoView({behavior:'smooth'});
+}
+
+function kasCancelForm() { document.getElementById('kas-form-wrap').style.display = 'none'; }
+
+function kasOnTipeChange() {
+  const tipe = document.getElementById('kas-jrn-tipe').value;
+  const lblD = document.getElementById('kas-lbl-debit');
+  const lblK = document.getElementById('kas-lbl-kredit');
+  if (tipe === 'masuk')  { lblD.textContent = 'Masuk ke Akun (Debit)';  lblK.textContent = 'Sumber Dana (Kredit)'; }
+  else if (tipe === 'keluar') { lblD.textContent = 'Beban / Tujuan (Debit)'; lblK.textContent = 'Keluar dari Akun (Kredit)'; }
+  else { lblD.textContent = 'Akun Debit'; lblK.textContent = 'Akun Kredit'; }
+  kasHitungJurnal();
+}
+
+function kasHitungJurnal() {
+  const nominal = parseInt(document.getElementById('kas-jrn-nominal').value) || 0;
+  const akunDId = document.getElementById('kas-jrn-akun-debit').value;
+  const akunKId = document.getElementById('kas-jrn-akun-kredit').value;
+  const akunD   = _kasAkunMap[akunDId];
+  const akunK   = _kasAkunMap[akunKId];
+  const preview = document.getElementById('kas-preview-entry');
+  if (!nominal || !akunD || !akunK) { preview.style.display = 'none'; return; }
+  const fmtRp = v => 'Rp' + v.toLocaleString('id-ID');
+  document.getElementById('kas-preview-text').innerHTML =
+    `<b>Debit</b>  : ${akunD.kode ? akunD.kode+' ' : ''}${akunD.nama} &nbsp; ${fmtRp(nominal)}<br>` +
+    `<b>Kredit</b> : ${akunK.kode ? akunK.kode+' ' : ''}${akunK.nama} &nbsp; ${fmtRp(nominal)}`;
+  preview.style.display = 'block';
+}
+
+async function kasSimpanJurnal() {
+  const id      = document.getElementById('kas-jrn-id').value;
+  const nominal = parseInt(document.getElementById('kas-jrn-nominal').value) || 0;
+  const akunDId = document.getElementById('kas-jrn-akun-debit').value;
+  const akunKId = document.getElementById('kas-jrn-akun-kredit').value;
+  const tgl     = document.getElementById('kas-jrn-tgl').value;
+  if (!tgl)             { alert('Tanggal wajib diisi!'); return; }
+  if (!nominal)         { alert('Nominal wajib diisi!'); return; }
+  if (!akunDId)         { alert('Akun Debit wajib dipilih!'); return; }
+  if (!akunKId)         { alert('Akun Kredit wajib dipilih!'); return; }
+  if (akunDId===akunKId){ alert('Akun Debit dan Kredit tidak boleh sama!'); return; }
+  const data = {
+    tanggal:        tgl,
+    keterangan:     document.getElementById('kas-jrn-ket').value.trim(),
+    referensi:      document.getElementById('kas-jrn-ref').value.trim() || null,
+    tipe:           document.getElementById('kas-jrn-tipe').value,
+    akun_debit_id:  akunDId,
+    akun_kredit_id: akunKId,
+    nominal:        nominal,
+    debit:          nominal,
+    kredit:         nominal,
+  };
   try {
-    const data = await dbGet('jurnal');
-    if (!data || data.length === 0) { alert('Belum ada data jurnal'); return; }
-    const headers = ['Tanggal','Keterangan','Debit','Kredit'];
-    const rows = data.map(r => [r.tanggal, r.keterangan, r.debit||0, r.kredit||0]);
-    exportCSV('zenoot-jurnal.csv', headers, rows);
-  } catch(err) { alert('Gagal export: ' + err.message); }
+    if (id) { await dbUpdate('jurnal', id, data); } else { await dbInsert('jurnal', data); }
+    kasCancelForm(); loadKasJurnal();
+  } catch(e) { alert('Gagal simpan: ' + e.message); }
+}
+
+// ─── LOAD JURNAL ─────────────────────────────────────────────
+async function loadKasJurnal() {
+  document.getElementById('kas-jurnal-tbody').innerHTML = `<tr><td colspan="8" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>`;
+  try {
+    const [jurnal, akun] = await Promise.all([
+      dbGet('jurnal', '&order=tanggal.asc,created_at.asc'),
+      dbGet('kas_akun', '&order=kode.asc'),
+    ]);
+    _kasAkunMap = {};
+    (akun || []).forEach(a => { _kasAkunMap[a.id] = a; });
+    kasPopulateAkunDropdown(akun || []);
+    _kasJurnalAll = jurnal || [];
+    kasApplyFilter();
+  } catch(e) {
+    document.getElementById('kas-jurnal-tbody').innerHTML = `<tr><td colspan="8" style="color:var(--danger)">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function kasApplyFilter() {
+  const bulan = document.getElementById('kas-filter-bulan').value;
+  const filtered = bulan ? _kasJurnalAll.filter(r => (r.tanggal||'').startsWith(bulan)) : _kasJurnalAll;
+  kasRenderJurnalTabel(filtered);
+  kasUpdateSummary(filtered);
+}
+
+function kasResetFilter() { document.getElementById('kas-filter-bulan').value = ''; kasApplyFilter(); }
+
+function kasRenderJurnalTabel(data) {
+  const tbody = document.getElementById('kas-jurnal-tbody');
+  if (!data.length) { tbody.innerHTML = `<tr><td colspan="8" style="color:var(--ink3);font-style:italic">Belum ada transaksi</td></tr>`; return; }
+  const fmtRp = v => v ? 'Rp'+v.toLocaleString('id-ID') : '—';
+  tbody.innerHTML = data.map(r => {
+    const tgl   = new Date(r.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    const akunD = _kasAkunMap[r.akun_debit_id];
+    const akunK = _kasAkunMap[r.akun_kredit_id];
+    const nmD   = akunD ? `<span class="akun-badge akun-${akunD.kelompok}">${akunD.nama}</span>` : '—';
+    const nmK   = akunK ? `<span class="akun-badge akun-${akunK.kelompok}">${akunK.nama}</span>` : '—';
+    const safeKet = (r.keterangan||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    return `<tr>
+      <td style="white-space:nowrap">${tgl}</td>
+      <td style="color:var(--ink3);font-size:11px">${r.referensi||'—'}</td>
+      <td>${r.keterangan||'—'}</td>
+      <td>${nmD}</td><td>${nmK}</td>
+      <td style="text-align:right;color:var(--ok);font-weight:600">${fmtRp(r.debit)}</td>
+      <td style="text-align:right;color:var(--danger);font-weight:600">${fmtRp(r.kredit)}</td>
+      <td>
+        <button class="btn btn-sm" data-action="edit-kas" data-id="${r.id}" style="margin-right:4px"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-sm btn-danger" data-action="hapus-kas" data-id="${r.id}" data-ket="${safeKet}"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function kasUpdateSummary(data) {
+  let masuk = 0, keluar = 0;
+  data.forEach(r => {
+    const aD = _kasAkunMap[r.akun_debit_id];
+    const aK = _kasAkunMap[r.akun_kredit_id];
+    if (aD && aD.kelompok === 'aset') masuk  += (r.nominal || r.debit  || 0);
+    if (aK && aK.kelompok === 'aset') keluar += (r.nominal || r.kredit || 0);
+  });
+  const saldo = masuk - keluar;
+  const fmtRp = v => 'Rp' + Math.abs(v).toLocaleString('id-ID');
+  document.getElementById('kas-total-masuk').textContent = fmtRp(masuk);
+  document.getElementById('kas-total-keluar').textContent = fmtRp(keluar);
+  document.getElementById('kas-saldo').textContent = (saldo < 0 ? '-' : '') + fmtRp(saldo);
+  document.getElementById('kas-saldo').style.color = saldo >= 0 ? 'var(--ok)' : 'var(--danger)';
+}
+
+async function kasEditJurnal(id) {
+  const r = _kasJurnalAll.find(x => String(x.id) === String(id)); if (!r) return;
+  document.getElementById('kas-form-title').innerHTML = '<i class="ti ti-edit"></i> Edit Transaksi';
+  document.getElementById('kas-jrn-id').value      = r.id;
+  document.getElementById('kas-jrn-tgl').value     = r.tanggal ? r.tanggal.split('T')[0] : '';
+  document.getElementById('kas-jrn-tipe').value    = r.tipe || 'masuk';
+  document.getElementById('kas-jrn-nominal').value = r.nominal || r.debit || 0;
+  document.getElementById('kas-jrn-ket').value     = r.keterangan || '';
+  document.getElementById('kas-jrn-ref').value     = r.referensi || '';
+  kasOnTipeChange();
+  setTimeout(() => {
+    document.getElementById('kas-jrn-akun-debit').value  = r.akun_debit_id  || '';
+    document.getElementById('kas-jrn-akun-kredit').value = r.akun_kredit_id || '';
+    kasHitungJurnal();
+  }, 50);
+  document.getElementById('kas-form-wrap').style.display = 'block';
+  sketchForm('kas-form-wrap');
+  document.getElementById('kas-form-wrap').scrollIntoView({behavior:'smooth'});
+}
+
+async function kasHapusJurnal(id, ket) {
+  confirmDelete(`Hapus transaksi "${ket}"?`, async () => {
+    try { await dbDelete('jurnal', id); loadKasJurnal(); } catch(e) { alert('Gagal hapus: ' + e.message); }
+  });
+}
+
+function kasExportCSV() {
+  const bulan = document.getElementById('kas-filter-bulan').value;
+  const data  = bulan ? _kasJurnalAll.filter(r => (r.tanggal||'').startsWith(bulan)) : _kasJurnalAll;
+  if (!data.length) { alert('Belum ada data'); return; }
+  const headers = ['Tanggal','Referensi','Keterangan','Tipe','Akun Debit','Akun Kredit','Nominal'];
+  const rows = data.map(r => {
+    const aD = _kasAkunMap[r.akun_debit_id]; const aK = _kasAkunMap[r.akun_kredit_id];
+    return [r.tanggal, r.referensi||'', r.keterangan||'', r.tipe||'', aD?aD.nama:'', aK?aK.nama:'', r.nominal||r.debit||0];
+  });
+  exportCSV('zenoot-kas-jurnal.csv', headers, rows);
+}
+
+// ─── LAPORAN ─────────────────────────────────────────────────
+function kasRenderLaporan() {
+  const bulan = document.getElementById('kas-lap-bulan').value;
+  const data  = bulan ? _kasJurnalAll.filter(r => (r.tanggal||'').startsWith(bulan)) : _kasJurnalAll;
+  kasRenderNeraca(data); kasRenderLabaRugi(data); kasRenderArusKas(data);
+}
+
+function kasRenderNeraca(data) {
+  const tbody = document.getElementById('kas-neraca-tbody');
+  const saldoMap = {};
+  data.forEach(r => {
+    const n = r.nominal || r.debit || 0;
+    if (r.akun_debit_id)  { if (!saldoMap[r.akun_debit_id])  saldoMap[r.akun_debit_id]  = {debit:0,kredit:0}; saldoMap[r.akun_debit_id].debit   += n; }
+    if (r.akun_kredit_id) { if (!saldoMap[r.akun_kredit_id]) saldoMap[r.akun_kredit_id] = {debit:0,kredit:0}; saldoMap[r.akun_kredit_id].kredit += n; }
+  });
+  const order = ['aset','kewajiban','modal','pendapatan','beban'];
+  const fmtRp = v => v ? 'Rp'+v.toLocaleString('id-ID') : '—';
+  let html = '', totalD = 0, totalK = 0;
+  order.forEach(k => {
+    const akuns = Object.values(_kasAkunMap).filter(a => a.kelompok === k).sort((a,b) => (a.kode||'').localeCompare(b.kode||''));
+    if (!akuns.length) return;
+    html += `<tr class="lap-head"><td colspan="6">${kasKelompokLabel(k).toUpperCase()}</td></tr>`;
+    akuns.forEach(a => {
+      const s = saldoMap[a.id] || {debit:0,kredit:0};
+      const saldo = ['aset','beban'].includes(k) ? s.debit - s.kredit : s.kredit - s.debit;
+      totalD += s.debit; totalK += s.kredit;
+      html += `<tr>
+        <td style="font-family:monospace;font-size:12px">${a.kode||'—'}</td><td>${a.nama}</td>
+        <td><span class="akun-badge akun-${k}">${kasKelompokLabel(k)}</span></td>
+        <td style="text-align:right;color:var(--ok)">${fmtRp(s.debit)}</td>
+        <td style="text-align:right;color:var(--danger)">${fmtRp(s.kredit)}</td>
+        <td style="text-align:right;font-weight:700;color:${saldo>=0?'var(--ok)':'var(--danger)'}">
+          ${saldo<0?'(':''}${fmtRp(Math.abs(saldo))}${saldo<0?')':''}
+        </td>
+      </tr>`;
+    });
+  });
+  html += `<tr class="lap-total"><td colspan="3"><b>TOTAL</b></td><td style="text-align:right;font-weight:700;color:var(--ok)">Rp${totalD.toLocaleString('id-ID')}</td><td style="text-align:right;font-weight:700;color:var(--danger)">Rp${totalK.toLocaleString('id-ID')}</td><td></td></tr>`;
+  tbody.innerHTML = html || `<tr><td colspan="6" style="color:var(--ink3);font-style:italic">Belum ada data</td></tr>`;
+}
+
+function kasRenderLabaRugi(data) {
+  const tbody = document.getElementById('kas-labarugi-tbody');
+  const saldoMap = {};
+  data.forEach(r => {
+    const n = r.nominal || r.debit || 0;
+    if (r.akun_debit_id)  { if (!saldoMap[r.akun_debit_id])  saldoMap[r.akun_debit_id]  = {debit:0,kredit:0}; saldoMap[r.akun_debit_id].debit   += n; }
+    if (r.akun_kredit_id) { if (!saldoMap[r.akun_kredit_id]) saldoMap[r.akun_kredit_id] = {debit:0,kredit:0}; saldoMap[r.akun_kredit_id].kredit += n; }
+  });
+  const fmtRp = v => 'Rp' + Math.abs(v).toLocaleString('id-ID');
+  const akunPend  = Object.values(_kasAkunMap).filter(a => a.kelompok === 'pendapatan');
+  const akunBeban = Object.values(_kasAkunMap).filter(a => a.kelompok === 'beban');
+  let totalPend = 0, totalBeban = 0, html = '';
+  html += `<tr class="lap-head"><td colspan="2">PENDAPATAN</td></tr>`;
+  akunPend.forEach(a => {
+    const s = saldoMap[a.id] || {debit:0,kredit:0};
+    const saldo = s.kredit - s.debit; totalPend += saldo;
+    html += `<tr class="lap-sub"><td>${a.nama}</td><td style="text-align:right">${fmtRp(saldo)}</td></tr>`;
+  });
+  html += `<tr class="lap-total"><td><b>Total Pendapatan</b></td><td style="text-align:right;font-weight:700;color:var(--ok)"><b>${fmtRp(totalPend)}</b></td></tr>`;
+  html += `<tr class="lap-head"><td colspan="2">BEBAN</td></tr>`;
+  akunBeban.forEach(a => {
+    const s = saldoMap[a.id] || {debit:0,kredit:0};
+    const saldo = s.debit - s.kredit; totalBeban += saldo;
+    html += `<tr class="lap-sub"><td>${a.nama}</td><td style="text-align:right;color:var(--danger)">${fmtRp(saldo)}</td></tr>`;
+  });
+  html += `<tr class="lap-total"><td><b>Total Beban</b></td><td style="text-align:right;font-weight:700;color:var(--danger)"><b>${fmtRp(totalBeban)}</b></td></tr>`;
+  const labaRugi = totalPend - totalBeban;
+  const isLaba   = labaRugi >= 0;
+  html += `<tr class="lap-result"><td><b>${isLaba ? '✅ LABA BERSIH' : '❌ RUGI BERSIH'}</b></td><td style="text-align:right;color:${isLaba?'var(--ok)':'var(--danger)'}"><b>${isLaba?'':'('}${fmtRp(labaRugi)}${isLaba?'':')'}</b></td></tr>`;
+  tbody.innerHTML = html || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Belum ada data</td></tr>`;
+}
+
+function kasRenderArusKas(data) {
+  const tbody = document.getElementById('kas-aruskas-tbody');
+  const fmtRp = v => v ? 'Rp'+v.toLocaleString('id-ID') : '—';
+  const arusData = data.filter(r => {
+    const aD = _kasAkunMap[r.akun_debit_id]; const aK = _kasAkunMap[r.akun_kredit_id];
+    return (aD && aD.kelompok === 'aset') || (aK && aK.kelompok === 'aset');
+  });
+  if (!arusData.length) { tbody.innerHTML = `<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Belum ada arus kas</td></tr>`; return; }
+  let saldo = 0;
+  tbody.innerHTML = arusData.map(r => {
+    const tgl = new Date(r.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    const n   = r.nominal || r.debit || 0;
+    const aD  = _kasAkunMap[r.akun_debit_id];
+    const isMasuk = aD && aD.kelompok === 'aset';
+    if (isMasuk) saldo += n; else saldo -= n;
+    return `<tr>
+      <td style="white-space:nowrap">${tgl}</td><td>${r.keterangan||'—'}</td>
+      <td style="text-align:right;color:var(--ok)">${isMasuk ? fmtRp(n) : '—'}</td>
+      <td style="text-align:right;color:var(--danger)">${!isMasuk ? fmtRp(n) : '—'}</td>
+      <td style="text-align:right;font-weight:700;color:${saldo>=0?'var(--ok)':'var(--danger)'}">
+        ${saldo<0?'-':''}${fmtRp(Math.abs(saldo))}
+      </td>
+    </tr>`;
+  }).join('');
 }
 
 // ─── EVENT DELEGATION ────────────────────────────────────────
 document.getElementById('page-kas').addEventListener('click', function(e) {
-  const btn = e.target.closest('[data-action]');
-  if (!btn) return;
-  const id = btn.dataset.id;
-  if (btn.dataset.action === 'edit-kas') {
-    editJurnal(parseInt(id));
-  } else if (btn.dataset.action === 'hapus-kas') {
-    hapusJurnal(parseInt(id), btn.dataset.ket);
-  }
+  const btn = e.target.closest('[data-action]'); if (!btn) return;
+  const id = btn.dataset.id, action = btn.dataset.action;
+  if (action === 'edit-kas')   kasEditJurnal(id);
+  if (action === 'hapus-kas')  kasHapusJurnal(id, btn.dataset.ket);
+  if (action === 'edit-akun')  kasEditAkun(id);
+  if (action === 'hapus-akun') kasHapusAkun(id, btn.dataset.nama);
 });
 
-loadJurnal();
+// ─── INIT ────────────────────────────────────────────────────
+loadKasJurnal();
