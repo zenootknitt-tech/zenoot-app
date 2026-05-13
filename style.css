@@ -614,6 +614,11 @@ body.sidebar-mini .sidebar-footer::before{
 @media (min-width:769px){
   .sidebar-minimize-btn{display:-webkit-flex;display:flex}
 }
+/* ─── MOBILE FOOTER (di luar sidebar, hanya mobile) ─────────── */
+.mobile-footer{
+  display:none;
+}
+
 @media (max-width:768px){
   .hamburger{display:-webkit-flex;display:flex}
   .spiral{display:none}
@@ -624,12 +629,13 @@ body.sidebar-mini .sidebar-footer::before{
   }
   .sidebar.open{-webkit-transform:translateX(0);transform:translateX(0)}
   .sidebar-overlay.open{display:block}
-  .main{width:100%}
+  .main{width:100%;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;height:100vh;height:100dvh;}
   .topbar{padding:10px 14px}
   .topbar::before{display:none}
   .page-title{font-size:18px}
+  .page-sub{display:block;font-size:11px}
   .date-pill{display:none}
-  .content{padding:10px;padding-bottom:80px}
+  .content{padding:10px;padding-bottom:10px;-webkit-flex:1;flex:1;min-height:0;}
   .metrics .metric{-webkit-flex:1 1 calc(50% - 10px);flex:1 1 calc(50% - 10px)}
   .grid2 > *{-webkit-flex:1 1 100%;flex:1 1 100%}
   .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
@@ -640,14 +646,40 @@ body.sidebar-mini .sidebar-footer::before{
   .card{padding:10px}
   .m-value{font-size:20px}
   .btn{min-height:44px}
+
+  /* Mobile footer */
+  .mobile-footer{
+    display:block;
+    -webkit-flex-shrink:0;flex-shrink:0;
+    text-align:center;
+    padding:6px 10px;
+    padding-bottom:max(10px, env(safe-area-inset-bottom));
+    border-top:1.5px dashed var(--ink4);
+    background:var(--cream2);
+  }
+  .mobile-footer .footer-by{
+    font-size:9px;color:var(--ink4);
+    font-family:var(--f);letter-spacing:.06em;
+    text-transform:lowercase;display:block;line-height:1.3;
+  }
+  .mobile-footer .footer-name{
+    font-size:12px;font-weight:700;color:var(--ink3);
+    font-family:var(--f2);letter-spacing:.02em;
+    display:block;line-height:1.2;
+  }
+
+  /* Hamburger digeser ke atas karena footer ada di bawah */
+  .hamburger{bottom:55px;right:16px;}
 }
 
 /* ─── LANDSCAPE MOBILE ───────────────────────────────────── */
 /* Fix: max-width:768px tidak cukup — iPhone/Android landscape bisa > 768px */
 /* Pakai hover:none + pointer:coarse untuk deteksi touch device yang reliable */
+/* ─── LANDSCAPE MOBILE ───────────────────────────────────── */
 @media (max-width:768px) and (orientation:landscape){
-  .hamburger{bottom:14px;right:14px;width:46px;height:46px}
-  .content{padding-bottom:70px}
+  .hamburger{bottom:50px;right:14px;width:46px;height:46px}
+  .content{padding-bottom:10px}
+  .mobile-footer{display:block}
 }
 
 /* Touch device landscape (termasuk iPhone/Android lebar > 768px) */
@@ -655,7 +687,7 @@ body.sidebar-mini .sidebar-footer::before{
   .hamburger{
     display:-webkit-flex !important;
     display:flex !important;
-    bottom:14px;right:14px;
+    bottom:50px;right:14px;
     width:46px;height:46px;
   }
   .spiral{display:none}
@@ -668,8 +700,9 @@ body.sidebar-mini .sidebar-footer::before{
   }
   .sidebar.open{-webkit-transform:translateX(0);transform:translateX(0)}
   .sidebar-overlay.open{display:block}
-  .main{width:100%}
-  .content{padding:10px;padding-bottom:70px}
+  .main{width:100%;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;height:100vh;height:100dvh;}
+  .content{padding:10px;padding-bottom:10px;-webkit-flex:1;flex:1;min-height:0;}
+  .mobile-footer{display:block;}
   .sidebar-minimize-btn{display:none !important}
 }
 
