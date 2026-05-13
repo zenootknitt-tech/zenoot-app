@@ -7,7 +7,7 @@ html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   --f:'Patrick Hand',cursive;
   --f2:'Kalam',cursive;
   --warn:#c8a000;--danger:#b03020;--ok:#2a6e3a;
-  --sidebar-w:160px;
+  --sidebar-w:200px;
 }
 
 body{
@@ -346,6 +346,12 @@ body.sidebar-mini .sidebar-footer::before{
 }
 .content::-webkit-scrollbar{width:5px}
 .content::-webkit-scrollbar-thumb{background:var(--ink4);border-radius:3px}
+
+/* ─── LEBAR PROPORSIONAL: Channel & Beban Operasional ───── */
+#page-channel > *,
+#page-beban-operasional > * {
+  max-width:720px;
+}
 
 /* ─── CHANNEL SWITCHER BAR ───────────────────────────────── */
 .ch-switcher{
