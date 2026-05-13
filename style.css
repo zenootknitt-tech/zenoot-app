@@ -71,14 +71,20 @@ body{
   border-right:3px solid var(--ink);
   display:-webkit-flex;display:flex;
   -webkit-flex-direction:column;flex-direction:column;
-  position:relative;overflow-y:scroll;overflow-x:hidden;
+  position:relative;overflow:hidden;
   -webkit-transition:-webkit-transform .25s ease;
   transition:transform .25s ease;
   z-index:200;
-  -webkit-overflow-scrolling:touch;
 }
-.sidebar::-webkit-scrollbar{width:4px}
-.sidebar::-webkit-scrollbar-thumb{background:var(--ink4);border-radius:2px}
+/* Area nav yang bisa di-scroll — bukan seluruh sidebar */
+.sidebar-nav-scroll{
+  -webkit-flex:1 1 0;flex:1 1 0;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  min-height:0;
+}
+.sidebar-nav-scroll::-webkit-scrollbar{width:4px}
+.sidebar-nav-scroll::-webkit-scrollbar-thumb{background:var(--ink4);border-radius:2px}
 
 /* ─── LOGO ───────────────────────────────────────────────── */
 .logo-block{
@@ -89,12 +95,8 @@ body{
   -webkit-flex-direction:row;flex-direction:row;
   -webkit-align-items:center;align-items:center;
   gap:8px;
-  /* STICKY HEADER — selalu tampil di atas saat sidebar di-scroll */
-  position:-webkit-sticky;
-  position:sticky;
-  top:0;
-  z-index:10;
   background:var(--cream2);
+  z-index:10;
 }
 .logo-img{
   width:38px;height:38px;display:block;
@@ -184,12 +186,9 @@ body.sidebar-mini .sidebar-minimize-btn i{
   border-top:1.5px dashed var(--ink4);
   text-align:center;
   -webkit-flex-shrink:0;flex-shrink:0;
-  /* STICKY FOOTER — selalu tampil di bawah saat sidebar di-scroll */
-  position:-webkit-sticky;
-  position:sticky;
-  bottom:0;
-  z-index:10;
+  /* DIAM DI BAWAH — flex layout, bukan sticky */
   background:var(--cream2);
+  z-index:10;
 }
 .footer-by{
   font-size:9px;color:var(--ink4);
@@ -797,8 +796,8 @@ body.sidebar-mini .sidebar-footer::before{
   display: -webkit-flex;
   display: flex;
   gap: 10px;
-  -webkit-align-items: stretch;
-  align-items: stretch;
+  -webkit-align-items: flex-start;
+  align-items: flex-start;
   position: relative;
   z-index: 1;
 }
@@ -812,25 +811,25 @@ body.sidebar-mini .sidebar-footer::before{
   z-index: 2;
 }
 
-/* Kanan: wrapper donat — 50%, stretch setinggi tabel */
+/* Kanan: wrapper donat — 50%, tinggi mengikuti lebar (aspect ratio 1:1) */
 .donut-split-chart {
   -webkit-flex: 0 0 calc(50% - 10px);
   flex: 0 0 calc(50% - 10px);
   min-width: 0;
   position: relative;
   z-index: 2;
-  -webkit-align-self: stretch;
-  align-self: stretch;
+  /* Aspect ratio trick: tinggi = lebar, donat selalu bulat */
+  padding-bottom: calc(50% - 10px);
+  height: 0;
 }
 
-/* Canvas donat: isi penuh wrapper — lebar & tinggi 100% */
+/* Canvas donat: isi penuh wrapper via absolute */
 .donut-canvas {
   display: block;
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 160px;
   position: absolute;
   top: 0; left: 0;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Legend overlay — absolute kiri bawah, transparan */
@@ -858,12 +857,10 @@ body.sidebar-mini .sidebar-footer::before{
   .donut-split-chart {
     -webkit-flex: 0 0 100%;
     flex: 0 0 100%;
-  }
-  .donut-canvas {
-    height: 160px !important;
+    padding-bottom: 60%; /* lebih pendek di mobile */
   }
   .donut-legend {
     bottom: 8px;
-    left: 6px;
+    left: 8px;
   }
 }
