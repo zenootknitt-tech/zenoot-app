@@ -146,12 +146,13 @@ document.getElementById('page-dashboard').innerHTML = `
   <div class="grid2" style="margin-bottom:12px">
 
     <div class="card card-lined">
-      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
         <span><i class="ti ti-package"></i> Status Stok</span>
-        <span id="dash-stok-summary" style="font-size:11px;color:var(--ink3);font-weight:400"></span>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <div id="dash-stok-dist" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+          <span id="dash-stok-summary" style="font-size:11px;color:var(--ink3);font-weight:400"></span>
+        </div>
       </div>
-      <!-- Distribusi status stok — BARU -->
-      <div id="dash-stok-dist" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap"></div>
       <div class="tbl-wrap"><table class="tbl">
         <thead><tr><th>SKU</th><th>Boss</th><th>Sisa</th><th>Terjual</th><th>Turnover</th><th>Status</th></tr></thead>
         <tbody id="dash-stok-tbody">
@@ -535,10 +536,12 @@ function _renderBoss(jpData, stokData) {
 
   const tbody = document.getElementById('dash-boss-tbody');
   if (tbody) {
+    const EMPTY_ROW_BOSS = '<tr><td colspan="4" style="color:var(--ink4);text-align:center">—</td></tr>';
     if (!sorted.length) {
-      tbody.innerHTML = '<tr><td colspan="4" style="color:var(--ink3);font-style:italic">Belum ada data penjualan</td></tr>';
+      const rows = Array(5).fill(EMPTY_ROW_BOSS);
+      tbody.innerHTML = rows.join('');
     } else {
-      tbody.innerHTML = sorted.map(([boss,d],i) => {
+      const rows = sorted.slice(0, 5).map(([boss,d],i) => {
         const pct = totalOmset>0?(d.omset/totalOmset*100).toFixed(0):0;
         return '<tr>' +
           '<td><b>'+boss+'</b></td>' +
@@ -551,7 +554,9 @@ function _renderBoss(jpData, stokData) {
             '<span style="font-size:11px;color:var(--ink3)">'+pct+'%</span>'+
           '</div></td>' +
         '</tr>';
-      }).join('');
+      });
+      while (rows.length < 5) rows.push(EMPTY_ROW_BOSS);
+      tbody.innerHTML = rows.join('');
     }
   }
 
@@ -623,12 +628,14 @@ function _renderChannel(jpData) {
   const totalOmset = sorted.reduce((s,[,d])=>s+d.omset, 0);
   const colors     = ['#2a6e3a','#2266cc','#c8a000','#b03020','#6b3fa0','#1a8a7a','#888'];
 
+  const EMPTY_ROW_CH = '<tr><td colspan="5" style="color:var(--ink4);text-align:center">—</td></tr>';
   if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Belum ada data channel</td></tr>';
+    const rows = Array(5).fill(EMPTY_ROW_CH);
+    tbody.innerHTML = rows.join('');
     return;
   }
 
-  tbody.innerHTML = sorted.map(([ch, d], i) => {
+  const chRows = sorted.slice(0, 5).map(([ch, d], i) => {
     const pct = totalOmset>0 ? (d.omset/totalOmset*100).toFixed(0) : 0;
     return '<tr>' +
       '<td><b style="color:'+colors[i%colors.length]+'">'+ch+'</b></td>' +
@@ -642,7 +649,9 @@ function _renderChannel(jpData) {
         '<span style="font-size:11px;color:var(--ink3)">'+pct+'%</span>'+
       '</div></td>' +
     '</tr>';
-  }).join('');
+  });
+  while (chRows.length < 5) chRows.push(EMPTY_ROW_CH);
+  tbody.innerHTML = chRows.join('');
 
   // Donut chart channel — full wrapper size
   if (!canvas || totalOmset===0) return;
@@ -783,11 +792,10 @@ function _renderStokDist(stokData) {
   ];
 
   el.innerHTML = pills.map(p =>
-    '<span class="dist-pill" style="color:'+p.color+';background:'+p.bg+';border-color:'+p.color+'">' +
+    '<span class="dist-pill" style="color:'+p.color+';background:'+p.bg+';border-color:'+p.color+';padding:2px 7px;font-size:10px">' +
       p.label + ' <b>' + p.count + '</b>' +
     '</span>'
-  ).join('') +
-  '<span style="font-size:11px;color:var(--ink3);margin-left:auto;align-self:center">total '+total+' SKU</span>';
+  ).join('');
 }
 
 // ─── TURNOVER RATE STOK — BARU ───────────────────────────────
@@ -1053,37 +1061,31 @@ async function loadDashboard() {
     _renderStokDist(_dashStokData);
 
     // ─ Tabel stok dengan Turnover — DIUPDATE
-    const today14 = new Date();
-    today14.setDate(today14.getDate() - 14);
-    const batas14 = today14.toISOString().split('T')[0];
-    const skuTerjual14 = new Set(
-      _dashJPData
-        .filter(r => r.tanggal && String(r.tanggal).slice(0,10) >= batas14)
-        .map(r => (r.sku||'').toUpperCase())
-    );
-    const stokPrioritas = [..._dashStokData]
-      .filter(r => r.sisa <= 3 && skuTerjual14.has((r.sku_variasi||'').toUpperCase()))
-      .sort((a,b) => a.sisa - b.sisa)
-      .slice(0, 5);
-    const stokTampil = stokPrioritas.length > 0
-      ? stokPrioritas
-      : [..._dashStokData].filter(r => r.sisa <= 3).sort((a,b) => a.sisa - b.sisa).slice(0,5);
+    // Status Stok: selalu 5 baris, urutan prioritas Habis → Kritis → Ati2 → Aman
+    const _sortByPriority = (a, b) => {
+      const pri = r => r.sisa <= 0 ? 0 : r.sisa <= 3 ? 1 : r.sisa <= 8 ? 2 : 3;
+      return pri(a) !== pri(b) ? pri(a) - pri(b) : a.sisa - b.sisa;
+    };
+    const stokSorted = [..._dashStokData].sort(_sortByPriority);
+    const stokTampil = stokSorted.slice(0, 5);
+    const EMPTY_ROW = '<tr><td colspan="6" style="color:var(--ink4);text-align:center">—</td></tr>';
 
     const stokSum = document.getElementById('dash-stok-summary');
-    if (stokSum) stokSum.textContent = _dashStokData.length+' SKU · Nilai '+_fmtRp(nilaiStok);
-    document.getElementById('dash-stok-tbody').innerHTML = stokTampil.length===0
-      ? '<tr><td colspan="6" style="color:var(--ok);font-style:italic;font-weight:600">✓ Semua stok aman</td></tr>'
-      : stokTampil.map(r => {
-          const sold = r.stok_keluar || 0;
-          return '<tr>' +
-            '<td><b>'+r.sku_variasi+'</b></td>' +
-            '<td>'+(r.boss||'—')+'</td>' +
-            '<td><b><span style="color:'+(r.sisa<=0?'var(--danger)':'var(--warn)')+'">'+r.sisa+'</span></b></td>'+
-            '<td>'+(sold>0?'<span style="color:var(--ok);font-weight:700">'+sold+'×</span>':'<span style="color:var(--ink4)">—</span>')+'</td>'+
-            '<td>'+_turnoverLabel(r.stok_masuk, r.stok_keluar)+'</td>'+
-            '<td>'+statusBadgeDash(r.sisa)+'</td>' +
-          '</tr>';
-        }).join('');
+    if (stokSum) stokSum.textContent = _dashStokData.length+' SKU';
+    const stokRows = stokTampil.map(r => {
+      const sold = r.stok_keluar || 0;
+      return '<tr>' +
+        '<td><b>'+r.sku_variasi+'</b></td>' +
+        '<td>'+(r.boss||'—')+'</td>' +
+        '<td><b><span style="color:'+(r.sisa<=0?'var(--danger)':r.sisa<=3?'var(--danger)':'var(--warn)')+'">'+r.sisa+'</span></b></td>'+
+        '<td>'+(sold>0?'<span style="color:var(--ok);font-weight:700">'+sold+'×</span>':'<span style="color:var(--ink4)">—</span>')+'</td>'+
+        '<td>'+_turnoverLabel(r.stok_masuk, r.stok_keluar)+'</td>'+
+        '<td>'+statusBadgeDash(r.sisa)+'</td>' +
+      '</tr>';
+    });
+    // Pad to always 5 rows
+    while (stokRows.length < 5) stokRows.push(EMPTY_ROW);
+    document.getElementById('dash-stok-tbody').innerHTML = stokRows.join('');
 
     // ─ Jurnal terakhir
     const jurnalRecent = (jurnalData||[]).slice(0,5);
