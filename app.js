@@ -9,10 +9,8 @@ function toggleMinimize() {
   var isMini = document.body.classList.toggle('sidebar-mini');
   try { localStorage.setItem('zenoot_mini', isMini ? '1' : '0'); } catch(e) {}
 }
-// Sidebar mini sebagai default — hanya di desktop (min-width > 768px)
-if (window.innerWidth > 768) {
-  document.body.classList.add('sidebar-mini');
-}
+// Sidebar mini sebagai default permanen
+document.body.classList.add('sidebar-mini');
 
 // ─── COLLAPSIBLE NAV GROUPS ──────────────────────────────────
 function toggleNavGroup(id) {

@@ -11,7 +11,7 @@ document.getElementById('page-beban-operasional').innerHTML = `
   <!-- TOKO UTAMA -->
   <div class="card" style="margin-bottom:14px">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <span><i class="ti ti-store"></i> Beban — Shopee</span>
+      <span><i class="ti ti-store"></i> Beban — Toko Utama</span>
       <button class="btn btn-sm btn-primary" onclick="showFormBeban('toko_utama')"><i class="ti ti-plus"></i> Tambah Baris</button>
     </div>
 
