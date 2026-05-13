@@ -7,7 +7,7 @@ html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   --f:'Patrick Hand',cursive;
   --f2:'Kalam',cursive;
   --warn:#c8a000;--danger:#b03020;--ok:#2a6e3a;
-  --sidebar-w:200px;
+  --sidebar-w:160px;
 }
 
 body{
@@ -229,7 +229,7 @@ body.sidebar-mini .sidebar-footer::before{
   text-transform:uppercase;letter-spacing:.1em;font-family:var(--f2);
 }
 .nav-group-arrow{
-  font-size:11px;color:var(--ink4);
+  font-size:16px;color:var(--ink2);
   -webkit-transition:-webkit-transform .2s ease;
   transition:transform .2s ease;
   -webkit-flex-shrink:0;flex-shrink:0;
