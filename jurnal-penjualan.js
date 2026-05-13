@@ -507,7 +507,6 @@ function jpOnPilihVariasi() {
   const hpp = parseInt(opt.dataset.hpp) || 0;
   if (!hpp) return;
   const hargaEl = document.getElementById('jp-harga');
-  if (hargaEl.value && parseInt(hargaEl.value) > 0) return;
   _jpGetHargaFromPriceList(hpp).then(harga => {
     hargaEl.value = harga || hpp;
     hitungTotalJP();
