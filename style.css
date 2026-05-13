@@ -4,8 +4,8 @@ html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   --ink:#1c1a14;--ink2:#3d3a2e;--ink3:#6b6354;--ink4:#a89f8a;
   --cream:#f5f0e8;--cream2:#ede7d9;--cream3:#e4dccb;--cream4:#d9d0bc;
   --paper-line:rgba(160,145,110,0.18);
-  --f:'Caveat',cursive;
-  --f2:'Caveat',cursive;
+  --f:'Patrick Hand',cursive;
+  --f2:'Kalam',cursive;
   --warn:#c8a000;--danger:#b03020;--ok:#2a6e3a;
   --sidebar-w:200px;
 }
@@ -80,26 +80,27 @@ body{
 .sidebar::-webkit-scrollbar{width:4px}
 .sidebar::-webkit-scrollbar-thumb{background:var(--ink4);border-radius:2px}
 
-/* ─── LOGO — BARU: zenOt + trax operasional ─────────────── */
+/* ─── LOGO ───────────────────────────────────────────────── */
 .logo-block{
-  padding:14px 14px 12px;
+  padding:12px 14px 10px;
   border-bottom:2.5px solid var(--ink);
   -webkit-flex-shrink:0;flex-shrink:0;
+  display:-webkit-flex;display:flex;
+  -webkit-flex-direction:column;flex-direction:column;
+  -webkit-align-items:center;align-items:center;
+  gap:4px;
 }
-.logo-name{
-  font-size:32px;font-weight:700;line-height:1;
-  letter-spacing:-.5px;font-family:var(--f2);
-  color:var(--ink);
-}
-.logo-name span.logo-capital{
-  font-size:38px;font-weight:700;
-  line-height:1;
+.logo-img{
+  width:108px;height:auto;display:block;
+  /* logo putih → recolor jadi ink gelap */
+  filter:invert(1) brightness(0.12);
+  -webkit-filter:invert(1) brightness(0.12);
 }
 .logo-tag{
   font-size:10px;color:var(--ink3);
-  display:block;margin-top:4px;
-  font-family:var(--f2);font-weight:600;
-  letter-spacing:.04em;text-transform:lowercase;
+  display:block;
+  font-family:var(--f);font-weight:400;
+  letter-spacing:.08em;text-transform:lowercase;
 }
 
 /* ─── COLLAPSIBLE NAV GROUP ──────────────────────────────── */
