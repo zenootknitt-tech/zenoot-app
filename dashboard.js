@@ -154,9 +154,9 @@ document.getElementById('page-dashboard').innerHTML = `
         </div>
       </div>
       <div class="tbl-wrap"><table class="tbl">
-        <thead><tr><th>SKU</th><th>Boss</th><th>Sisa</th><th>Terjual</th><th>Turnover</th><th>Status</th></tr></thead>
+        <thead><tr><th>SKU</th><th>Boss</th><th>Sisa</th><th>Terjual/7hr</th><th>Turnover</th><th>ROP</th><th>Status</th></tr></thead>
         <tbody id="dash-stok-tbody">
-          <tr><td colspan="6" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+          <tr><td colspan="7" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
         </tbody>
       </table></div>
     </div>
@@ -1060,27 +1060,60 @@ async function loadDashboard() {
     // ─ Distribusi Status Stok — BARU
     _renderStokDist(_dashStokData);
 
-    // ─ Tabel stok dengan Turnover — DIUPDATE
-    // Status Stok: selalu 5 baris, urutan prioritas Habis → Kritis → Ati2 → Aman
+    // ─ Tabel stok: ROP + Turnover + REORDER — DIUPDATE
+    // Selalu 5 baris, urutan prioritas Habis → Kritis → Ati2 → Aman
+    const LEAD_TIME      = 7; // hari pesan ke supplier
+    const SAFETY_DAYS    = 2; // buffer hari penjualan
+
+    // Hitung terjual 7 hari terakhir per SKU
+    const _today7 = new Date();
+    _today7.setDate(_today7.getDate() - 7);
+    const _batas7 = _today7.toISOString().split('T')[0];
+    const _sold7Map = {};
+    _dashJPData
+      .filter(r => r.tanggal && String(r.tanggal).slice(0,10) >= _batas7)
+      .forEach(r => {
+        const k = (r.sku||'').toUpperCase();
+        _sold7Map[k] = (_sold7Map[k] || 0) + (Number(r.qty)||0);
+      });
+
     const _sortByPriority = (a, b) => {
       const pri = r => r.sisa <= 0 ? 0 : r.sisa <= 3 ? 1 : r.sisa <= 8 ? 2 : 3;
       return pri(a) !== pri(b) ? pri(a) - pri(b) : a.sisa - b.sisa;
     };
     const stokSorted = [..._dashStokData].sort(_sortByPriority);
     const stokTampil = stokSorted.slice(0, 5);
-    const EMPTY_ROW = '<tr><td colspan="6" style="color:var(--ink4);text-align:center">—</td></tr>';
+    const EMPTY_ROW  = '<tr><td colspan="7" style="color:var(--ink4);text-align:center">—</td></tr>';
 
     const stokSum = document.getElementById('dash-stok-summary');
     if (stokSum) stokSum.textContent = _dashStokData.length+' SKU';
+
     const stokRows = stokTampil.map(r => {
-      const sold = r.stok_keluar || 0;
+      const skuKey     = (r.sku_variasi||'').toUpperCase();
+      const sold7      = _sold7Map[skuKey] || 0;
+      const avgPerHari = sold7 / 7;
+      const safety     = Math.ceil(avgPerHari * SAFETY_DAYS);
+      const rop        = Math.ceil(avgPerHari * LEAD_TIME) + safety;
+      const isReorder  = sold7 > 0 && r.sisa <= rop;
+
+      const sold7Cell = sold7 > 0
+        ? '<span style="color:var(--ok);font-weight:700">'+sold7+'×</span>'
+        : '<span style="color:var(--ink4)">—</span>';
+      const ropCell = sold7 > 0
+        ? '<span style="font-weight:700;color:'+(isReorder?'var(--danger)':'var(--ink3)')+'">'+rop+'</span>'
+        : '<span style="color:var(--ink4)">—</span>';
+      const statusCell = isReorder
+        ? '<span style="color:var(--danger);font-weight:700;white-space:nowrap">🔴 REORDER!</span>'
+        : statusBadgeDash(r.sisa);
+
       return '<tr>' +
         '<td><b>'+r.sku_variasi+'</b></td>' +
         '<td>'+(r.boss||'—')+'</td>' +
         '<td><b><span style="color:'+(r.sisa<=0?'var(--danger)':r.sisa<=3?'var(--danger)':'var(--warn)')+'">'+r.sisa+'</span></b></td>'+
-        '<td>'+(sold>0?'<span style="color:var(--ok);font-weight:700">'+sold+'×</span>':'<span style="color:var(--ink4)">—</span>')+'</td>'+
+        '<td>'+sold7Cell+'</td>'+
         '<td>'+_turnoverLabel(r.stok_masuk, r.stok_keluar)+'</td>'+
-        '<td>'+statusBadgeDash(r.sisa)+'</td>' +
+        '<td>'+ropCell+'</td>'+
+        '<td>'+statusCell+'</td>'+
       '</tr>';
     });
     // Pad to always 5 rows
