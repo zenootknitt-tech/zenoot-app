@@ -6,13 +6,21 @@
 document.getElementById('page-channel').innerHTML = `
   <div style="margin-bottom:14px;padding:10px 14px;background:var(--cream2);border:2px dashed var(--ink3);border-radius:4px;font-size:13px;color:var(--ink2);line-height:1.7">
     <b>Master Data Channel</b> — sumber data global untuk seluruh aplikasi.<br>
-    <b>Toko Utama</b> akan muncul sebagai pilihan channel di halaman Toko (Data Order, Rekap).
+    <b>Shopee</b> akan muncul sebagai pilihan channel di halaman Toko (Data Order, Rekap).
   </div>
 
   <!-- TOKO UTAMA -->
   <div class="card" style="margin-bottom:14px">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <span><i class="ti ti-store"></i> Toko Utama</span>
+      <span style="display:flex;align-items:center;gap:7px">
+        <svg width="18" height="18" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;opacity:0.75">
+          <path d="M19 2C10.163 2 3 9.163 3 18c0 6.077 3.32 11.373 8.25 14.22L10 36l4.5-2.25A16.9 16.9 0 0019 34c8.837 0 16-7.163 16-16S27.837 2 19 2z" fill="currentColor" opacity="0.15"/>
+          <path d="M24.5 13.5c0-3.038-2.462-5.5-5.5-5.5S13.5 10.462 13.5 13.5H11L12.5 28h13L27 13.5h-2.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/>
+          <circle cx="16" cy="13.5" r="1.2" fill="currentColor"/>
+          <circle cx="22" cy="13.5" r="1.2" fill="currentColor"/>
+        </svg>
+        Shopee
+      </span>
       <button class="btn btn-sm btn-primary" onclick="showFormChannel('toko_utama')">
         <i class="ti ti-plus"></i> Tambah
       </button>

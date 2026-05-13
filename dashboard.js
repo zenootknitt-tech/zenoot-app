@@ -14,25 +14,25 @@ document.getElementById('page-dashboard').innerHTML = `
       <div class="m-label">Total SKU Aktif</div>
       <div class="m-value" id="d-sku">—</div>
       <div class="m-delta">produk terdaftar</div>
-      <div class="doodle" style="bottom:6px;right:8px">📦</div>
+      <div class="doodle"><i class="ti ti-package"></i></div>
     </div>
     <div class="metric">
       <div class="m-label">Nilai Stok</div>
       <div class="m-value" id="d-nilaiStok">—</div>
       <div class="m-delta">HPP × sisa stok</div>
-      <div class="doodle" style="bottom:6px;right:8px">💰</div>
+      <div class="doodle"><i class="ti ti-coin"></i></div>
     </div>
     <div class="metric">
       <div class="m-label">SKU Kritis</div>
       <div class="m-value" id="d-kritis">—</div>
       <div class="m-delta">stok ≤ 3</div>
-      <div class="doodle" style="bottom:6px;right:8px">⚠️</div>
+      <div class="doodle"><i class="ti ti-alert-triangle"></i></div>
     </div>
     <div class="metric">
       <div class="m-label">Saldo Kas</div>
       <div class="m-value" id="d-saldo">—</div>
       <div class="m-delta">dari jurnal</div>
-      <div class="doodle" style="bottom:6px;right:8px">🧾</div>
+      <div class="doodle"><i class="ti ti-receipt"></i></div>
     </div>
   </div>
 
@@ -42,7 +42,7 @@ document.getElementById('page-dashboard').innerHTML = `
       <div class="m-label">Omset Bulan Ini</div>
       <div class="m-value" id="d-omset">—</div>
       <div class="m-delta" id="d-omset-delta">dari jurnal penjualan</div>
-      <div class="doodle" style="bottom:6px;right:8px">📈</div>
+      <div class="doodle"><i class="ti ti-trending-up"></i></div>
     </div>
     <div class="metric">
       <div class="m-label">Target Harian</div>
@@ -55,7 +55,7 @@ document.getElementById('page-dashboard').innerHTML = `
           <span id="d-target-harian-pct" style="font-size:10px;color:var(--ink3)">0%</span>
         </div>
       </div>
-      <div class="doodle" style="bottom:6px;right:8px">📅</div>
+      <div class="doodle"><i class="ti ti-calendar"></i></div>
     </div>
     <div class="metric">
       <div class="m-label">Target Omset</div>
@@ -68,7 +68,7 @@ document.getElementById('page-dashboard').innerHTML = `
           <span id="d-target-pct" style="font-size:10px;color:var(--ink3)">0%</span>
         </div>
       </div>
-      <div class="doodle" style="bottom:6px;right:8px">🎯</div>
+      <div class="doodle"><i class="ti ti-target"></i></div>
     </div>
     <div class="metric">
       <div class="m-label">Order Hari Ini</div>
@@ -78,7 +78,7 @@ document.getElementById('page-dashboard').innerHTML = `
         <div class="m-value" id="d-order-omset" style="margin:0;color:var(--ok)">—</div>
       </div>
       <div class="m-delta" id="d-order-hari-delta">belum ada order hari ini</div>
-      <div class="doodle" style="bottom:6px;right:8px">🛍️</div>
+      <div class="doodle"><i class="ti ti-shopping-bag"></i></div>
     </div>
   </div>
 
@@ -88,25 +88,25 @@ document.getElementById('page-dashboard').innerHTML = `
       <div class="m-label">AOV Bulan Ini</div>
       <div class="m-value" id="d-aov">—</div>
       <div class="m-delta">rata-rata per transaksi</div>
-      <div class="doodle" style="bottom:6px;right:8px">🧮</div>
+      <div class="doodle"><i class="ti ti-calculator"></i></div>
     </div>
     <div class="metric">
       <div class="m-label">Est. Laba Kotor</div>
       <div class="m-value" id="d-laba">—</div>
       <div class="m-delta" id="d-laba-delta">omset − HPP terjual</div>
-      <div class="doodle" style="bottom:6px;right:8px">💹</div>
+      <div class="doodle"><i class="ti ti-chart-bar"></i></div>
     </div>
     <div class="metric">
       <div class="m-label">Beban Operasional</div>
       <div class="m-value" id="d-beban">—</div>
       <div class="m-delta" id="d-beban-delta">bulan ini</div>
-      <div class="doodle" style="bottom:6px;right:8px">📋</div>
+      <div class="doodle"><i class="ti ti-clipboard-list"></i></div>
     </div>
     <div class="metric">
       <div class="m-label">Est. Laba Bersih</div>
       <div class="m-value" id="d-laba-bersih">—</div>
       <div class="m-delta">laba kotor − beban</div>
-      <div class="doodle" style="bottom:6px;right:8px">🏆</div>
+      <div class="doodle"><i class="ti ti-trophy"></i></div>
     </div>
   </div>
 
