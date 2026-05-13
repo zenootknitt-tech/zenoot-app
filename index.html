@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>zenOt — Trax Operasional</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -150,8 +150,43 @@
 <script src="beban-operasional.js?v=1"></script>
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('sw.js').catch(function() {});
+
+    // Dengarkan pesan dari SW — tampilkan popup update
+    navigator.serviceWorker.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'SW_UPDATED') {
+        var banner = document.getElementById('update-banner');
+        if (banner) banner.style.display = 'flex';
+      }
+    });
+  }
+
+  function _doUpdate() {
+    // Hapus semua cache lama, lalu reload
+    if ('caches' in window) {
+      caches.keys().then(function(keys) {
+        Promise.all(keys.map(function(k) { return caches.delete(k); }))
+          .then(function() { window.location.reload(true); });
+      });
+    } else {
+      window.location.reload(true);
+    }
+  }
+
+  function _dismissUpdate() {
+    var banner = document.getElementById('update-banner');
+    if (banner) banner.style.display = 'none';
   }
 </script>
+
+<!-- Popup Pembaruan Tersedia -->
+<div id="update-banner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;color:#fff;border-radius:12px;padding:14px 18px;box-shadow:0 4px 20px rgba(0,0,0,0.4);align-items:center;gap:12px;max-width:320px;width:90%;font-family:inherit">
+  <div style="flex:1">
+    <div style="font-weight:700;font-size:13px;margin-bottom:2px">🔄 Pembaruan Tersedia!</div>
+    <div style="font-size:11px;color:#aaa">Versi baru zenOt siap diinstall</div>
+  </div>
+  <button onclick="_dismissUpdate()" style="background:transparent;border:1px solid #444;color:#aaa;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer">Nanti</button>
+  <button onclick="_doUpdate()" style="background:#4caf50;border:none;color:#fff;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">Update</button>
+</div>
 </body>
 </html>
