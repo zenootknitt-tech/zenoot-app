@@ -59,8 +59,8 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
       gap: 8px;
     }
     .jp-row-1 .fg-tgl   { flex: 1 1 110px; min-width: 100px; }
-    .jp-row-1 .fg-waktu { flex: 1 1 90px;  min-width: 80px;  }
-    .jp-row-1 .fg-ch    { flex: 1 1 100%;  min-width: 100%;  }
+    .jp-row-1 .fg-waktu { flex: 1 1 80px;  min-width: 70px;  }
+    .jp-row-1 .fg-ch    { flex: 2 1 130px; min-width: 120px; }
 
     /* ── Row 2: SKU Variasi + SKU Induk ── */
     .jp-row-2 {
