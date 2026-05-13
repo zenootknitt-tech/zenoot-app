@@ -30,7 +30,7 @@ async function loadJurnal() {
             <button class="btn btn-sm" data-action="edit-kas" data-id="${row.id}" style="margin-right:4px"><i class="ti ti-edit"></i></button>
             <button class="btn btn-sm btn-danger" data-action="hapus-kas" data-id="${row.id}" data-ket="${(row.keterangan||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"><i class="ti ti-trash"></i></button>
           </td>
-        \`;
+        </tr>\`;
     }).join('');
   } catch(err) {
     tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger)">Error: ${err.message}</td></tr>`;
