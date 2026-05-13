@@ -81,6 +81,42 @@ document.getElementById('page-channel').innerHTML = `
     </table></div>
   </div>
 
+  <!-- MARKETPLACE -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <span><i class="ti ti-building-store"></i> Marketplace</span>
+      <button class="btn btn-sm btn-primary" onclick="showFormChannel('marketplace')">
+        <i class="ti ti-plus"></i> Tambah
+      </button>
+    </div>
+    <div id="form-channel-marketplace" style="display:none;margin-bottom:10px">
+      <div style="background:var(--cream2);border:2px solid var(--ink3);padding:10px;border-radius:4px">
+        <input type="hidden" id="ch-id-marketplace">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nama Channel</label>
+            <input type="text" id="ch-nama-marketplace" placeholder="mis: TikTok Shop, Lazada">
+          </div>
+          <div class="form-group">
+            <label>Keterangan</label>
+            <input type="text" id="ch-ket-marketplace" placeholder="opsional">
+          </div>
+          <div class="form-group" style="flex:0;justify-content:flex-end">
+            <label>&nbsp;</label>
+            <button class="btn btn-primary btn-sm" onclick="simpanChannel('marketplace')">Simpan</button>
+            <button class="btn btn-sm" onclick="cancelFormChannel('marketplace')" style="margin-top:4px">Batal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>Nama Channel</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+      <tbody id="ch-tbody-marketplace">
+        <tr><td colspan="3" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
   <!-- OFFLINE -->
   <div class="card">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -126,6 +162,7 @@ async function loadChannelMaster() {
   await Promise.all([
     loadChannelByKategori('toko_utama'),
     loadChannelByKategori('reseller'),
+    loadChannelByKategori('marketplace'),
     loadChannelByKategori('offline'),
   ]);
 }
