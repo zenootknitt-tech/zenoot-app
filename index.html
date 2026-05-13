@@ -149,36 +149,46 @@
 <script src="channel-master.js?v=2"></script>
 <script src="beban-operasional.js?v=1"></script>
 <script>
+  function showUpdateBanner() {
+    var banner = document.getElementById('update-banner');
+    if (banner) banner.style.display = 'flex';
+  }
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(function(reg) {
 
-      function showUpdateBanner() {
-        var banner = document.getElementById('update-banner');
-        if (banner) banner.style.display = 'flex';
-      }
-
-      // Kalau saat register sudah ada SW waiting → langsung tampil banner
+      // ── 1. Sudah ada SW waiting sejak awal (misal: user buka ulang setelah klik Nanti) ──
       if (reg.waiting) {
         showUpdateBanner();
       }
 
-      // SW baru selesai install dan nunggu giliran → tampil banner
+      // ── 2. SW baru ketemu saat install (updatefound dipasang SEBELUM reg.update()) ──
       reg.addEventListener('updatefound', function() {
         var newWorker = reg.installing;
         if (!newWorker) return;
         newWorker.addEventListener('statechange', function() {
+          // installed + sudah ada controller = ada versi lama yang aktif → ada update baru
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
             showUpdateBanner();
           }
         });
       });
 
-      // Cek update setiap buka app (force check)
+      // ── 3. Force cek update setiap buka app (setelah listener terpasang) ──
       reg.update();
+
+      // ── 4. Cek ulang saat user kembali ke tab/app (dari background HP) ──
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+          reg.update().then(function() {
+            if (reg.waiting) showUpdateBanner();
+          }).catch(function(){});
+        }
+      });
 
     }).catch(function() {});
 
-    // Reload otomatis setelah SW baru take over
+    // ── 5. Reload otomatis setelah SW baru take over ──
     var _reloading = false;
     navigator.serviceWorker.addEventListener('controllerchange', function() {
       if (!_reloading) {
@@ -193,6 +203,7 @@
       if (reg && reg.waiting) {
         reg.waiting.postMessage({ type: 'SKIP_WAITING' });
       } else {
+        // Fallback: bersihkan cache manual lalu reload
         if ('caches' in window) {
           caches.keys().then(function(keys) {
             Promise.all(keys.map(function(k) { return caches.delete(k); }))
@@ -208,6 +219,7 @@
   function _dismissUpdate() {
     var banner = document.getElementById('update-banner');
     if (banner) banner.style.display = 'none';
+    // Banner akan muncul lagi saat app dibuka ulang / kembali dari background
   }
 </script>
 
