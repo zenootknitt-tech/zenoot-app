@@ -161,11 +161,11 @@ document.getElementById('page-dashboard').innerHTML = `
     </div>
 
     <div class="card">
-      <div class="card-title"><i class="ti ti-users"></i> Performa per Boss</div>
+      <div class="card-title"><i class="ti ti-users"></i> Performa Supplier</div>
       <div class="donut-split-wrap">
         <div class="donut-split-table">
           <div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Boss</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
+            <thead><tr><th>Supplier</th><th>Qty</th><th>Omset</th><th>%</th></tr></thead>
             <tbody id="dash-boss-tbody">
               <tr><td colspan="4" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
             </tbody>
@@ -574,8 +574,7 @@ function _renderBoss(jpData, stokData) {
   const canvas = document.getElementById('dash-chart-boss');
   if (!canvas || !sorted.length || totalOmset===0) return;
   const dpr = window.devicePixelRatio||1;
-  const S = Math.min(canvas.parentElement ? canvas.parentElement.offsetWidth : 130, 130);
-  const W = S||130, H = S||130;
+  const W = 160, H = 160;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.width  = W + 'px';
@@ -660,11 +659,10 @@ function _renderChannel(jpData) {
     '</tr>';
   }).join('');
 
-  // Donut chart channel — responsive sesuai kolom 30%
+  // Donut chart channel — 160x160
   if (!canvas || totalOmset===0) return;
   const dpr = window.devicePixelRatio||1;
-  const S = Math.min(canvas.parentElement ? canvas.parentElement.offsetWidth : 130, 130);
-  const W = S||130, H = S||130;
+  const W = 160, H = 160;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.width  = W + 'px';

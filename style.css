@@ -791,8 +791,7 @@ body.sidebar-mini .sidebar-footer::before{
 }
 
 /* ═══════════════════════════════════════════════════════════
-   DONUT SPLIT LAYOUT — tabel kiri fleksibel, donat kanan fixed
-   Card height tidak membesar mengikuti donat
+   DONUT SPLIT LAYOUT — tabel 50% | donat 30% | legend 20%
    ═══════════════════════════════════════════════════════════ */
 .donut-split-wrap {
   display: -webkit-flex;
@@ -802,7 +801,6 @@ body.sidebar-mini .sidebar-footer::before{
   align-items: flex-start;
   position: relative;
   z-index: 1;
-  overflow: hidden;
 }
 
 /* Kiri: tabel — 50% */
@@ -810,13 +808,14 @@ body.sidebar-mini .sidebar-footer::before{
   -webkit-flex: 0 0 50%;
   flex: 0 0 50%;
   min-width: 0;
-  overflow: hidden;
+  position: relative;
+  z-index: 2;
 }
 
 /* Tengah: canvas donat — 30% */
 .donut-split-chart {
-  -webkit-flex: 0 0 30%;
-  flex: 0 0 30%;
+  -webkit-flex: 0 0 28%;
+  flex: 0 0 28%;
   min-width: 0;
   display: -webkit-flex;
   display: flex;
@@ -824,25 +823,28 @@ body.sidebar-mini .sidebar-footer::before{
   justify-content: center;
   -webkit-align-items: flex-start;
   align-items: flex-start;
+  position: relative;
+  z-index: 2;
 }
 
-/* Canvas donat: responsive dalam 30% kolom */
+/* Canvas donat: 160px — lebih besar, proporsional */
 .donut-canvas {
   display: block;
-  width: 100% !important;
-  max-width: 130px !important;
-  height: 130px !important;
+  width: 160px !important;
+  height: 160px !important;
   -webkit-flex-shrink: 0;
   flex-shrink: 0;
 }
 
-/* Kanan: legend — 20% */
+/* Kanan: legend — 22%, sejajar dengan baris data tabel */
+/* padding-top setara tinggi thead tabel (th ~34px) */
 .donut-legend {
-  -webkit-flex: 0 0 20%;
-  flex: 0 0 20%;
+  -webkit-flex: 0 0 22%;
+  flex: 0 0 22%;
   min-width: 0;
-  padding: 2px 0;
-  overflow: hidden;
+  padding-top: 34px; /* sejajar baris pertama data di tabel */
+  position: relative;
+  z-index: 2;
 }
 
 /* Mobile: stack vertikal — tabel atas, donat & legend bawah */
@@ -863,6 +865,7 @@ body.sidebar-mini .sidebar-footer::before{
   .donut-legend {
     -webkit-flex: 0 0 50%;
     flex: 0 0 50%;
+    padding-top: 0;
   }
   .donut-canvas {
     max-width: 120px !important;
