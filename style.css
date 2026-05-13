@@ -864,3 +864,36 @@ body.sidebar-mini .sidebar-footer::before{
     left: 8px;
   }
 }
+
+/* ─── MOBILE FOOTER ──────────────────────────────────────────
+   Footer "conceptualized by burhanmology" versi mobile.
+   - Di desktop (> 768px): disembunyikan, karena sudah ada .sidebar-footer
+   - Di mobile (≤ 768px): tampil di bawah konten, dalam .content flow
+   ──────────────────────────────────────────────────────────── */
+.mobile-footer {
+  display: none; /* default: hidden di desktop */
+}
+@media (max-width: 768px) {
+  .mobile-footer {
+    display: block;
+    text-align: center;
+    padding: 12px 0 20px;
+    margin-top: 8px;
+  }
+  /* Pastikan sidebar-footer TIDAK muncul di mobile sama sekali */
+  .sidebar-footer {
+    display: none !important;
+  }
+}
+@media (hover:none) and (pointer:coarse) {
+  /* Touch device (HP/tablet) — sidebar jadi overlay, footer sidebar disembunyikan */
+  .sidebar-footer {
+    display: none !important;
+  }
+  .mobile-footer {
+    display: block;
+    text-align: center;
+    padding: 12px 0 20px;
+    margin-top: 8px;
+  }
+}
