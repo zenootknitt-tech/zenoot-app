@@ -397,7 +397,7 @@ function _renderChartPenjualan(jpData) {
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
 
-  const padL=44, padR=8, padT=14, padB=34;
+  const padL=44, padR=36, padT=14, padB=34;
   const cW=W-padL-padR, cH=H-padT-padB;
   const colLine='#2a6e3a', colFill='rgba(42,110,58,0.1)', colGrid='rgba(28,26,20,0.08)', colLabel='#6b6354';
 
@@ -438,8 +438,16 @@ function _renderChartPenjualan(jpData) {
       ctx.fillText(labels[i], x, H-padB+14);
     }
     if (i===totals.length-1 && v>0) {
-      ctx.fillStyle='#2a6e3a'; ctx.font='bold 10px sans-serif'; ctx.textAlign='center';
-      ctx.fillText(_fmtRp(v), x, y-9);
+      ctx.fillStyle='#2a6e3a'; ctx.font='bold 10px sans-serif';
+      // Kalau titik terakhir dekat tepi kanan, geser label ke dalam
+      const labelW = ctx.measureText(_fmtRp(v)).width;
+      if (x + labelW/2 > W - padR) {
+        ctx.textAlign='right';
+        ctx.fillText(_fmtRp(v), Math.min(x, W-padR-2), y-9);
+      } else {
+        ctx.textAlign='center';
+        ctx.fillText(_fmtRp(v), x, y-9);
+      }
     }
   });
 
@@ -739,8 +747,9 @@ function _renderKatalog(jpData, stokData) {
   ctx.scale(dpr,dpr);
 
   const padL=10, padR=10, padT=10, padB=10;
+  const labelRightW = 90; // ruang label kanan, cukup untuk Rp999rb + qty
   const barH    = Math.floor((H-padT-padB-(sorted.length-1)*8) / sorted.length);
-  const trackW  = W - padL - padR - 100; // 100px label kanan
+  const trackW  = W - padL - padR - labelRightW;
 
   sorted.forEach(([kat,d],i) => {
     const y   = padT + i*(barH+8);
@@ -762,14 +771,18 @@ function _renderKatalog(jpData, stokData) {
     ctx.fillStyle = pct > 0.25 ? '#fff' : '#1c1a14';
     ctx.fillText(kat, padL+5, y+barH/2);
 
-    // Nilai omset (kanan bar)
+    // Nilai omset (kanan bar) — clipped agar tidak keluar canvas
+    ctx.save();
+    ctx.rect(padL+trackW, 0, labelRightW-padR, H);
+    ctx.clip();
     ctx.fillStyle = '#1c1a14';
     ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(_fmtRp(d.omset), padL+trackW+8, y+barH/2-5);
+    ctx.fillText(_fmtRp(d.omset), padL+trackW+6, y+barH/2-5);
     ctx.font = '10px sans-serif';
     ctx.fillStyle = '#6b6354';
-    ctx.fillText(d.qty+' pcs', padL+trackW+8, y+barH/2+7);
+    ctx.fillText(d.qty+' pcs', padL+trackW+6, y+barH/2+7);
+    ctx.restore();
   });
 }
 
