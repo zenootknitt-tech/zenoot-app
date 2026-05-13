@@ -9,12 +9,10 @@ function toggleMinimize() {
   var isMini = document.body.classList.toggle('sidebar-mini');
   try { localStorage.setItem('zenoot_mini', isMini ? '1' : '0'); } catch(e) {}
 }
-// Restore sidebar state dari localStorage (default: TERBUKA)
+// Restore sidebar state (default: TERBUKA)
 (function() {
   try {
-    var saved = localStorage.getItem('zenoot_mini');
-    if (saved === '1') document.body.classList.add('sidebar-mini');
-    // default: tidak ada sidebar-mini = sidebar terbuka
+    if (localStorage.getItem('zenoot_mini') === '1') document.body.classList.add('sidebar-mini');
   } catch(e) {}
 })();
 
