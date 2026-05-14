@@ -251,7 +251,7 @@ function chBadge(nama) {
   if (!nama) return '<span style="color:var(--ink3)">—</span>';
   const n = nama.toUpperCase();
   const wrap = (svg, label) =>
-    '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px;white-space:nowrap">' + svg + label + '</span>';
+    '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap">' + svg + label + '</span>';
 
   // SVG icons monokrom
   const SHOPEE_SVG  = '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><path d="M20 4C11.163 4 4 11.163 4 20c0 8.837 7.163 16 16 16s16-7.163 16-16S28.837 4 20 4z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M26 16c0-3.314-2.686-6-6-6s-6 2.686-6 6H11l1.5 14h15L29 16h-3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><circle cx="17" cy="16" r="1.2" fill="currentColor"/><circle cx="23" cy="16" r="1.2" fill="currentColor"/></svg>';
