@@ -151,8 +151,14 @@
 <script src="channel-master.js?v=2"></script>
 <script src="beban-operasional.js?v=1"></script>
 <script src="keuangan.js?v=1"></script>
+<script src="notif.js?v=1"></script>
 <script>
-  function showUpdateBanner() {
+  // Init notifikasi setelah semua script load
+document.addEventListener("DOMContentLoaded", function() {
+  setTimeout(function() { if (typeof notifInit === "function") notifInit(); }, 2000);
+});
+
+function showUpdateBanner() {
     var banner = document.getElementById('update-banner');
     if (banner) banner.style.display = 'flex';
   }

@@ -24,6 +24,8 @@ var ASSETS = [
   './rekap.js',
   './channel-master.js',
   './beban-operasional.js',
+  './keuangan.js',
+  './notif.js',
   'https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css',
   './logo.png',
@@ -117,6 +119,38 @@ self.addEventListener('fetch', function(e) {
       return res;
     }).catch(function() {
       return caches.match(e.request);
+    })
+  );
+});
+
+// ─── PUSH NOTIFICATION HANDLER ───────────────────────────────
+self.addEventListener('push', function(e) {
+  var data = {};
+  try { data = e.data ? e.data.json() : {}; } catch(err) {}
+  var title   = data.title   || 'zenOt';
+  var options = {
+    body:    data.body    || '',
+    icon:    data.icon    || './icon-192.png',
+    badge:   './icon-192.png',
+    tag:     data.tag     || 'zenot-push',
+    vibrate: [200, 100, 200],
+    data:    { url: data.url || './' }
+  };
+  e.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Klik notifikasi → buka app
+self.addEventListener('notificationclick', function(e) {
+  e.notification.close();
+  var url = (e.notification.data && e.notification.data.url) || './';
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].url.indexOf(url) !== -1 && 'focus' in list[i]) {
+          return list[i].focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(url);
     })
   );
 });
