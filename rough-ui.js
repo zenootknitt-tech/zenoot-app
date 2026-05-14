@@ -34,14 +34,14 @@
     const fstyle = isActive ? 'solid' : 'none';
     const opt = { ...BASE, fill, fillStyle: fstyle };
 
-    rc.circle(r, r, H - 4, opt);
-    rc.line(r, 2,   W - 4, 2,   { ...BASE, roughness:1.8 });
-    rc.line(r, H-2, W - 4, H-2, { ...BASE, roughness:1.8 });
-    rc.line(W-3, 2, W-3, H-2,   { ...BASE, roughness:1.5 });
+    rc.circle(r, r, H - 4, { ...opt, roughness:0.6, bowing:0.3 });
+    rc.line(r, 2,   W - 4, 2,   { ...BASE, roughness:0.5, bowing:0.2 });
+    rc.line(r, H-2, W - 4, H-2, { ...BASE, roughness:0.5, bowing:0.2 });
+    rc.line(W-3, 2, W-3, H-2,   { ...BASE, roughness:0.4 });
 
     if (isActive) {
       rc.rectangle(r, 2, W - r - 4, H - 4, {
-        ...BASE, stroke:'none', fill:INK, fillStyle:'solid', roughness:0.5
+        ...BASE, stroke:'none', fill:INK, fillStyle:'solid', roughness:0.3
       });
     }
   }
@@ -57,7 +57,7 @@
     const W = el.offsetWidth, H = el.offsetHeight;
     const cvs = _makeRoughCanvas(el, 'rough-card', W, H);
     rough.canvas(cvs).rectangle(2, 2, W - 4, H - 4, {
-      ...BASE, roughness:2.4, bowing:1.2,
+      ...BASE, roughness:1.2, bowing:0.6,
       fill: CREAM, fillStyle: 'solid'
     });
   }

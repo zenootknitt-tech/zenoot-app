@@ -612,7 +612,7 @@ function renderTabelJP(data) {
     return '<tr>'
       + '<td style="white-space:nowrap"><b>' + tgl + '</b><br>'
       + '<span style="font-size:11px;color:var(--ink3)">' + jam + '</span></td>'
-      + '<td><span style="font-size:12px;padding:2px 6px;border-radius:3px;background:var(--cream2)">' + chLabel + '</span></td>'
+      + '<td>' + chHtml + '</td>'
       + '<td><b style="color:var(--accent)">' + (row.sku||'—') + '</b></td>'
       + '<td style="text-align:center">' + (row.qty||0) + '</td>'
       + '<td>' + fmtRp(row.harga_satuan) + '</td>'
