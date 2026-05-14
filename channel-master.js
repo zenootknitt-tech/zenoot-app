@@ -1,19 +1,18 @@
-// ─── CHANNEL-MASTER.JS — Master Data Channel ─────────────────
-// 3 kategori fixed: Toko Utama, Reseller, Offline
-// Toko Utama = dipakai sebagai switcher di halaman Toko
-// Reseller & Offline = input manual, halaman tersendiri nanti
+// ─── CHANNEL-MASTER.JS v2 — Master Data Channel + Beban Per Channel ──
+// Setiap channel punya % Beban & NPM sendiri → tabel channel_beban
+// Halaman Beban Operasional sudah dihapus, setting harga ada di sini
 
 document.getElementById('page-channel').innerHTML = `
   <div style="margin-bottom:14px;padding:10px 14px;background:var(--cream2);border:2px dashed var(--ink3);border-radius:4px;font-size:13px;color:var(--ink2);line-height:1.7">
     <b>Master Data Channel</b> — sumber data global untuk seluruh aplikasi.<br>
-    <b>Shopee</b> akan muncul sebagai pilihan channel di halaman Toko (Data Order, Rekap).
+    Setiap channel bisa punya <b>% Beban & NPM</b> sendiri untuk kalkulasi harga otomatis di Price List.
   </div>
 
-  <!-- TOKO UTAMA -->
+  <!-- SHOPEE -->
   <div class="card" style="margin-bottom:14px">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <span style="display:flex;align-items:center;gap:7px">
-        <svg width="18" height="18" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;opacity:0.75">
+        <svg width="18" height="18" viewBox="0 0 38 38" fill="none" style="flex-shrink:0;opacity:0.75">
           <path d="M19 2C10.163 2 3 9.163 3 18c0 6.077 3.32 11.373 8.25 14.22L10 36l4.5-2.25A16.9 16.9 0 0019 34c8.837 0 16-7.163 16-16S27.837 2 19 2z" fill="currentColor" opacity="0.15"/>
           <path d="M24.5 13.5c0-3.038-2.462-5.5-5.5-5.5S13.5 10.462 13.5 13.5H11L12.5 28h13L27 13.5h-2.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/>
           <circle cx="16" cy="13.5" r="1.2" fill="currentColor"/>
@@ -25,11 +24,10 @@ document.getElementById('page-channel').innerHTML = `
         <i class="ti ti-plus"></i> Tambah
       </button>
     </div>
-</div>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>Nama Channel</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+      <thead><tr><th>Nama Channel</th><th style="text-align:center">Beban (%)</th><th style="text-align:center">NPM (%)</th><th style="text-align:center">Multiplier</th><th>Aksi</th></tr></thead>
       <tbody id="ch-tbody-toko_utama">
-        <tr><td colspan="3" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+        <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -42,11 +40,10 @@ document.getElementById('page-channel').innerHTML = `
         <i class="ti ti-plus"></i> Tambah
       </button>
     </div>
-</div>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>Nama Reseller</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+      <thead><tr><th>Nama Reseller</th><th style="text-align:center">Beban (%)</th><th style="text-align:center">NPM (%)</th><th style="text-align:center">Multiplier</th><th>Aksi</th></tr></thead>
       <tbody id="ch-tbody-reseller">
-        <tr><td colspan="3" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+        <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -59,11 +56,10 @@ document.getElementById('page-channel').innerHTML = `
         <i class="ti ti-plus"></i> Tambah
       </button>
     </div>
-</div>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>Nama Toko Lazada</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+      <thead><tr><th>Nama Toko Lazada</th><th style="text-align:center">Beban (%)</th><th style="text-align:center">NPM (%)</th><th style="text-align:center">Multiplier</th><th>Aksi</th></tr></thead>
       <tbody id="ch-tbody-lazada">
-        <tr><td colspan="3" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+        <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -73,16 +69,16 @@ document.getElementById('page-channel').innerHTML = `
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <span style="display:inline-flex;align-items:center;gap:6px">
         <svg width="16" height="16" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><path d="M28 8c0 4 3.2 7.2 7.2 7.2v4.8c-2.7 0-5.2-.9-7.2-2.4v11.2c0 5.5-4.5 10-10 10S8 34.3 8 28.8s4.5-10 10-10c.5 0 1 0 1.5.1v5c-.5-.1-1-.1-1.5-.1-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5V8h5z" fill="currentColor"/></svg>
-        TikTok</span>
+        TikTok
+      </span>
       <button class="btn btn-sm btn-primary" onclick="showFormChannel('tiktok')">
         <i class="ti ti-plus"></i> Tambah
       </button>
     </div>
-</div>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>Nama Toko TikTok</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+      <thead><tr><th>Nama Toko TikTok</th><th style="text-align:center">Beban (%)</th><th style="text-align:center">NPM (%)</th><th style="text-align:center">Multiplier</th><th>Aksi</th></tr></thead>
       <tbody id="ch-tbody-tiktok">
-        <tr><td colspan="3" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+        <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -95,21 +91,29 @@ document.getElementById('page-channel').innerHTML = `
         <i class="ti ti-plus"></i> Tambah
       </button>
     </div>
-</div>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>Nama Channel</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+      <thead><tr><th>Nama Channel</th><th style="text-align:center">Beban (%)</th><th style="text-align:center">NPM (%)</th><th style="text-align:center">Multiplier</th><th>Aksi</th></tr></thead>
       <tbody id="ch-tbody-offline">
-        <tr><td colspan="3" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+        <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
       </tbody>
     </table></div>
   </div>
 `;
 
-// render sketchy UI untuk halaman page-channel setelah innerHTML siap
 setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-channel')); }, 80);
+
+// ─── CACHE BEBAN PER CHANNEL ─────────────────────────────────
+var _chBebanMap = {}; // channel_id → { beban_persen, npm_persen }
 
 // ─── LOAD SEMUA ──────────────────────────────────────────────
 async function loadChannelMaster() {
+  // Load beban dulu sekali, lalu render semua kategori
+  try {
+    const bebanData = await dbGet('channel_beban', '');
+    _chBebanMap = {};
+    (bebanData || []).forEach(b => { _chBebanMap[b.channel_id] = b; });
+  } catch(e) { _chBebanMap = {}; }
+
   await Promise.all([
     loadChannelByKategori('toko_utama'),
     loadChannelByKategori('reseller'),
@@ -121,49 +125,53 @@ async function loadChannelMaster() {
 
 async function loadChannelByKategori(kat) {
   const tbody = document.getElementById('ch-tbody-' + kat);
-  tbody.innerHTML = `<tr><td colspan="3" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>`;
+  tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>';
   try {
-    const data = await dbGet('channels', `&kategori=eq.${kat}&order=nama.asc`);
+    const data = await dbGet('channels', '&kategori=eq.' + kat + '&order=nama.asc');
     if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="3" style="color:var(--ink3);font-style:italic">Belum ada data</td></tr>`;
+      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Belum ada data</td></tr>';
       return;
     }
     tbody.innerHTML = data.map(row => {
       const safeNama = (row.nama||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-      return `<tr>
-        <td style="font-weight:600">${row.nama || '—'}</td>
-        <td style="color:var(--ink3);font-size:13px">${row.keterangan || '—'}</td>
-        <td>
-          <button class="btn btn-sm" data-action="edit-ch" data-id="${row.id}" data-kat="${kat}" style="margin-right:4px"><i class="ti ti-edit"></i></button>
-          <button class="btn btn-sm btn-danger" data-action="hapus-ch" data-id="${row.id}" data-kat="${kat}" data-nama="${safeNama}"><i class="ti ti-trash"></i></button>
-        </td>
-      </tr>`;
+      const beban    = _chBebanMap[row.id];
+      const bPct     = beban ? (beban.beban_persen || 0) : null;
+      const nPct     = beban ? (beban.npm_persen   || 0) : null;
+      const mult     = (bPct !== null) ? (1 + (bPct + nPct) / 100).toFixed(3) : null;
+      const bLabel   = bPct !== null
+        ? '<span style="color:var(--danger);font-weight:600">' + bPct.toFixed(1) + '%</span>'
+        : '<span style="color:var(--ink3);font-style:italic">—</span>';
+      const nLabel   = nPct !== null
+        ? '<span style="color:var(--ok);font-weight:600">' + nPct.toFixed(1) + '%</span>'
+        : '<span style="color:var(--ink3);font-style:italic">—</span>';
+      const mLabel   = mult !== null
+        ? '<span style="font-weight:600">×' + mult + '</span>'
+        : '<span style="color:var(--ink3);font-style:italic">—</span>';
+      return '<tr>' +
+        '<td style="font-weight:600">' + row.nama + '</td>' +
+        '<td style="text-align:center">' + bLabel + '</td>' +
+        '<td style="text-align:center">' + nLabel + '</td>' +
+        '<td style="text-align:center">' + mLabel + '</td>' +
+        '<td style="white-space:nowrap">' +
+          '<button class="btn btn-sm" data-action="setting-beban" data-id="' + row.id + '" data-nama="' + safeNama + '" data-kat="' + kat + '" style="margin-right:4px" title="Setting Harga"><i class="ti ti-settings"></i></button>' +
+          '<button class="btn btn-sm" data-action="edit-ch" data-id="' + row.id + '" data-kat="' + kat + '" style="margin-right:4px"><i class="ti ti-edit"></i></button>' +
+          '<button class="btn btn-sm btn-danger" data-action="hapus-ch" data-id="' + row.id + '" data-kat="' + kat + '" data-nama="' + safeNama + '"><i class="ti ti-trash"></i></button>' +
+        '</td>' +
+      '</tr>';
     }).join('');
-    // Refresh dropdown JP kalau sudah diload
+
     if (typeof loadChannelDropdownJP === 'function') loadChannelDropdownJP();
   } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="3" style="color:var(--danger)">Error: ${err.message}</td></tr>`;
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--danger)">Error: ' + err.message + '</td></tr>';
   }
 }
 
-// ─── FORM ────────────────────────────────────────────────────
+// ─── FORM TAMBAH/EDIT CHANNEL ─────────────────────────────────
 function showFormChannel(kat) {
-  var labels = {
-    toko_utama:'Nama Channel Toko',
-    reseller:'Nama Reseller',
-    lazada:'Nama Toko Lazada',
-    tiktok:'Nama Toko TikTok',
-    offline:'Nama Channel Offline'
-  };
-  var titles = {
-    toko_utama:'Tambah Channel Toko',
-    reseller:'Tambah Reseller',
-    lazada:'Tambah Toko Lazada',
-    tiktok:'Tambah Toko TikTok',
-    offline:'Tambah Channel Offline'
-  };
-  document.getElementById('ch-edit-kat').value  = kat;
-  document.getElementById('ch-edit-id').value   = '';
+  var labels = { toko_utama:'Nama Channel Toko', reseller:'Nama Reseller', lazada:'Nama Toko Lazada', tiktok:'Nama Toko TikTok', offline:'Nama Channel Offline' };
+  var titles = { toko_utama:'Tambah Channel Toko', reseller:'Tambah Reseller', lazada:'Tambah Toko Lazada', tiktok:'Tambah Toko TikTok', offline:'Tambah Channel Offline' };
+  document.getElementById('ch-edit-kat').value   = kat;
+  document.getElementById('ch-edit-id').value    = '';
   document.getElementById('ch-modal-nama').value = '';
   document.getElementById('ch-modal-ket').value  = '';
   document.getElementById('ch-modal-label').textContent = labels[kat] || 'Nama Channel';
@@ -171,80 +179,122 @@ function showFormChannel(kat) {
   showModal('modal-channel');
 }
 
-function cancelFormChannel(kat) {
-  hideModal('modal-channel');
-}
-
 async function simpanChannelModal() {
   var kat = document.getElementById('ch-edit-kat').value;
-  simpanChannel(kat);
-}
-
-// ─── EDIT ────────────────────────────────────────────────────
-async function editChannel(id, kat) {
-  try {
-    const data = await dbGet('channels', `&id=eq.${id}`);
-    if (!data || !data[0]) return;
-    const r = data[0];
-    document.getElementById('ch-id-' + kat).value   = r.id;
-    document.getElementById('ch-nama-' + kat).value = r.nama       || '';
-    document.getElementById('ch-ket-' + kat).value  = r.keterangan || '';
-    document.getElementById('form-channel-' + kat).style.display = 'block';
-  sketchForm('form-channel-' + kat);
-    document.getElementById('form-channel-' + kat).scrollIntoView({behavior:'smooth'});
-  } catch(err) { alert('Gagal load: ' + err.message); }
-}
-
-// ─── SIMPAN ──────────────────────────────────────────────────
-async function simpanChannel(kat) {
-  const id = document.getElementById('ch-id-' + kat).value;
-  const data = {
-    tipe:        null,
-    kategori:    kat,
-    nama:        document.getElementById('ch-nama-' + kat).value.trim(),
-    keterangan:  document.getElementById('ch-ket-' + kat).value.trim(),
+  var id  = document.getElementById('ch-edit-id').value;
+  var data = {
+    kategori:   kat,
+    nama:       document.getElementById('ch-modal-nama').value.trim(),
+    keterangan: document.getElementById('ch-modal-ket').value.trim(),
   };
   if (!data.nama) { alert('Nama channel wajib diisi!'); return; }
   try {
-    if (id) {
-      await dbUpdate('channels', id, data);
-    } else {
-      await dbInsert('channels', data);
-    }
-    cancelFormChannel(kat);
+    if (id) { await dbUpdate('channels', id, data); }
+    else    { await dbInsert('channels', data); }
+    hideModal('modal-channel');
     loadChannelByKategori(kat);
   } catch(err) { alert('Gagal simpan: ' + err.message); }
 }
 
-// ─── HAPUS ───────────────────────────────────────────────────
+async function editChannel(id, kat) {
+  try {
+    const data = await dbGet('channels', '&id=eq.' + id);
+    if (!data || !data[0]) return;
+    const r = data[0];
+    document.getElementById('ch-edit-kat').value   = kat;
+    document.getElementById('ch-edit-id').value    = r.id;
+    document.getElementById('ch-modal-nama').value = r.nama       || '';
+    document.getElementById('ch-modal-ket').value  = r.keterangan || '';
+    var titles = { toko_utama:'Edit Channel Toko', reseller:'Edit Reseller', lazada:'Edit Toko Lazada', tiktok:'Edit Toko TikTok', offline:'Edit Channel Offline' };
+    document.getElementById('ch-modal-title').innerHTML = '<i class="ti ti-edit"></i> ' + (titles[kat]||'Edit Channel');
+    showModal('modal-channel');
+  } catch(err) { alert('Gagal load: ' + err.message); }
+}
+
 async function hapusChannel(id, nama, kat) {
-  confirmDelete(`Hapus channel "${nama}"?`, async () => {
+  confirmDelete('Hapus channel "' + nama + '"?', async () => {
     try {
       await dbDelete('channels', id);
+      delete _chBebanMap[id];
       loadChannelByKategori(kat);
     } catch(err) { alert('Gagal hapus: ' + err.message); }
   });
 }
 
-// ─── EVENT DELEGATION untuk tombol edit/hapus di tabel channel ─
+// ─── SETTING BEBAN PER CHANNEL ───────────────────────────────
+async function showSettingBeban(channelId, channelNama) {
+  document.getElementById('cb-channel-id').value    = channelId;
+  document.getElementById('cb-channel-nama').textContent = channelNama;
+  // Load existing
+  const existing = _chBebanMap[channelId];
+  document.getElementById('cb-beban').value = existing ? (existing.beban_persen || 0) : 0;
+  document.getElementById('cb-npm').value   = existing ? (existing.npm_persen   || 0) : 0;
+  cbUpdatePreview();
+  showModal('modal-channel-beban');
+}
+
+function cbUpdatePreview() {
+  const b = parseFloat(document.getElementById('cb-beban').value) || 0;
+  const n = parseFloat(document.getElementById('cb-npm').value)   || 0;
+  const mult = (1 + (b + n) / 100).toFixed(3);
+  document.getElementById('cb-preview').innerHTML =
+    'Beban: <b style="color:var(--danger)">' + b.toFixed(1) + '%</b> &nbsp;|&nbsp; ' +
+    'NPM: <b style="color:var(--ok)">' + n.toFixed(1) + '%</b> &nbsp;|&nbsp; ' +
+    'Multiplier: <b>×' + mult + '</b> &nbsp;|&nbsp; ' +
+    'Contoh HPP Rp50.000 → <b>Rp' + Math.ceil(50000 * parseFloat(mult)).toLocaleString('id-ID') + '</b>';
+}
+
+async function simpanChannelBeban() {
+  const channelId  = document.getElementById('cb-channel-id').value;
+  const bebanPct   = parseFloat(document.getElementById('cb-beban').value) || 0;
+  const npmPct     = parseFloat(document.getElementById('cb-npm').value)   || 0;
+
+  try {
+    const existing = _chBebanMap[channelId];
+    if (existing && existing.id) {
+      await dbUpdate('channel_beban', existing.id, { beban_persen: bebanPct, npm_persen: npmPct });
+    } else {
+      await dbInsert('channel_beban', { channel_id: channelId, beban_persen: bebanPct, npm_persen: npmPct });
+    }
+    // Reload cache beban
+    const bebanData = await dbGet('channel_beban', '');
+    _chBebanMap = {};
+    (bebanData || []).forEach(b => { _chBebanMap[b.channel_id] = b; });
+
+    hideModal('modal-channel-beban');
+    // Re-render semua kategori agar angka update
+    await Promise.all([
+      loadChannelByKategori('toko_utama'),
+      loadChannelByKategori('reseller'),
+      loadChannelByKategori('lazada'),
+      loadChannelByKategori('tiktok'),
+      loadChannelByKategori('offline'),
+    ]);
+  } catch(err) { alert('Gagal simpan beban: ' + err.message); }
+}
+
+// ─── EVENT DELEGATION ────────────────────────────────────────
 document.getElementById('page-channel').addEventListener('click', function(e) {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
   const action = btn.dataset.action;
-  const id     = btn.dataset.id;   // UUID string, jangan parseInt
+  const id     = btn.dataset.id;
   const kat    = btn.dataset.kat;
   if (action === 'edit-ch') {
     editChannel(id, kat);
   } else if (action === 'hapus-ch') {
-    const nama = btn.dataset.nama;
-    hapusChannel(id, nama, kat);
+    hapusChannel(id, btn.dataset.nama, kat);
+  } else if (action === 'setting-beban') {
+    showSettingBeban(id, btn.dataset.nama);
   }
 });
 
 // ─── INIT ────────────────────────────────────────────────────
 loadChannelMaster();
 
-document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-channel" onclick="if(event.target===this)hideModal('modal-channel')">
+// ─── MODAL CHANNEL (tambah/edit nama) ────────────────────────
+document.body.insertAdjacentHTML('beforeend', `
+<div class="modal-overlay" id="modal-channel" onclick="if(event.target===this)hideModal('modal-channel')">
   <div class="modal" style="max-width:440px;width:100%">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
       <div class="modal-title" id="ch-modal-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Channel</div>
@@ -265,6 +315,33 @@ document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="mo
     <div class="modal-actions">
       <button class="btn btn-primary btn-sm" onclick="simpanChannelModal()"><i class="ti ti-device-floppy"></i> Simpan</button>
       <button class="btn btn-sm" onclick="hideModal('modal-channel')"><i class="ti ti-x"></i> Batal</button>
+    </div>
+  </div>
+</div>`);
+
+// ─── MODAL SETTING BEBAN PER CHANNEL ─────────────────────────
+document.body.insertAdjacentHTML('beforeend', `
+<div class="modal-overlay" id="modal-channel-beban" onclick="if(event.target===this)hideModal('modal-channel-beban')">
+  <div class="modal" style="max-width:400px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-settings"></i> Setting Harga — <span id="cb-channel-nama" style="color:var(--accent)"></span></div>
+      <button onclick="hideModal('modal-channel-beban')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
+    <input type="hidden" id="cb-channel-id">
+    <div style="display:flex;gap:12px;margin-bottom:12px">
+      <div class="form-group" style="flex:1">
+        <label>Beban Ops (%)</label>
+        <input type="number" id="cb-beban" placeholder="0" step="0.1" min="0" max="100" oninput="cbUpdatePreview()" style="font-size:16px">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>Target NPM (%)</label>
+        <input type="number" id="cb-npm" placeholder="0" step="0.1" min="0" max="100" oninput="cbUpdatePreview()" style="font-size:16px">
+      </div>
+    </div>
+    <div id="cb-preview" style="padding:8px 12px;background:var(--cream2);border:1px dashed var(--ink3);border-radius:4px;font-size:12px;color:var(--ink2);margin-bottom:14px;line-height:1.8"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="simpanChannelBeban()"><i class="ti ti-device-floppy"></i> Simpan</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-channel-beban')"><i class="ti ti-x"></i> Batal</button>
     </div>
   </div>
 </div>`);

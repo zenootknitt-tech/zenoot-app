@@ -482,18 +482,16 @@ function jpPilihKatalog(katalog) {
   }
 }
 
-// ─── HARGA DARI PRICE LIST ───────────────────────────────────
+// ─── HARGA DARI PRICE LIST (pakai channel_beban per channel) ──
 async function _jpGetHargaFromPriceList(hpp) {
   if (!hpp || hpp <= 0) return 0;
-  const chId  = document.getElementById('jp-channel').value;
-  const ch    = _jpChannelMap[chId];
-  const kat   = ch ? (ch.kategori || 'toko_utama') : 'toko_utama';
-  const tipe  = kat === 'reseller' ? 'reseller' : 'toko_utama';
+  const chId = document.getElementById('jp-channel').value;
+  if (!chId) return hpp;
   try {
-    const beban = await dbGet('beban_operasional', '&tipe=eq.' + tipe);
-    const totalBeban = beban.reduce((s, r) => s + (r.beban_persen || 0), 0);
-    const totalNpm   = beban.reduce((s, r) => s + (r.npm_persen   || 0), 0);
-    const mult       = 1 + (totalBeban + totalNpm) / 100;
+    const bebanArr = await dbGet('channel_beban', '&channel_id=eq.' + chId);
+    const beban    = bebanArr && bebanArr[0];
+    if (!beban) return hpp; // belum ada setting beban → kembalikan HPP
+    const mult = 1 + ((beban.beban_persen || 0) + (beban.npm_persen || 0)) / 100;
     return Math.ceil(hpp * mult);
   } catch(e) {
     return hpp;
