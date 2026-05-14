@@ -1,6 +1,6 @@
-// ─── SERVICE WORKER — zenOt PWA v5 ───────────────────────────
+// ─── SERVICE WORKER — zenOt PWA v6 ───────────────────────────
 // Cache lengkap: semua file JS + font + icons
-// v5: logo hitam, fix update banner
+// v6: notif HP saat ada update aplikasi
 
 var CACHE = 'zenot-auto';
 
@@ -62,20 +62,39 @@ self.addEventListener('install', function(e) {
 self.addEventListener('activate', function(e) {
   e.waitUntil(
     caches.keys().then(function(keys) {
+      // Cek apakah ini benar-benar update (ada cache lama)
+      var adaCacheLama = keys.some(function(k) {
+        return k.startsWith('zenot-') && k !== CACHE;
+      });
+
       return Promise.all(
         keys.filter(function(k) {
           return k.startsWith('zenot-') && k !== CACHE;
         }).map(function(k) {
           return caches.delete(k);
         })
-      );
-    }).then(function() {
-      return self.clients.claim();
-    }).then(function() {
-      // Beritahu semua tab: ada versi baru yang aktif
-      return self.clients.matchAll({ type: 'window' }).then(function(clients) {
-        clients.forEach(function(client) {
-          client.postMessage({ type: 'SW_UPDATED' });
+      ).then(function() {
+        return self.clients.claim();
+      }).then(function() {
+        // Kirim pesan ke semua tab yang terbuka
+        return self.clients.matchAll({ type: 'window' }).then(function(clients) {
+          clients.forEach(function(client) {
+            client.postMessage({ type: 'SW_UPDATED' });
+          });
+
+          // ─── NOTIF HP SAAT ADA UPDATE ─────────────────────
+          // Hanya kirim notif jika ini benar-benar update (bukan install pertama)
+          if (adaCacheLama && self.registration.showNotification) {
+            return self.registration.showNotification('🚀 zenOt Diperbarui!', {
+              body: 'Versi terbaru sudah siap. Ketuk untuk reload aplikasi.',
+              icon: './icon-192.png',
+              badge: './icon-192.png',
+              tag: 'zenot-app-update',
+              vibrate: [100, 50, 100],
+              requireInteraction: false,
+              data: { url: './', action: 'reload' }
+            });
+          }
         });
       });
     })
@@ -139,17 +158,26 @@ self.addEventListener('push', function(e) {
   e.waitUntil(self.registration.showNotification(title, options));
 });
 
-// Klik notifikasi → buka app
+// Klik notifikasi → buka app + reload jika notif update
 self.addEventListener('notificationclick', function(e) {
   e.notification.close();
-  var url = (e.notification.data && e.notification.data.url) || './';
+  var url    = (e.notification.data && e.notification.data.url) || './';
+  var action = (e.notification.data && e.notification.data.action) || '';
+
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
       for (var i = 0; i < list.length; i++) {
-        if (list[i].url.indexOf(url) !== -1 && 'focus' in list[i]) {
-          return list[i].focus();
+        var c = list[i];
+        if (c.url.indexOf(url) !== -1 && 'focus' in c) {
+          c.focus();
+          // Kalau ini notif update, minta client reload
+          if (action === 'reload') {
+            c.postMessage({ type: 'SW_DO_RELOAD' });
+          }
+          return;
         }
       }
+      // Tidak ada tab terbuka → buka baru
       if (clients.openWindow) return clients.openWindow(url);
     })
   );

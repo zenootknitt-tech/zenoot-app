@@ -282,3 +282,43 @@ function chBadge(nama) {
     }
   }, { passive: false });
 })();
+
+// ─── SERVICE WORKER UPDATE HANDLER ───────────────────────────
+// Terima pesan dari SW: reload saat user klik notif update
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', function(e) {
+    if (!e.data) return;
+
+    // SW minta reload (user klik notif update di HP)
+    if (e.data.type === 'SW_DO_RELOAD') {
+      window.location.reload();
+      return;
+    }
+
+    // SW aktif versi baru → tampil banner kecil di dalam app (fallback)
+    if (e.data.type === 'SW_UPDATED') {
+      // Tampil banner tipis di atas app sebagai fallback
+      // (notif HP sudah dikirim via showNotification di sw.js)
+      var existing = document.getElementById('zenot-update-banner');
+      if (existing) return; // jangan duplikat
+
+      var banner = document.createElement('div');
+      banner.id = 'zenot-update-banner';
+      banner.style.cssText = [
+        'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:9999',
+        'background:#1a1a2e', 'color:#fff', 'font-size:13px',
+        'display:flex', 'align-items:center', 'justify-content:space-between',
+        'padding:8px 14px', 'gap:10px',
+        'border-bottom:1px solid rgba(255,255,255,0.1)',
+        'font-family:inherit'
+      ].join(';');
+      banner.innerHTML =
+        '<span>🚀 zenOt versi baru tersedia</span>' +
+        '<button onclick="window.location.reload()" style="' +
+          'background:#4f46e5;color:#fff;border:none;border-radius:6px;' +
+          'padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600' +
+        '">Reload</button>';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  });
+}
