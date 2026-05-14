@@ -141,7 +141,7 @@ function renderPriceList(data) {
   });
 
   tbody.innerHTML = _plRendered.map(row => {
-    const fmtRp = v => 'Rp' + v.toLocaleString('id-ID');
+    const fmtRp = v => fmtRpFull(v);
     return `
       <tr>
         <td>${row.katalog || '—'}</td>

@@ -293,11 +293,10 @@ let _dashChartPoints = []; // untuk tooltip hover
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function _fmtRp(v) {
-  if (!v && v !== 0) return '—';
-  v = Number(v);
-  if (v >= 1000000) return 'Rp' + (v/1000000).toFixed(1) + 'jt';
-  if (v >= 1000)    return 'Rp' + Math.round(v/1000) + 'rb';
-  return 'Rp' + v.toLocaleString('id-ID');
+  return fmtRpFull(v);
+}
+function _fmtRpShort(v) {
+  return fmtRpShort(v);
 }
 function _fmtTgl(iso) {
   if (!iso) return '—';
@@ -406,7 +405,7 @@ function _renderChartPenjualan(jpData) {
     ctx.strokeStyle=colGrid; ctx.lineWidth=0.7;
     ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+cW,y); ctx.stroke();
     ctx.fillStyle=colLabel; ctx.font='10px sans-serif'; ctx.textAlign='right';
-    ctx.fillText(_fmtRp(maxVal*i/4), padL-4, y+3);
+    ctx.fillText(_fmtRpShort(maxVal*i/4), padL-4, y+3);
   }
 
   const step = cW / Math.max(labels.length-1, 1);
@@ -440,13 +439,13 @@ function _renderChartPenjualan(jpData) {
     if (i===totals.length-1 && v>0) {
       ctx.fillStyle='#2a6e3a'; ctx.font='bold 10px sans-serif';
       // Kalau titik terakhir dekat tepi kanan, geser label ke dalam
-      const labelW = ctx.measureText(_fmtRp(v)).width;
+      const labelW = ctx.measureText(_fmtRpShort(v)).width;
       if (x + labelW/2 > W - padR) {
         ctx.textAlign='right';
-        ctx.fillText(_fmtRp(v), Math.min(x, W-padR-2), y-9);
+        ctx.fillText(_fmtRpShort(v), Math.min(x, W-padR-2), y-9);
       } else {
         ctx.textAlign='center';
-        ctx.fillText(_fmtRp(v), x, y-9);
+        ctx.fillText(_fmtRpShort(v), x, y-9);
       }
     }
   });
@@ -598,7 +597,7 @@ function _renderBoss(jpData, stokData) {
   ctx.fillStyle='#ede7d9'; ctx.fill();
   ctx.fillStyle='#1c1a14'; ctx.font='bold 12px sans-serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(_fmtRp(totalOmset),cx,cy-7);
+  ctx.fillText(_fmtRpShort(totalOmset),cx,cy-7);
   ctx.font='10px sans-serif'; ctx.fillStyle='#6b6354';
   ctx.fillText('total omset',cx,cy+8);
 
@@ -689,7 +688,7 @@ function _renderChannel(jpData) {
   ctx.fillStyle='#ede7d9'; ctx.fill();
   ctx.fillStyle='#1c1a14'; ctx.font='bold 12px sans-serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(_fmtRp(totalOmset),cx,cy-7);
+  ctx.fillText(_fmtRpShort(totalOmset),cx,cy-7);
   ctx.font='10px sans-serif'; ctx.fillStyle='#6b6354';
   ctx.fillText(sorted.length+' channel',cx,cy+8);
 
@@ -778,7 +777,7 @@ function _renderKatalog(jpData, stokData) {
     ctx.fillStyle = '#1c1a14';
     ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(_fmtRp(d.omset), padL+trackW+6, y+barH/2-5);
+    ctx.fillText(_fmtRpShort(d.omset), padL+trackW+6, y+barH/2-5);
     ctx.font = '10px sans-serif';
     ctx.fillStyle = '#6b6354';
     ctx.fillText(d.qty+' pcs', padL+trackW+6, y+barH/2+7);

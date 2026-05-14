@@ -89,7 +89,7 @@ function notifSetupTargetHarian() {
 
     const pct   = Math.round(omset / target * 100);
     const sisa  = Math.max(0, target - omset);
-    const fmtRp = v => 'Rp' + v.toLocaleString('id-ID');
+    const fmtRp = v => fmtRpFull(v);
 
     let title, body;
     if (pct >= 100) {

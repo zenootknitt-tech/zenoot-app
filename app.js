@@ -204,6 +204,77 @@ function sketchForm(containerId) {
   }, 30);
 }
 
+
+// ─── GLOBAL FORMAT RUPIAH ─────────────────────────────────────
+// Format full: Rp1.200.000 (tidak pakai jt/rb)
+function fmtRpFull(v) {
+  if (!v && v !== 0) return '—';
+  v = Math.round(Number(v));
+  return 'Rp' + v.toLocaleString('id-ID');
+}
+// Format singkat untuk chart/label sempit
+function fmtRpShort(v) {
+  if (!v && v !== 0) return '—';
+  v = Number(v);
+  if (v >= 1000000) return 'Rp' + (v/1000000).toFixed(1).replace('.0','') + 'jt';
+  if (v >= 1000)    return 'Rp' + Math.round(v/1000) + 'rb';
+  return 'Rp' + Math.round(v).toLocaleString('id-ID');
+}
+
+// ─── GLOBAL CHANNEL LOGO / ICON ──────────────────────────────
+// Mengembalikan HTML badge monokrom berdasarkan nama channel
+function chBadge(nama) {
+  if (!nama) return '<span style="color:var(--ink3)">—</span>';
+  const n = nama.toUpperCase();
+
+  // Shopee
+  if (n.indexOf('SHP') !== -1 || n.indexOf('SHOPEE') !== -1) {
+    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
+      '<svg width="13" height="13" viewBox="0 0 38 38" fill="none" style="flex-shrink:0"><path d="M19 2C10.163 2 3 9.163 3 18c0 6.077 3.32 11.373 8.25 14.22L10 36l4.5-2.25A16.9 16.9 0 0019 34c8.837 0 16-7.163 16-16S27.837 2 19 2z" fill="currentColor" opacity="0.2"/><path d="M24.5 13.5c0-3.038-2.462-5.5-5.5-5.5S13.5 10.462 13.5 13.5H11L12.5 28h13L27 13.5h-2.5z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" fill="none"/><circle cx="16" cy="13.5" r="1.2" fill="currentColor"/><circle cx="22" cy="13.5" r="1.2" fill="currentColor"/></svg>' +
+      nama + '</span>';
+  }
+
+  // Lazada
+  if (n.indexOf('LZD') !== -1 || n.indexOf('LAZ') !== -1 || n.indexOf('LAZADA') !== -1) {
+    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
+      '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><rect x="4" y="4" width="32" height="32" rx="6" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M11 28V12h4v12h10v4H11z" fill="currentColor"/></svg>' +
+      nama + '</span>';
+  }
+
+  // TikTok
+  if (n.indexOf('TT') !== -1 || n.indexOf('TIKTOK') !== -1 || n.indexOf('TIK') !== -1) {
+    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
+      '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><path d="M28 8c0 4 3.2 7.2 7.2 7.2v4.8c-2.7 0-5.2-.9-7.2-2.4v11.2c0 5.5-4.5 10-10 10S8 34.3 8 28.8s4.5-10 10-10c.5 0 1 0 1.5.1v5c-.5-.1-1-.1-1.5-.1-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5V8h5z" fill="currentColor"/></svg>' +
+      nama + '</span>';
+  }
+
+  // Tokopedia
+  if (n.indexOf('TKP') !== -1 || n.indexOf('TOKO') !== -1 || n.indexOf('TOKOPEDIA') !== -1) {
+    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
+      '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><circle cx="20" cy="20" r="16" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M13 20c0-3.9 3.1-7 7-7s7 3.1 7 7-3.1 7-7 7-7-3.1-7-7z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="20" cy="20" r="3" fill="currentColor"/></svg>' +
+      nama + '</span>';
+  }
+
+  // Offline / COD
+  if (n.indexOf('OFFLINE') !== -1 || n.indexOf('COD') !== -1 || n.indexOf('TUNAI') !== -1) {
+    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
+      '<i class="ti ti-store" style="font-size:13px"></i>' +
+      nama + '</span>';
+  }
+
+  // Reseller
+  if (n.indexOf('RESELLER') !== -1 || n.indexOf('DIHI') !== -1 || n.indexOf('LOKAN') !== -1 || n.indexOf('OUTFIT') !== -1 || n.indexOf('RILOKA') !== -1) {
+    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
+      '<i class="ti ti-users" style="font-size:13px"></i>' +
+      nama + '</span>';
+  }
+
+  // Default
+  return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
+    '<i class="ti ti-antenna" style="font-size:13px"></i>' +
+    nama + '</span>';
+}
+
 // ─── PREVENT DOUBLE-TAP ZOOM (Samsung Browser) ───────────────
 (function() {
   var lastTap = 0;

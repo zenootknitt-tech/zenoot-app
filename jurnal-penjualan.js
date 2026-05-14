@@ -597,7 +597,7 @@ function updateSortIcons() {
 // ─── RENDER TABEL ────────────────────────────────────────────
 function renderTabelJP(data) {
   const tbody = document.getElementById('jp-tbody');
-  const fmtRp = v => v ? 'Rp' + Number(v).toLocaleString('id-ID') : '—';
+  const fmtRp = v => fmtRpFull(v);
   if (!data || !data.length) {
     tbody.innerHTML = '<tr><td colspan="7" style="color:var(--ink3);font-style:italic">Belum ada entri penjualan</td></tr>';
     document.getElementById('jp-footer').textContent = '';
@@ -608,6 +608,7 @@ function renderTabelJP(data) {
     const jam = row.waktu ? String(row.waktu).slice(0,5) : '—';
     const ch  = _jpChannelMap[row.channel_id];
     const chLabel = ch ? ch.nama : (row.channel_id ? '#'+row.channel_id : '—');
+    const chHtml  = ch ? chBadge(ch.nama) : '<span style="color:var(--ink3)">—</span>';
     return '<tr>'
       + '<td style="white-space:nowrap"><b>' + tgl + '</b><br>'
       + '<span style="font-size:11px;color:var(--ink3)">' + jam + '</span></td>'

@@ -316,7 +316,7 @@ function keuGetSudahBayar(hutangId, bayarList) {
 function keuRenderHutangTabel(hutang, bayar) {
   const tbody = document.getElementById('keu-hutang-tbody');
   if (!hutang.length) { tbody.innerHTML = `<tr><td colspan="10" style="color:var(--ink3);font-style:italic">Belum ada hutang</td></tr>`; return; }
-  const fmtRp = v => 'Rp' + (v||0).toLocaleString('id-ID');
+  const fmtRp = v => fmtRpFull(v||0);
   const jenisLabel = { bank:'🏦 Bank/KUR', keluarga:'👨‍👩‍👧 Keluarga', investor:'💼 Investor', lainnya:'📋 Lainnya' };
   tbody.innerHTML = hutang.map(h => {
     const sudahBayar = keuGetSudahBayar(h.id, bayar);
@@ -346,7 +346,7 @@ function keuRenderBayarTabel(bayar, hutang) {
   const tbody = document.getElementById('keu-bayar-tbody');
   if (!bayar.length) { tbody.innerHTML = `<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Belum ada pembayaran</td></tr>`; return; }
   const htgMap = {}; hutang.forEach(h => htgMap[h.id] = h);
-  const fmtRp = v => 'Rp'+(v||0).toLocaleString('id-ID');
+  const fmtRp = v => fmtRpFull(v||0);
   tbody.innerHTML = bayar.map(b => {
     const tgl = new Date(b.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'2-digit'});
     const h   = htgMap[b.hutang_id];
@@ -368,7 +368,7 @@ function keuUpdateHutangSummary(hutang, bayar) {
     const sisa = (h.pokok||0) - keuGetSudahBayar(h.id, bayar);
     return sisa > 0;
   }).reduce((s,h) => s+(h.cicilan_per_bulan||0), 0);
-  const fmtRp = v => 'Rp'+v.toLocaleString('id-ID');
+  const fmtRp = v => fmtRpFull(v);
   document.getElementById('keu-total-hutang').textContent  = fmtRp(totalPokok);
   document.getElementById('keu-total-bayar').textContent   = fmtRp(totalBayar);
   document.getElementById('keu-total-sisa').textContent    = fmtRp(totalSisa);
@@ -490,7 +490,7 @@ async function keuRenderNeraca() {
   await keuLoadKasData();
   const bayar = await dbGet('hutang_bayar').catch(() => []) || [];
   const akunMap = keuHitungSaldoAkun();
-  const fmtRp = v => 'Rp'+(v||0).toLocaleString('id-ID');
+  const fmtRp = v => fmtRpFull(v||0);
 
   // ASET
   const asetAkun = Object.values(akunMap).filter(a => a.kelompok === 'aset');
@@ -538,7 +538,7 @@ async function keuRenderRasio() {
   await keuLoadKasData();
   const bayar = await dbGet('hutang_bayar').catch(() => []) || [];
   const akunMap = keuHitungSaldoAkun();
-  const fmtRp   = v => 'Rp'+Math.abs(v).toLocaleString('id-ID');
+  const fmtRp = v => fmtRpFull(Math.abs(v));
 
   const totalAset    = keuGetTotalByKelompok(akunMap, 'aset');
   const totalHutang  = _keuHutangAll.reduce((s,h) => s+Math.max(0,(h.pokok||0)-keuGetSudahBayar(h.id,bayar)), 0);
@@ -581,7 +581,7 @@ async function keuRenderValuasi() {
   await keuLoadKasData();
   const bayar = await dbGet('hutang_bayar').catch(() => []) || [];
   const akunMap    = keuHitungSaldoAkun();
-  const fmtRp      = v => 'Rp'+Math.abs(v).toLocaleString('id-ID');
+  const fmtRp = v => fmtRpFull(Math.abs(v));
   const multLaba   = parseFloat(document.getElementById('keu-mult-laba').value) || 3;
   const multRev    = parseFloat(document.getElementById('keu-mult-rev').value) || 1;
   const periodeQ   = parseInt(document.getElementById('keu-periode-laba').value) || 12;

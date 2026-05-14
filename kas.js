@@ -306,7 +306,7 @@ function kasHitungJurnal() {
   const akunK   = _kasAkunMap[akunKId];
   const preview = document.getElementById('kas-preview-entry');
   if (!nominal || !akunD || !akunK) { preview.style.display = 'none'; return; }
-  const fmtRp = v => 'Rp' + v.toLocaleString('id-ID');
+  const fmtRp = v => fmtRpFull(v);
   document.getElementById('kas-preview-text').innerHTML =
     `<b>Debit</b>  : ${akunD.kode ? akunD.kode+' ' : ''}${akunD.nama} &nbsp; ${fmtRp(nominal)}<br>` +
     `<b>Kredit</b> : ${akunK.kode ? akunK.kode+' ' : ''}${akunK.nama} &nbsp; ${fmtRp(nominal)}`;
@@ -371,7 +371,7 @@ function kasResetFilter() { document.getElementById('kas-filter-bulan').value = 
 function kasRenderJurnalTabel(data) {
   const tbody = document.getElementById('kas-jurnal-tbody');
   if (!data.length) { tbody.innerHTML = `<tr><td colspan="8" style="color:var(--ink3);font-style:italic">Belum ada transaksi</td></tr>`; return; }
-  const fmtRp = v => v ? 'Rp'+v.toLocaleString('id-ID') : '—';
+  const fmtRp = v => fmtRpFull(v);
   tbody.innerHTML = data.map(r => {
     const tgl   = new Date(r.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'2-digit'});
     const akunD = _kasAkunMap[r.akun_debit_id];
@@ -403,7 +403,7 @@ function kasUpdateSummary(data) {
     if (aK && aK.kelompok === 'aset') keluar += (r.nominal || r.kredit || 0);
   });
   const saldo = masuk - keluar;
-  const fmtRp = v => 'Rp' + Math.abs(v).toLocaleString('id-ID');
+  const fmtRp = v => fmtRpFull(Math.abs(v));
   document.getElementById('kas-total-masuk').textContent = fmtRp(masuk);
   document.getElementById('kas-total-keluar').textContent = fmtRp(keluar);
   document.getElementById('kas-saldo').textContent = (saldo < 0 ? '-' : '') + fmtRp(saldo);
@@ -464,7 +464,7 @@ function kasRenderNeraca(data) {
     if (r.akun_kredit_id) { if (!saldoMap[r.akun_kredit_id]) saldoMap[r.akun_kredit_id] = {debit:0,kredit:0}; saldoMap[r.akun_kredit_id].kredit += n; }
   });
   const order = ['aset','kewajiban','modal','pendapatan','beban'];
-  const fmtRp = v => v ? 'Rp'+v.toLocaleString('id-ID') : '—';
+  const fmtRp = v => fmtRpFull(v);
   let html = '', totalD = 0, totalK = 0;
   order.forEach(k => {
     const akuns = Object.values(_kasAkunMap).filter(a => a.kelompok === k).sort((a,b) => (a.kode||'').localeCompare(b.kode||''));
@@ -497,7 +497,7 @@ function kasRenderLabaRugi(data) {
     if (r.akun_debit_id)  { if (!saldoMap[r.akun_debit_id])  saldoMap[r.akun_debit_id]  = {debit:0,kredit:0}; saldoMap[r.akun_debit_id].debit   += n; }
     if (r.akun_kredit_id) { if (!saldoMap[r.akun_kredit_id]) saldoMap[r.akun_kredit_id] = {debit:0,kredit:0}; saldoMap[r.akun_kredit_id].kredit += n; }
   });
-  const fmtRp = v => 'Rp' + Math.abs(v).toLocaleString('id-ID');
+  const fmtRp = v => fmtRpFull(Math.abs(v));
   const akunPend  = Object.values(_kasAkunMap).filter(a => a.kelompok === 'pendapatan');
   const akunBeban = Object.values(_kasAkunMap).filter(a => a.kelompok === 'beban');
   let totalPend = 0, totalBeban = 0, html = '';
@@ -523,7 +523,7 @@ function kasRenderLabaRugi(data) {
 
 function kasRenderArusKas(data) {
   const tbody = document.getElementById('kas-aruskas-tbody');
-  const fmtRp = v => v ? 'Rp'+v.toLocaleString('id-ID') : '—';
+  const fmtRp = v => fmtRpFull(v);
   const arusData = data.filter(r => {
     const aD = _kasAkunMap[r.akun_debit_id]; const aK = _kasAkunMap[r.akun_kredit_id];
     return (aD && aD.kelompok === 'aset') || (aK && aK.kelompok === 'aset');

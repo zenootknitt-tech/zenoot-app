@@ -56,7 +56,7 @@ document.getElementById('page-channel').innerHTML = `
   <!-- RESELLER -->
   <div class="card" style="margin-bottom:14px">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <span><i class="ti ti-users"></i> Reseller</span>
+      <span style="display:inline-flex;align-items:center;gap:6px"><i class="ti ti-users" style="font-size:16px"></i> Reseller</span>
       <button class="btn btn-sm btn-primary" onclick="showFormChannel('reseller')">
         <i class="ti ti-plus"></i> Tambah
       </button>
@@ -128,7 +128,9 @@ document.getElementById('page-channel').innerHTML = `
   <!-- TIKTOK -->
   <div class="card" style="margin-bottom:14px">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <span><i class="ti ti-brand-tiktok"></i> TikTok</span>
+      <span style="display:inline-flex;align-items:center;gap:6px">
+        <svg width="16" height="16" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><path d="M28 8c0 4 3.2 7.2 7.2 7.2v4.8c-2.7 0-5.2-.9-7.2-2.4v11.2c0 5.5-4.5 10-10 10S8 34.3 8 28.8s4.5-10 10-10c.5 0 1 0 1.5.1v5c-.5-.1-1-.1-1.5-.1-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5V8h5z" fill="currentColor"/></svg>
+        TikTok</span>
       <button class="btn btn-sm btn-primary" onclick="showFormChannel('tiktok')">
         <i class="ti ti-plus"></i> Tambah
       </button>
