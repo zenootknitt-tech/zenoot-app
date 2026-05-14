@@ -61,39 +61,6 @@ document.getElementById('page-keuangan').innerHTML = `
   </div>
 
   <!-- Form hutang -->
-  <div id="keu-form-hutang" style="display:none;margin-bottom:12px">
-    <div class="card">
-      <div class="card-title" id="keu-hutang-form-title"><i class="ti ti-plus"></i> Tambah Hutang</div>
-      <input type="hidden" id="keu-htg-id">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-        <div class="form-group" style="flex:2 1 160px"><label>Nama Kreditur</label><input type="text" id="keu-htg-kreditur" placeholder="mis: KUR BRI, Pak Hasan..."></div>
-        <div class="form-group" style="flex:1 1 120px"><label>Jenis Hutang</label>
-          <select id="keu-htg-jenis" style="width:100%">
-            <option value="bank">🏦 Bank / KUR</option>
-            <option value="keluarga">👨‍👩‍👧 Keluarga / Sodara</option>
-            <option value="investor">💼 Investor / Modal</option>
-            <option value="lainnya">📋 Lainnya</option>
-          </select>
-        </div>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-        <div class="form-group" style="flex:1 1 130px"><label>Pokok Pinjaman (Rp)</label><input type="number" id="keu-htg-pokok" placeholder="0"></div>
-        <div class="form-group" style="flex:1 1 120px"><label>Bunga / Tahun (%)</label><input type="number" id="keu-htg-bunga" placeholder="0" step="0.1"></div>
-        <div class="form-group" style="flex:1 1 120px"><label>Tenor (bulan)</label><input type="number" id="keu-htg-tenor" placeholder="mis: 24"></div>
-        <div class="form-group" style="flex:1 1 130px"><label>Cicilan / Bulan (Rp)</label><input type="number" id="keu-htg-cicilan" placeholder="0"></div>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-        <div class="form-group" style="flex:1 1 130px"><label>Tanggal Mulai</label><input type="date" id="keu-htg-tgl-mulai"></div>
-        <div class="form-group" style="flex:1 1 130px"><label>Jatuh Tempo</label><input type="date" id="keu-htg-jatuh-tempo"></div>
-        <div class="form-group" style="flex:2 1 180px"><label>Keterangan</label><input type="text" id="keu-htg-ket" placeholder="mis: modal tambah stok koleksi baru"></div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-primary btn-sm" onclick="keuSimpanHutang()"><i class="ti ti-device-floppy"></i> Simpan</button>
-        <button class="btn btn-sm" onclick="keuCancelFormHutang()"><i class="ti ti-x"></i> Batal</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Tabel hutang -->
   <div class="card">
     <div class="card-title"><i class="ti ti-list"></i> Daftar Hutang</div>
@@ -280,6 +247,44 @@ document.getElementById('page-keuangan').innerHTML = `
 `;
 
 setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-keuangan')); }, 80);
+document.body.insertAdjacentHTML('beforeend', `
+<!-- MODAL: TAMBAH/EDIT HUTANG -->
+<div class="modal-overlay" id="modal-keu-hutang" onclick="if(event.target===this)hideModal('modal-keu-hutang')">
+  <div class="modal" style="max-width:560px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" id="keu-hutang-form-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Hutang</div>
+      <button onclick="hideModal('modal-keu-hutang')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
+    <input type="hidden" id="keu-htg-id">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:2 1 160px"><label>Nama Kreditur</label><input type="text" id="keu-htg-kreditur" placeholder="mis: KUR BRI, Pak Hasan..."></div>
+      <div class="form-group" style="flex:1 1 120px"><label>Jenis Hutang</label>
+        <select id="keu-htg-jenis" style="width:100%">
+          <option value="bank">🏦 Bank / KUR</option>
+          <option value="keluarga">👨‍👩‍👧 Keluarga / Sodara</option>
+          <option value="investor">💼 Investor / Modal</option>
+          <option value="lainnya">📋 Lainnya</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 130px"><label>Pokok Pinjaman (Rp)</label><input type="number" id="keu-htg-pokok" placeholder="0"></div>
+      <div class="form-group" style="flex:1 1 120px"><label>Bunga / Tahun (%)</label><input type="number" id="keu-htg-bunga" placeholder="0" step="0.1"></div>
+      <div class="form-group" style="flex:1 1 120px"><label>Tenor (bulan)</label><input type="number" id="keu-htg-tenor" placeholder="mis: 24"></div>
+      <div class="form-group" style="flex:1 1 130px"><label>Cicilan / Bulan (Rp)</label><input type="number" id="keu-htg-cicilan" placeholder="0"></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 130px"><label>Tanggal Mulai</label><input type="date" id="keu-htg-tgl-mulai"></div>
+      <div class="form-group" style="flex:1 1 130px"><label>Jatuh Tempo</label><input type="date" id="keu-htg-jatuh-tempo"></div>
+      <div class="form-group" style="flex:2 1 180px"><label>Keterangan</label><input type="text" id="keu-htg-ket" placeholder="mis: modal tambah stok koleksi baru"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="keuSimpanHutang()"><i class="ti ti-device-floppy"></i> Simpan</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-keu-hutang')"><i class="ti ti-x"></i> Batal</button>
+    </div>
+  </div>
+</div>
+`);
 
 // ─── TAB ─────────────────────────────────────────────────────
 function keuGotoTab(tab) {
@@ -393,12 +398,10 @@ function keuShowFormHutang(data) {
   document.getElementById('keu-htg-tgl-mulai').value     = data?.tgl_mulai ? data.tgl_mulai.split('T')[0] : '';
   document.getElementById('keu-htg-jatuh-tempo').value   = data?.jatuh_tempo ? data.jatuh_tempo.split('T')[0] : '';
   document.getElementById('keu-htg-ket').value           = data?.keterangan || '';
-  document.getElementById('keu-form-hutang').style.display = 'block';
-  sketchForm('keu-form-hutang');
-  document.getElementById('keu-form-hutang').scrollIntoView({behavior:'smooth'});
+  showModal('modal-keu-hutang');
 }
 
-function keuCancelFormHutang() { document.getElementById('keu-form-hutang').style.display = 'none'; }
+function keuCancelFormHutang() { hideModal('modal-keu-hutang'); }
 
 async function keuSimpanHutang() {
   const id = document.getElementById('keu-htg-id').value;

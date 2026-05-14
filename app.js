@@ -205,6 +205,30 @@ function sketchForm(containerId) {
 }
 
 
+
+// ─── GLOBAL MODAL HELPER ─────────────────────────────────────
+// showModal(id) — buka modal overlay
+// hideModal(id) — tutup modal overlay
+function showModal(id) {
+  var el = document.getElementById(id);
+  if (el) {
+    el.classList.add('open');
+    // Sketchy render
+    var m = el.querySelector('.modal');
+    if (m && typeof rerenderUI === 'function') setTimeout(function(){ rerenderUI(m); }, 30);
+  }
+}
+function hideModal(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
+// Tutup modal saat klik overlay
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.classList && e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('open');
+  }
+});
+
 // ─── GLOBAL FORMAT RUPIAH ─────────────────────────────────────
 // Format full: Rp1.200.000 (tidak pakai jt/rb)
 function fmtRpFull(v) {

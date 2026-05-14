@@ -51,45 +51,6 @@ document.getElementById('page-kas').innerHTML = `
     </div>
   </div>
 
-  <div id="kas-form-wrap" style="display:none;margin-bottom:12px">
-    <div class="card">
-      <div class="card-title" id="kas-form-title"><i class="ti ti-plus"></i> Tambah Transaksi</div>
-      <input type="hidden" id="kas-jrn-id">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-        <div class="form-group" style="flex:1 1 120px;min-width:110px"><label>Tanggal</label><input type="date" id="kas-jrn-tgl"></div>
-        <div class="form-group" style="flex:1 1 140px;min-width:130px"><label>Tipe</label>
-          <select id="kas-jrn-tipe" onchange="kasOnTipeChange()" style="width:100%">
-            <option value="masuk">💰 Uang Masuk</option>
-            <option value="keluar">💸 Uang Keluar</option>
-            <option value="jurnal">📋 Jurnal Umum</option>
-          </select>
-        </div>
-        <div class="form-group" style="flex:1 1 130px;min-width:120px"><label>Nominal (Rp)</label><input type="number" id="kas-jrn-nominal" placeholder="0" oninput="kasHitungJurnal()"></div>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-        <div class="form-group" style="flex:1 1 160px;min-width:140px">
-          <label id="kas-lbl-debit">Akun Debit (Masuk ke)</label>
-          <select id="kas-jrn-akun-debit" style="width:100%" onchange="kasHitungJurnal()"><option value="">— Pilih Akun —</option></select>
-        </div>
-        <div class="form-group" style="flex:1 1 160px;min-width:140px">
-          <label id="kas-lbl-kredit">Akun Kredit (Keluar dari)</label>
-          <select id="kas-jrn-akun-kredit" style="width:100%" onchange="kasHitungJurnal()"><option value="">— Pilih Akun —</option></select>
-        </div>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-        <div class="form-group" style="flex:2 1 200px"><label>Keterangan</label><input type="text" id="kas-jrn-ket" placeholder="mis: bayar iklan Shopee..."></div>
-        <div class="form-group" style="flex:1 1 120px"><label>No. Referensi <span style="color:var(--ink3);font-weight:400">(opsional)</span></label><input type="text" id="kas-jrn-ref" placeholder="mis: INV-001"></div>
-      </div>
-      <div id="kas-preview-entry" style="display:none;background:var(--cream2);border:1.5px dashed var(--ink3);padding:8px 12px;border-radius:2px;font-size:12px;margin-bottom:10px;color:var(--ink2)">
-        <b>Preview Jurnal:</b><br><span id="kas-preview-text"></span>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-primary btn-sm" onclick="kasSimpanJurnal()"><i class="ti ti-device-floppy"></i> Simpan</button>
-        <button class="btn btn-sm" onclick="kasCancelForm()"><i class="ti ti-x"></i> Batal</button>
-      </div>
-    </div>
-  </div>
-
   <div class="card">
     <div class="card-title"><i class="ti ti-list"></i> Buku Jurnal Harian</div>
     <div class="tbl-wrap" style="max-height:60vh;overflow-y:auto;overflow-x:auto">
@@ -140,10 +101,77 @@ document.getElementById('page-kas').innerHTML = `
     <b>Chart of Accounts</b> — daftar akun keuangan bisnis kamu.<br>
     Kelompok sudah fixed (Aset, Kewajiban, Modal, Pendapatan, Beban) — tambah akun baru di dalam kelompok yang sesuai.
   </div>
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-title" id="akun-form-title"><i class="ti ti-plus"></i> Tambah Akun Baru</div>
+  <div class="card">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span><i class="ti ti-list"></i> Daftar Akun (Chart of Accounts)</span>
+      <button class="btn btn-sm btn-primary" onclick="kasShowFormAkun()"><i class="ti ti-plus"></i> Tambah Akun</button>
+    </div>
+    <div class="tbl-wrap" style="overflow-x:auto"><table class="tbl">
+      <thead><tr><th>Kode</th><th>Nama Akun</th><th>Kelompok</th><th>Sub Kelompok</th><th>Aksi</th></tr></thead>
+      <tbody id="kas-akun-tbody"><tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+`;
+
+setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-kas')); }, 80);
+
+// Inject modals ke body
+document.body.insertAdjacentHTML('beforeend', `
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MODAL: TAMBAH/EDIT TRANSAKSI                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-kas-transaksi" onclick="if(event.target===this)hideModal('modal-kas-transaksi')">
+  <div class="modal" style="max-width:520px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" id="kas-form-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Transaksi</div>
+      <button onclick="hideModal('modal-kas-transaksi')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
+    <input type="hidden" id="kas-jrn-id">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 120px;min-width:110px"><label>Tanggal</label><input type="date" id="kas-jrn-tgl"></div>
+      <div class="form-group" style="flex:1 1 140px;min-width:130px"><label>Tipe</label>
+        <select id="kas-jrn-tipe" onchange="kasOnTipeChange()" style="width:100%">
+          <option value="masuk">💰 Uang Masuk</option>
+          <option value="keluar">💸 Uang Keluar</option>
+          <option value="jurnal">📋 Jurnal Umum</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:1 1 130px;min-width:120px"><label>Nominal (Rp)</label><input type="number" id="kas-jrn-nominal" placeholder="0" oninput="kasHitungJurnal()"></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 160px;min-width:140px">
+        <label id="kas-lbl-debit">Akun Debit (Masuk ke)</label>
+        <select id="kas-jrn-akun-debit" style="width:100%" onchange="kasHitungJurnal()"><option value="">— Pilih Akun —</option></select>
+      </div>
+      <div class="form-group" style="flex:1 1 160px;min-width:140px">
+        <label id="kas-lbl-kredit">Akun Kredit (Keluar dari)</label>
+        <select id="kas-jrn-akun-kredit" style="width:100%" onchange="kasHitungJurnal()"><option value="">— Pilih Akun —</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:2 1 200px"><label>Keterangan</label><input type="text" id="kas-jrn-ket" placeholder="mis: bayar iklan Shopee..."></div>
+      <div class="form-group" style="flex:1 1 120px"><label>No. Referensi <span style="color:var(--ink3);font-weight:400">(opsional)</span></label><input type="text" id="kas-jrn-ref" placeholder="mis: INV-001"></div>
+    </div>
+    <div id="kas-preview-entry" style="display:none;background:var(--cream2);border:1.5px dashed var(--ink3);padding:8px 12px;border-radius:2px;font-size:12px;margin-bottom:10px;color:var(--ink2)">
+      <b>Preview Jurnal:</b><br><span id="kas-preview-text"></span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="kasSimpanJurnal()"><i class="ti ti-device-floppy"></i> Simpan</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-kas-transaksi')"><i class="ti ti-x"></i> Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TAMBAH/EDIT AKUN -->
+<div class="modal-overlay" id="modal-kas-akun" onclick="if(event.target===this)hideModal('modal-kas-akun')">
+  <div class="modal" style="max-width:520px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" id="akun-form-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Akun Baru</div>
+      <button onclick="hideModal('modal-kas-akun')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
     <input type="hidden" id="akun-edit-id">
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
       <div class="form-group" style="flex:0 1 100px;min-width:90px"><label>Kode Akun</label><input type="text" id="akun-kode" placeholder="mis: 1-001"></div>
       <div class="form-group" style="flex:1 1 160px;min-width:140px"><label>Nama Akun</label><input type="text" id="akun-nama" placeholder="mis: Kas Tunai"></div>
       <div class="form-group" style="flex:1 1 140px;min-width:120px"><label>Kelompok</label>
@@ -156,23 +184,14 @@ document.getElementById('page-kas').innerHTML = `
         </select>
       </div>
       <div class="form-group" style="flex:1 1 140px;min-width:120px"><label>Sub Kelompok <span style="color:var(--ink3);font-weight:400">(opsional)</span></label><input type="text" id="akun-sub" placeholder="mis: Kas & Bank"></div>
-      <div style="display:flex;gap:6px;padding-bottom:2px">
-        <button class="btn btn-primary btn-sm" onclick="kasSimpanAkun()"><i class="ti ti-device-floppy"></i> Simpan</button>
-        <button class="btn btn-sm" id="akun-batal-btn" style="display:none" onclick="kasResetFormAkun()">Batal</button>
-      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="kasSimpanAkun()"><i class="ti ti-device-floppy"></i> Simpan</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-kas-akun')"><i class="ti ti-x"></i> Batal</button>
     </div>
   </div>
-  <div class="card">
-    <div class="card-title"><i class="ti ti-list"></i> Daftar Akun (Chart of Accounts)</div>
-    <div class="tbl-wrap" style="overflow-x:auto"><table class="tbl">
-      <thead><tr><th>Kode</th><th>Nama Akun</th><th>Kelompok</th><th>Sub Kelompok</th><th>Aksi</th></tr></thead>
-      <tbody id="kas-akun-tbody"><tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr></tbody>
-    </table></div>
-  </div>
 </div>
-`;
-
-setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-kas')); }, 80);
+`);
 
 // ─── TAB ─────────────────────────────────────────────────────
 function kasGotoTab(tab) {
@@ -249,7 +268,11 @@ function kasResetFormAkun() {
   ['akun-edit-id','akun-kode','akun-nama','akun-sub'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('akun-kelompok').value = 'aset';
   document.getElementById('akun-form-title').innerHTML = '<i class="ti ti-plus"></i> Tambah Akun Baru';
-  document.getElementById('akun-batal-btn').style.display = 'none';
+}
+
+function kasShowFormAkun() {
+  kasResetFormAkun();
+  showModal('modal-kas-akun');
 }
 
 async function kasEditAkun(id) {
@@ -260,8 +283,7 @@ async function kasEditAkun(id) {
   document.getElementById('akun-kelompok').value = a.kelompok || 'aset';
   document.getElementById('akun-sub').value      = a.sub_kelompok || '';
   document.getElementById('akun-form-title').innerHTML = '<i class="ti ti-edit"></i> Edit Akun';
-  document.getElementById('akun-batal-btn').style.display = 'inline-block';
-  document.getElementById('kas-panel-akun').scrollIntoView({behavior:'smooth'});
+  showModal('modal-kas-akun');
 }
 
 async function kasHapusAkun(id, nama) {
@@ -281,12 +303,10 @@ function kasShowForm() {
   document.getElementById('kas-jrn-ref').value = '';
   document.getElementById('kas-preview-entry').style.display = 'none';
   kasOnTipeChange();
-  document.getElementById('kas-form-wrap').style.display = 'block';
-  sketchForm('kas-form-wrap');
-  document.getElementById('kas-form-wrap').scrollIntoView({behavior:'smooth'});
+  showModal('modal-kas-transaksi');
 }
 
-function kasCancelForm() { document.getElementById('kas-form-wrap').style.display = 'none'; }
+function kasCancelForm() { hideModal('modal-kas-transaksi'); }
 
 function kasOnTipeChange() {
   const tipe = document.getElementById('kas-jrn-tipe').value;
@@ -425,9 +445,7 @@ async function kasEditJurnal(id) {
     document.getElementById('kas-jrn-akun-kredit').value = r.akun_kredit_id || '';
     kasHitungJurnal();
   }, 50);
-  document.getElementById('kas-form-wrap').style.display = 'block';
-  sketchForm('kas-form-wrap');
-  document.getElementById('kas-form-wrap').scrollIntoView({behavior:'smooth'});
+  showModal('modal-kas-transaksi');
 }
 
 async function kasHapusJurnal(id, ket) {

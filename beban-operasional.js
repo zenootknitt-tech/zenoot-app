@@ -16,30 +16,7 @@ document.getElementById('page-beban-operasional').innerHTML = `
     </div>
 
     <!-- FORM TOKO UTAMA -->
-    <div id="form-beban-toko_utama" style="display:none;margin-bottom:12px">
-      <div style="background:var(--cream2);border:2px solid var(--ink3);padding:10px;border-radius:4px">
-        <input type="hidden" id="bo-id-toko_utama">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nama Beban</label>
-            <input type="text" id="bo-nama-toko_utama" placeholder="mis: Iklan, Packaging, Ongkir">
-          </div>
-          <div class="form-group">
-            <label>Beban Operasional (%)</label>
-            <input type="number" id="bo-persen-toko_utama" placeholder="0" step="0.1" min="0" max="100">
-          </div>
-          <div class="form-group">
-            <label>Target NPM (%)</label>
-            <input type="number" id="bo-npm-toko_utama" placeholder="0" step="0.1" min="0" max="100">
-          </div>
-          <div class="form-group" style="flex:0;justify-content:flex-end">
-            <label>&nbsp;</label>
-            <button class="btn btn-primary btn-sm" onclick="simpanBeban('toko_utama')">Simpan</button>
-            <button class="btn btn-sm" onclick="cancelFormBeban('toko_utama')" style="margin-top:4px">Batal</button>
-          </div>
-        </div>
-      </div>
-    </div>
+</div>
 
     <div class="tbl-wrap"><table class="tbl">
       <thead>
@@ -65,30 +42,7 @@ document.getElementById('page-beban-operasional').innerHTML = `
     </div>
 
     <!-- FORM RESELLER -->
-    <div id="form-beban-reseller" style="display:none;margin-bottom:12px">
-      <div style="background:var(--cream2);border:2px solid var(--ink3);padding:10px;border-radius:4px">
-        <input type="hidden" id="bo-id-reseller">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nama Beban</label>
-            <input type="text" id="bo-nama-reseller" placeholder="mis: Komisi Reseller, Packaging">
-          </div>
-          <div class="form-group">
-            <label>Beban Operasional (%)</label>
-            <input type="number" id="bo-persen-reseller" placeholder="0" step="0.1" min="0" max="100">
-          </div>
-          <div class="form-group">
-            <label>Target NPM (%)</label>
-            <input type="number" id="bo-npm-reseller" placeholder="0" step="0.1" min="0" max="100">
-          </div>
-          <div class="form-group" style="flex:0;justify-content:flex-end">
-            <label>&nbsp;</label>
-            <button class="btn btn-primary btn-sm" onclick="simpanBeban('reseller')">Simpan</button>
-            <button class="btn btn-sm" onclick="cancelFormBeban('reseller')" style="margin-top:4px">Batal</button>
-          </div>
-        </div>
-      </div>
-    </div>
+</div>
 
     <div class="tbl-wrap"><table class="tbl">
       <thead>
@@ -173,7 +127,12 @@ function showFormBeban(tipe) {
 }
 
 function cancelFormBeban(tipe) {
-  document.getElementById('form-beban-' + tipe).style.display = 'none';
+  hideModal('modal-beban');
+}
+
+async function simpanBebanModal() {
+  var tipe = document.getElementById('beban-edit-tipe').value;
+  simpanBeban(tipe);
 }
 
 // ─── EDIT ────────────────────────────────────────────────────
@@ -239,3 +198,28 @@ document.getElementById('page-beban-operasional').addEventListener('click', func
 
 // ─── INIT ────────────────────────────────────────────────────
 loadBebanOperasional();
+
+document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-beban" onclick="if(event.target===this)hideModal('modal-beban')">
+  <div class="modal" style="max-width:420px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" id="beban-modal-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Beban</div>
+      <button onclick="hideModal('modal-beban')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
+    <input type="hidden" id="beban-edit-tipe">
+    <input type="hidden" id="beban-edit-id">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:2 1 160px">
+        <label>Nama Beban</label>
+        <input type="text" id="beban-modal-nama" placeholder="mis: Biaya Packing">
+      </div>
+      <div class="form-group" style="flex:1 1 100px">
+        <label>Beban Ops (%)</label>
+        <input type="number" id="beban-modal-pct" placeholder="0" step="0.1" min="0" max="100">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="simpanBebanModal()"><i class="ti ti-device-floppy"></i> Simpan</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-beban')"><i class="ti ti-x"></i> Batal</button>
+    </div>
+  </div>
+</div>`);

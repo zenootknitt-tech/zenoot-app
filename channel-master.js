@@ -25,26 +25,7 @@ document.getElementById('page-channel').innerHTML = `
         <i class="ti ti-plus"></i> Tambah
       </button>
     </div>
-    <div id="form-channel-toko_utama" style="display:none;margin-bottom:10px">
-      <div style="background:var(--cream2);border:2px solid var(--ink3);padding:10px;border-radius:4px">
-        <input type="hidden" id="ch-id-toko_utama">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nama Channel</label>
-            <input type="text" id="ch-nama-toko_utama" placeholder="mis: SHP.Zenoot, TKP.Alley">
-          </div>
-          <div class="form-group">
-            <label>Keterangan</label>
-            <input type="text" id="ch-ket-toko_utama" placeholder="opsional">
-          </div>
-          <div class="form-group" style="flex:0;justify-content:flex-end">
-            <label>&nbsp;</label>
-            <button class="btn btn-primary btn-sm" onclick="simpanChannel('toko_utama')">Simpan</button>
-            <button class="btn btn-sm" onclick="cancelFormChannel('toko_utama')" style="margin-top:4px">Batal</button>
-          </div>
-        </div>
-      </div>
-    </div>
+</div>
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>Nama Channel</th><th>Keterangan</th><th>Aksi</th></tr></thead>
       <tbody id="ch-tbody-toko_utama">
@@ -61,26 +42,7 @@ document.getElementById('page-channel').innerHTML = `
         <i class="ti ti-plus"></i> Tambah
       </button>
     </div>
-    <div id="form-channel-reseller" style="display:none;margin-bottom:10px">
-      <div style="background:var(--cream2);border:2px solid var(--ink3);padding:10px;border-radius:4px">
-        <input type="hidden" id="ch-id-reseller">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nama Reseller</label>
-            <input type="text" id="ch-nama-reseller" placeholder="mis: Agen A, Mitra B">
-          </div>
-          <div class="form-group">
-            <label>Keterangan</label>
-            <input type="text" id="ch-ket-reseller" placeholder="opsional">
-          </div>
-          <div class="form-group" style="flex:0;justify-content:flex-end">
-            <label>&nbsp;</label>
-            <button class="btn btn-primary btn-sm" onclick="simpanChannel('reseller')">Simpan</button>
-            <button class="btn btn-sm" onclick="cancelFormChannel('reseller')" style="margin-top:4px">Batal</button>
-          </div>
-        </div>
-      </div>
-    </div>
+</div>
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>Nama Reseller</th><th>Keterangan</th><th>Aksi</th></tr></thead>
       <tbody id="ch-tbody-reseller">
@@ -97,26 +59,7 @@ document.getElementById('page-channel').innerHTML = `
         <i class="ti ti-plus"></i> Tambah
       </button>
     </div>
-    <div id="form-channel-lazada" style="display:none;margin-bottom:10px">
-      <div style="background:var(--cream2);border:2px solid var(--ink3);padding:10px;border-radius:4px">
-        <input type="hidden" id="ch-id-lazada">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nama Toko Lazada</label>
-            <input type="text" id="ch-nama-lazada" placeholder="mis: LZD.ZenOot, LZD.Alley">
-          </div>
-          <div class="form-group">
-            <label>Keterangan</label>
-            <input type="text" id="ch-ket-lazada" placeholder="opsional">
-          </div>
-          <div class="form-group" style="flex:0;justify-content:flex-end">
-            <label>&nbsp;</label>
-            <button class="btn btn-primary btn-sm" onclick="simpanChannel('lazada')">Simpan</button>
-            <button class="btn btn-sm" onclick="cancelFormChannel('lazada')" style="margin-top:4px">Batal</button>
-          </div>
-        </div>
-      </div>
-    </div>
+</div>
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>Nama Toko Lazada</th><th>Keterangan</th><th>Aksi</th></tr></thead>
       <tbody id="ch-tbody-lazada">
@@ -135,26 +78,7 @@ document.getElementById('page-channel').innerHTML = `
         <i class="ti ti-plus"></i> Tambah
       </button>
     </div>
-    <div id="form-channel-tiktok" style="display:none;margin-bottom:10px">
-      <div style="background:var(--cream2);border:2px solid var(--ink3);padding:10px;border-radius:4px">
-        <input type="hidden" id="ch-id-tiktok">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nama Toko TikTok</label>
-            <input type="text" id="ch-nama-tiktok" placeholder="mis: TTK.ZenOot, TTK.Alley">
-          </div>
-          <div class="form-group">
-            <label>Keterangan</label>
-            <input type="text" id="ch-ket-tiktok" placeholder="opsional">
-          </div>
-          <div class="form-group" style="flex:0;justify-content:flex-end">
-            <label>&nbsp;</label>
-            <button class="btn btn-primary btn-sm" onclick="simpanChannel('tiktok')">Simpan</button>
-            <button class="btn btn-sm" onclick="cancelFormChannel('tiktok')" style="margin-top:4px">Batal</button>
-          </div>
-        </div>
-      </div>
-    </div>
+</div>
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>Nama Toko TikTok</th><th>Keterangan</th><th>Aksi</th></tr></thead>
       <tbody id="ch-tbody-tiktok">
@@ -171,26 +95,7 @@ document.getElementById('page-channel').innerHTML = `
         <i class="ti ti-plus"></i> Tambah
       </button>
     </div>
-    <div id="form-channel-offline" style="display:none;margin-bottom:10px">
-      <div style="background:var(--cream2);border:2px solid var(--ink3);padding:10px;border-radius:4px">
-        <input type="hidden" id="ch-id-offline">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nama Channel Offline</label>
-            <input type="text" id="ch-nama-offline" placeholder="mis: Bazaar JKT, Pop-up BDG">
-          </div>
-          <div class="form-group">
-            <label>Keterangan</label>
-            <input type="text" id="ch-ket-offline" placeholder="opsional">
-          </div>
-          <div class="form-group" style="flex:0;justify-content:flex-end">
-            <label>&nbsp;</label>
-            <button class="btn btn-primary btn-sm" onclick="simpanChannel('offline')">Simpan</button>
-            <button class="btn btn-sm" onclick="cancelFormChannel('offline')" style="margin-top:4px">Batal</button>
-          </div>
-        </div>
-      </div>
-    </div>
+</div>
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>Nama Channel</th><th>Keterangan</th><th>Aksi</th></tr></thead>
       <tbody id="ch-tbody-offline">
@@ -252,7 +157,12 @@ function showFormChannel(kat) {
 }
 
 function cancelFormChannel(kat) {
-  document.getElementById('form-channel-' + kat).style.display = 'none';
+  hideModal('modal-channel');
+}
+
+async function simpanChannelModal() {
+  var kat = document.getElementById('ch-edit-kat').value;
+  simpanChannel(kat);
 }
 
 // ─── EDIT ────────────────────────────────────────────────────
@@ -318,3 +228,28 @@ document.getElementById('page-channel').addEventListener('click', function(e) {
 
 // ─── INIT ────────────────────────────────────────────────────
 loadChannelMaster();
+
+document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-channel" onclick="if(event.target===this)hideModal('modal-channel')">
+  <div class="modal" style="max-width:440px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" id="ch-modal-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Channel</div>
+      <button onclick="hideModal('modal-channel')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
+    <input type="hidden" id="ch-edit-kat">
+    <input type="hidden" id="ch-edit-id">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 180px">
+        <label id="ch-modal-label">Nama Channel</label>
+        <input type="text" id="ch-modal-nama" placeholder="mis: SHP.ZENOOT">
+      </div>
+      <div class="form-group" style="flex:1 1 180px">
+        <label>Keterangan <span style="color:var(--ink3);font-weight:400">(opsional)</span></label>
+        <input type="text" id="ch-modal-ket" placeholder="keterangan...">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="simpanChannelModal()"><i class="ti ti-device-floppy"></i> Simpan</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-channel')"><i class="ti ti-x"></i> Batal</button>
+    </div>
+  </div>
+</div>`);
