@@ -199,7 +199,33 @@ document.getElementById('page-beban-operasional').addEventListener('click', func
 // ─── INIT ────────────────────────────────────────────────────
 loadBebanOperasional();
 
-document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-beban" onclick="if(event.target===this)hideModal('modal-beban')">
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function(){ document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-beban" onclick="if(event.target===this)hideModal('modal-beban')">
+  <div class="modal" style="max-width:420px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" id="beban-modal-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Beban</div>
+      <button onclick="hideModal('modal-beban')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
+    <input type="hidden" id="beban-edit-tipe">
+    <input type="hidden" id="beban-edit-id">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:2 1 160px">
+        <label>Nama Beban</label>
+        <input type="text" id="beban-modal-nama" placeholder="mis: Biaya Packing">
+      </div>
+      <div class="form-group" style="flex:1 1 100px">
+        <label>Beban Ops (%)</label>
+        <input type="number" id="beban-modal-pct" placeholder="0" step="0.1" min="0" max="100">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="simpanBebanModal()"><i class="ti ti-device-floppy"></i> Simpan</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-beban')"><i class="ti ti-x"></i> Batal</button>
+    </div>
+  </div>
+</div>`); });
+} else {
+  document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-beban" onclick="if(event.target===this)hideModal('modal-beban')">
   <div class="modal" style="max-width:420px;width:100%">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
       <div class="modal-title" id="beban-modal-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Beban</div>
@@ -223,3 +249,4 @@ document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="mo
     </div>
   </div>
 </div>`);
+}

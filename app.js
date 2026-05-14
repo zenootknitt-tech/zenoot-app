@@ -250,53 +250,23 @@ function fmtRpShort(v) {
 function chBadge(nama) {
   if (!nama) return '<span style="color:var(--ink3)">—</span>';
   const n = nama.toUpperCase();
+  const wrap = (svg, label) =>
+    '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px;white-space:nowrap">' + svg + label + '</span>';
 
-  // Shopee
-  if (n.indexOf('SHP') !== -1 || n.indexOf('SHOPEE') !== -1) {
-    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
-      '<svg width="13" height="13" viewBox="0 0 38 38" fill="none" style="flex-shrink:0"><path d="M19 2C10.163 2 3 9.163 3 18c0 6.077 3.32 11.373 8.25 14.22L10 36l4.5-2.25A16.9 16.9 0 0019 34c8.837 0 16-7.163 16-16S27.837 2 19 2z" fill="currentColor" opacity="0.2"/><path d="M24.5 13.5c0-3.038-2.462-5.5-5.5-5.5S13.5 10.462 13.5 13.5H11L12.5 28h13L27 13.5h-2.5z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" fill="none"/><circle cx="16" cy="13.5" r="1.2" fill="currentColor"/><circle cx="22" cy="13.5" r="1.2" fill="currentColor"/></svg>' +
-      nama + '</span>';
-  }
+  // SVG icons monokrom
+  const SHOPEE_SVG  = '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><path d="M20 4C11.163 4 4 11.163 4 20c0 8.837 7.163 16 16 16s16-7.163 16-16S28.837 4 20 4z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M26 16c0-3.314-2.686-6-6-6s-6 2.686-6 6H11l1.5 14h15L29 16h-3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><circle cx="17" cy="16" r="1.2" fill="currentColor"/><circle cx="23" cy="16" r="1.2" fill="currentColor"/></svg>';
+  const LAZADA_SVG  = '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><rect x="4" y="4" width="32" height="32" rx="5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M11 28V12h4v12h10v4H11z" fill="currentColor"/></svg>';
+  const TIKTOK_SVG  = '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><path d="M26 6c0 4.4 3.6 8 8 8v5c-3 0-5.8-1-8-2.7V26c0 6.1-4.9 11-11 11S4 32.1 4 26s4.9-11 11-11c.6 0 1.1 0 1.6.1v5.5c-.5-.1-1.1-.1-1.6-.1-3 0-5.5 2.5-5.5 5.5s2.5 5.5 5.5 5.5 5.5-2.5 5.5-5.5V6h5z" fill="currentColor"/></svg>';
+  const STORE_SVG   = '<i class="ti ti-store" style="font-size:13px"></i>';
+  const USERS_SVG   = '<i class="ti ti-users" style="font-size:13px"></i>';
+  const CHANNEL_SVG = '<i class="ti ti-antenna" style="font-size:13px"></i>';
 
-  // Lazada
-  if (n.indexOf('LZD') !== -1 || n.indexOf('LAZ') !== -1 || n.indexOf('LAZADA') !== -1) {
-    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
-      '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><rect x="4" y="4" width="32" height="32" rx="6" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M11 28V12h4v12h10v4H11z" fill="currentColor"/></svg>' +
-      nama + '</span>';
-  }
-
-  // TikTok
-  if (n.indexOf('TT') !== -1 || n.indexOf('TIKTOK') !== -1 || n.indexOf('TIK') !== -1) {
-    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
-      '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><path d="M28 8c0 4 3.2 7.2 7.2 7.2v4.8c-2.7 0-5.2-.9-7.2-2.4v11.2c0 5.5-4.5 10-10 10S8 34.3 8 28.8s4.5-10 10-10c.5 0 1 0 1.5.1v5c-.5-.1-1-.1-1.5-.1-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5V8h5z" fill="currentColor"/></svg>' +
-      nama + '</span>';
-  }
-
-  // Tokopedia
-  if (n.indexOf('TKP') !== -1 || n.indexOf('TOKO') !== -1 || n.indexOf('TOKOPEDIA') !== -1) {
-    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
-      '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><circle cx="20" cy="20" r="16" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M13 20c0-3.9 3.1-7 7-7s7 3.1 7 7-3.1 7-7 7-7-3.1-7-7z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="20" cy="20" r="3" fill="currentColor"/></svg>' +
-      nama + '</span>';
-  }
-
-  // Offline / COD
-  if (n.indexOf('OFFLINE') !== -1 || n.indexOf('COD') !== -1 || n.indexOf('TUNAI') !== -1) {
-    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
-      '<i class="ti ti-store" style="font-size:13px"></i>' +
-      nama + '</span>';
-  }
-
-  // Reseller
-  if (n.indexOf('RESELLER') !== -1 || n.indexOf('DIHI') !== -1 || n.indexOf('LOKAN') !== -1 || n.indexOf('OUTFIT') !== -1 || n.indexOf('RILOKA') !== -1) {
-    return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
-      '<i class="ti ti-users" style="font-size:13px"></i>' +
-      nama + '</span>';
-  }
-
-  // Default
-  return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink);background:var(--cream2);border:1.5px solid var(--ink3);padding:2px 7px;border-radius:3px">' +
-    '<i class="ti ti-antenna" style="font-size:13px"></i>' +
-    nama + '</span>';
+  if (n.indexOf('SHP') !== -1 || n.indexOf('SHOPEE') !== -1) return wrap(SHOPEE_SVG, nama);
+  if (n.indexOf('LZD') !== -1 || n.indexOf('LAZ') !== -1)    return wrap(LAZADA_SVG, nama);
+  if (n.indexOf('TT.') !== -1 || n.indexOf('TIKTOK') !== -1) return wrap(TIKTOK_SVG, nama);
+  if (n.indexOf('OFFLINE') !== -1 || n.indexOf('COD') !== -1) return wrap(STORE_SVG, nama);
+  if (n.indexOf('DIHI') !== -1 || n.indexOf('LOKAN') !== -1 || n.indexOf('OUTFIT') !== -1 || n.indexOf('RILOKA') !== -1) return wrap(USERS_SVG, nama);
+  return wrap(CHANNEL_SVG, nama);
 }
 
 // ─── PREVENT DOUBLE-TAP ZOOM (Samsung Browser) ───────────────

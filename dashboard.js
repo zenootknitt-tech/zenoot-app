@@ -645,7 +645,7 @@ function _renderChannel(jpData) {
   const chRows = sorted.slice(0, 5).map(([ch, d], i) => {
     const pct = totalOmset>0 ? (d.omset/totalOmset*100).toFixed(0) : 0;
     return '<tr>' +
-      '<td><b style="color:'+colors[i%colors.length]+'">'+ch+'</b></td>' +
+      '<td>'+chBadge(ch)+'</td>' +
       '<td style="text-align:center">'+d.trx+'</td>' +
       '<td style="text-align:center">'+d.qty+'</td>' +
       '<td><b style="color:var(--ok)">'+_fmtRp(d.omset)+'</b></td>' +

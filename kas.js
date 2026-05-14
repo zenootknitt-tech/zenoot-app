@@ -117,7 +117,84 @@ document.getElementById('page-kas').innerHTML = `
 setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-kas')); }, 80);
 
 // Inject modals ke body
-document.body.insertAdjacentHTML('beforeend', `
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function(){ document.body.insertAdjacentHTML('beforeend', `
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MODAL: TAMBAH/EDIT TRANSAKSI                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-kas-transaksi" onclick="if(event.target===this)hideModal('modal-kas-transaksi')">
+  <div class="modal" style="max-width:520px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" id="kas-form-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Transaksi</div>
+      <button onclick="hideModal('modal-kas-transaksi')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
+    <input type="hidden" id="kas-jrn-id">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 120px;min-width:110px"><label>Tanggal</label><input type="date" id="kas-jrn-tgl"></div>
+      <div class="form-group" style="flex:1 1 140px;min-width:130px"><label>Tipe</label>
+        <select id="kas-jrn-tipe" onchange="kasOnTipeChange()" style="width:100%">
+          <option value="masuk">💰 Uang Masuk</option>
+          <option value="keluar">💸 Uang Keluar</option>
+          <option value="jurnal">📋 Jurnal Umum</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:1 1 130px;min-width:120px"><label>Nominal (Rp)</label><input type="number" id="kas-jrn-nominal" placeholder="0" oninput="kasHitungJurnal()"></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 160px;min-width:140px">
+        <label id="kas-lbl-debit">Akun Debit (Masuk ke)</label>
+        <select id="kas-jrn-akun-debit" style="width:100%" onchange="kasHitungJurnal()"><option value="">— Pilih Akun —</option></select>
+      </div>
+      <div class="form-group" style="flex:1 1 160px;min-width:140px">
+        <label id="kas-lbl-kredit">Akun Kredit (Keluar dari)</label>
+        <select id="kas-jrn-akun-kredit" style="width:100%" onchange="kasHitungJurnal()"><option value="">— Pilih Akun —</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:2 1 200px"><label>Keterangan</label><input type="text" id="kas-jrn-ket" placeholder="mis: bayar iklan Shopee..."></div>
+      <div class="form-group" style="flex:1 1 120px"><label>No. Referensi <span style="color:var(--ink3);font-weight:400">(opsional)</span></label><input type="text" id="kas-jrn-ref" placeholder="mis: INV-001"></div>
+    </div>
+    <div id="kas-preview-entry" style="display:none;background:var(--cream2);border:1.5px dashed var(--ink3);padding:8px 12px;border-radius:2px;font-size:12px;margin-bottom:10px;color:var(--ink2)">
+      <b>Preview Jurnal:</b><br><span id="kas-preview-text"></span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="kasSimpanJurnal()"><i class="ti ti-device-floppy"></i> Simpan</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-kas-transaksi')"><i class="ti ti-x"></i> Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TAMBAH/EDIT AKUN -->
+<div class="modal-overlay" id="modal-kas-akun" onclick="if(event.target===this)hideModal('modal-kas-akun')">
+  <div class="modal" style="max-width:520px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" id="akun-form-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Akun Baru</div>
+      <button onclick="hideModal('modal-kas-akun')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
+    <input type="hidden" id="akun-edit-id">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
+      <div class="form-group" style="flex:0 1 100px;min-width:90px"><label>Kode Akun</label><input type="text" id="akun-kode" placeholder="mis: 1-001"></div>
+      <div class="form-group" style="flex:1 1 160px;min-width:140px"><label>Nama Akun</label><input type="text" id="akun-nama" placeholder="mis: Kas Tunai"></div>
+      <div class="form-group" style="flex:1 1 140px;min-width:120px"><label>Kelompok</label>
+        <select id="akun-kelompok" style="width:100%">
+          <option value="aset">Aset</option>
+          <option value="kewajiban">Kewajiban</option>
+          <option value="modal">Modal</option>
+          <option value="pendapatan">Pendapatan</option>
+          <option value="beban">Beban</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:1 1 140px;min-width:120px"><label>Sub Kelompok <span style="color:var(--ink3);font-weight:400">(opsional)</span></label><input type="text" id="akun-sub" placeholder="mis: Kas & Bank"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="kasSimpanAkun()"><i class="ti ti-device-floppy"></i> Simpan</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-kas-akun')"><i class="ti ti-x"></i> Batal</button>
+    </div>
+  </div>
+</div>
+`); });
+} else {
+  document.body.insertAdjacentHTML('beforeend', `
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- MODAL: TAMBAH/EDIT TRANSAKSI                               -->
 <!-- ═══════════════════════════════════════════════════════════ -->
@@ -192,6 +269,7 @@ document.body.insertAdjacentHTML('beforeend', `
   </div>
 </div>
 `);
+}
 
 // ─── TAB ─────────────────────────────────────────────────────
 function kasGotoTab(tab) {

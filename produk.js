@@ -270,7 +270,30 @@ document.getElementById('page-produk').addEventListener('click', function(e) {
   }
 });
 
-document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-produk" onclick="if(event.target===this)hideModal('modal-produk')">
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function(){ document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-produk" onclick="if(event.target===this)hideModal('modal-produk')">
+  <div class="modal" style="max-width:480px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" id="produk-form-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah SKU</div>
+      <button onclick="hideModal('modal-produk')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
+    <input type="hidden" id="prd-id">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 140px"><label>Katalog</label><input type="text" id="prd-katalog" placeholder="mis: TURTLENECK"></div>
+      <div class="form-group" style="flex:1 1 140px"><label>SKU Variasi</label><input type="text" id="prd-sku" placeholder="mis: Turtleneck_HITAM-M"></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 120px"><label>HPP (Rp)</label><input type="number" id="prd-hpp" placeholder="0"></div>
+      <div class="form-group" style="flex:1 1 120px"><label>Boss</label><input type="text" id="prd-boss" placeholder="mis: ALAN"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="simpanProduk()"><i class="ti ti-device-floppy"></i> Simpan</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-produk')"><i class="ti ti-x"></i> Batal</button>
+    </div>
+  </div>
+</div>`); });
+} else {
+  document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-produk" onclick="if(event.target===this)hideModal('modal-produk')">
   <div class="modal" style="max-width:480px;width:100%">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
       <div class="modal-title" id="produk-form-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah SKU</div>
@@ -291,3 +314,4 @@ document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="mo
     </div>
   </div>
 </div>`);
+}

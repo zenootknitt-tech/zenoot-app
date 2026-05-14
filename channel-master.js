@@ -229,7 +229,33 @@ document.getElementById('page-channel').addEventListener('click', function(e) {
 // ─── INIT ────────────────────────────────────────────────────
 loadChannelMaster();
 
-document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-channel" onclick="if(event.target===this)hideModal('modal-channel')">
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function(){ document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-channel" onclick="if(event.target===this)hideModal('modal-channel')">
+  <div class="modal" style="max-width:440px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" id="ch-modal-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Channel</div>
+      <button onclick="hideModal('modal-channel')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
+    <input type="hidden" id="ch-edit-kat">
+    <input type="hidden" id="ch-edit-id">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 180px">
+        <label id="ch-modal-label">Nama Channel</label>
+        <input type="text" id="ch-modal-nama" placeholder="mis: SHP.ZENOOT">
+      </div>
+      <div class="form-group" style="flex:1 1 180px">
+        <label>Keterangan <span style="color:var(--ink3);font-weight:400">(opsional)</span></label>
+        <input type="text" id="ch-modal-ket" placeholder="keterangan...">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="simpanChannelModal()"><i class="ti ti-device-floppy"></i> Simpan</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-channel')"><i class="ti ti-x"></i> Batal</button>
+    </div>
+  </div>
+</div>`); });
+} else {
+  document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="modal-channel" onclick="if(event.target===this)hideModal('modal-channel')">
   <div class="modal" style="max-width:440px;width:100%">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
       <div class="modal-title" id="ch-modal-title" style="margin:0;border:none;padding:0;font-size:18px"><i class="ti ti-plus"></i> Tambah Channel</div>
@@ -253,3 +279,4 @@ document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="mo
     </div>
   </div>
 </div>`);
+}
