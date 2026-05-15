@@ -625,7 +625,7 @@ function _renderChannel(jpData) {
   jpData.forEach(r => {
     const ch  = _dashChannelMap[r.channel_id];
     const key = ch ? (ch.nama || ('Ch#'+r.channel_id)) : 'Tidak Diketahui';
-    if (!chMap[key]) chMap[key] = {trx:0, qty:0, omset:0};
+    if (!chMap[key]) chMap[key] = {trx:0, qty:0, omset:0, kategori: ch ? (ch.kategori||'') : ''};
     chMap[key].trx++;
     chMap[key].qty   += (Number(r.qty)||0);
     chMap[key].omset += (Number(r.total)||0);
@@ -642,10 +642,12 @@ function _renderChannel(jpData) {
     return;
   }
 
-  const chRows = sorted.slice(0, 5).map(([ch, d], i) => {
+  const chRows = sorted.slice(0, 5).map(([chNama, d], i) => {
     const pct = totalOmset>0 ? (d.omset/totalOmset*100).toFixed(0) : 0;
+    // Pass object {nama, kategori} ke chBadge agar icon akurat
+    const badgeHtml = chBadge({ nama: chNama, kategori: d.kategori });
     return '<tr>' +
-      '<td>'+chBadge(ch)+'</td>' +
+      '<td>'+badgeHtml+'</td>' +
       '<td style="text-align:center">'+d.trx+'</td>' +
       '<td style="text-align:center">'+d.qty+'</td>' +
       '<td><b style="color:var(--ok)">'+_fmtRp(d.omset)+'</b></td>' +

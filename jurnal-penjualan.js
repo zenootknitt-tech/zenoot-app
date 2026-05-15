@@ -299,36 +299,37 @@ async function loadChannelDropdownJP() {
     _jpChannelMap = {};
     data.forEach(ch => { _jpChannelMap[ch.id] = ch; });
 
-    let fHtml = '<option value="">— Pilih Channel —</option>';
+    // Label + icon per kategori
+    const katConfig = {
+      toko_utama: { label: 'Toko Utama',  icon: 'shopee'   },
+      reseller:   { label: 'Reseller',    icon: 'reseller' },
+      lazada:     { label: 'Lazada',      icon: 'lazada'   },
+      tiktok:     { label: 'TikTok',      icon: 'tiktok'   },
+      offline:    { label: 'Offline',     icon: 'offline'  },
+    };
+
+    let fHtml    = '<option value="">— Pilih Channel —</option>';
     let filtHtml = '<option value="">Semua Channel</option>';
 
-    const hasKategori = data[0] && data[0].kategori !== undefined;
+    const grouped = {};
+    data.forEach(ch => {
+      const k = ch.kategori || 'lainnya';
+      if (!grouped[k]) grouped[k] = [];
+      grouped[k].push(ch);
+    });
 
-    if (hasKategori) {
-      const katLabel = { toko_utama: 'Toko Utama', reseller: 'Reseller', offline: 'Offline' };
-      const grouped = {};
-      data.forEach(ch => {
-        const k = ch.kategori || 'lainnya';
-        if (!grouped[k]) grouped[k] = [];
-        grouped[k].push(ch);
-      });
-      Object.entries(grouped).forEach(([kat, items]) => {
-        const lbl = katLabel[kat] || kat;
-        fHtml    += '<optgroup label="── ' + lbl + ' ──">';
-        filtHtml += '<optgroup label="── ' + lbl + ' ──">';
-        items.forEach(ch => {
-          fHtml    += '<option value="' + ch.id + '">' + ch.nama + '</option>';
-          filtHtml += '<option value="' + ch.id + '">' + ch.nama + '</option>';
-        });
-        fHtml    += '</optgroup>';
-        filtHtml += '</optgroup>';
-      });
-    } else {
-      data.forEach(ch => {
+    Object.entries(grouped).forEach(([kat, items]) => {
+      const cfg  = katConfig[kat] || { label: kat, icon: 'default' };
+      const lbl  = '── ' + cfg.label + ' ──';
+      fHtml    += '<optgroup label="' + lbl + '">';
+      filtHtml += '<optgroup label="' + lbl + '">';
+      items.forEach(ch => {
         fHtml    += '<option value="' + ch.id + '">' + ch.nama + '</option>';
         filtHtml += '<option value="' + ch.id + '">' + ch.nama + '</option>';
       });
-    }
+      fHtml    += '</optgroup>';
+      filtHtml += '</optgroup>';
+    });
 
     document.getElementById('jp-channel').innerHTML        = fHtml;
     document.getElementById('jp-filter-channel').innerHTML = filtHtml;
@@ -606,7 +607,7 @@ function renderTabelJP(data) {
     const jam = row.waktu ? String(row.waktu).slice(0,5) : '—';
     const ch  = _jpChannelMap[row.channel_id];
     const chLabel = ch ? ch.nama : (row.channel_id ? '#'+row.channel_id : '—');
-    const chHtml  = ch ? chBadge(ch.nama) : '<span style="color:var(--ink3)">—</span>';
+    const chHtml  = ch ? chBadge({ nama: ch.nama, kategori: ch.kategori||'' }) : '<span style="color:var(--ink3)">—</span>';
     return '<tr>'
       + '<td style="white-space:nowrap"><b>' + tgl + '</b><br>'
       + '<span style="font-size:11px;color:var(--ink3)">' + jam + '</span></td>'

@@ -246,27 +246,87 @@ function fmtRpShort(v) {
 }
 
 // ─── GLOBAL CHANNEL LOGO / ICON ──────────────────────────────
-// Mengembalikan HTML badge monokrom berdasarkan nama channel
-function chBadge(nama) {
+// chBadge(input) — input bisa:
+//   string: nama channel saja (fallback deteksi nama)
+//   object: { nama, kategori } — deteksi akurat via kategori DB
+//
+// Dipakai di: dashboard, jurnal-penjualan, channel-master, dropdown
+
+// ── SVG ICONS (monokrom, ikut currentColor tema app) ─────────
+var CH_SVG = {
+  shopee: '<svg width="14" height="14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">' +
+    '<rect x="8" y="28" width="84" height="64" rx="10" fill="currentColor"/>' +
+    '<path d="M34 28 C34 14 66 14 66 28" stroke="currentColor" stroke-width="7" fill="none" stroke-linecap="round"/>' +
+    '<path d="M58 44C58 39.6 54.4 36 50 36C45.6 36 42 39.6 42 44C42 48.4 45.6 52 50 52C54.4 52 58 55.6 58 60C58 64.4 54.4 68 50 68C45.6 68 42 64.4 42 60" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>' +
+    '<line x1="50" y1="33" x2="50" y2="38" stroke="white" stroke-width="5" stroke-linecap="round"/>' +
+    '<line x1="50" y1="67" x2="50" y2="72" stroke="white" stroke-width="5" stroke-linecap="round"/>' +
+  '</svg>',
+
+  lazada: '<svg width="14" height="14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">' +
+    '<rect x="6" y="6" width="88" height="88" rx="14" fill="currentColor"/>' +
+    '<path d="M28 72V28h14v32h30v12H28z" fill="white"/>' +
+  '</svg>',
+
+  tiktok: '<svg width="14" height="14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">' +
+    '<path d="M65 8c0 11 9 20 20 20v13c-7.5 0-14.5-2.5-20-6.7V62c0 15.2-12.3 27.5-27.5 27.5S10 77.2 10 62s12.3-27.5 27.5-27.5c1.3 0 2.5.1 3.8.3v13.7c-1.2-.3-2.5-.5-3.8-.5C30 48 22 56 22 66s8 18 15.5 18S53 74 53 64V8h12z" fill="currentColor"/>' +
+  '</svg>',
+
+  reseller: '<svg width="14" height="14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">' +
+    '<circle cx="35" cy="32" r="14" stroke="currentColor" stroke-width="7" fill="none"/>' +
+    '<circle cx="68" cy="28" r="11" stroke="currentColor" stroke-width="6" fill="none"/>' +
+    '<path d="M6 80c0-16 13-28 29-28s29 12 29 28" stroke="currentColor" stroke-width="7" fill="none" stroke-linecap="round"/>' +
+    '<path d="M68 52c10 0 22 7 22 22" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round"/>' +
+  '</svg>',
+
+  offline: '<svg width="14" height="14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">' +
+    '<path d="M10 45L50 10l40 35v45H62V70H38v30H10z" stroke="currentColor" stroke-width="7" fill="none" stroke-linejoin="round"/>' +
+  '</svg>',
+
+  default: '<svg width="14" height="14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">' +
+    '<circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="7" fill="none"/>' +
+    '<path d="M50 8C50 8 30 30 30 50s20 42 20 42" stroke="currentColor" stroke-width="5" fill="none"/>' +
+    '<path d="M50 8c0 0 20 22 20 42s-20 42-20 42" stroke="currentColor" stroke-width="5" fill="none"/>' +
+    '<line x1="8" y1="50" x2="92" y2="50" stroke="currentColor" stroke-width="5"/>' +
+    '<line x1="14" y1="28" x2="86" y2="28" stroke="currentColor" stroke-width="5"/>' +
+    '<line x1="14" y1="72" x2="86" y2="72" stroke="currentColor" stroke-width="5"/>' +
+  '</svg>'
+};
+
+// ── HELPER: icon saja (tanpa label) ──────────────────────────
+function chIcon(input) {
+  var kat = '';
+  var nama = '';
+  if (input && typeof input === 'object') {
+    kat  = (input.kategori || '').toLowerCase();
+    nama = input.nama || '';
+  } else {
+    nama = input || '';
+  }
+  var n = nama.toUpperCase();
+
+  // Prioritaskan kategori dari DB jika ada
+  if (kat === 'toko_utama')  return CH_SVG.shopee;
+  if (kat === 'lazada')      return CH_SVG.lazada;
+  if (kat === 'tiktok')      return CH_SVG.tiktok;
+  if (kat === 'reseller')    return CH_SVG.reseller;
+  if (kat === 'offline')     return CH_SVG.offline;
+
+  // Fallback: tebak dari nama
+  if (n.indexOf('SHP') !== -1 || n.indexOf('SHOPEE') !== -1) return CH_SVG.shopee;
+  if (n.indexOf('LZD') !== -1 || n.indexOf('LAZ')    !== -1) return CH_SVG.lazada;
+  if (n.indexOf('TT.')  !== -1 || n.indexOf('TIKTOK') !== -1) return CH_SVG.tiktok;
+  if (n.indexOf('OFFLINE') !== -1 || n.indexOf('COD') !== -1) return CH_SVG.offline;
+  return CH_SVG.default;
+}
+
+// ── BADGE: icon + nama ────────────────────────────────────────
+function chBadge(input) {
+  if (!input) return '<span style="color:var(--ink3)">—</span>';
+  var nama = (typeof input === 'object') ? (input.nama || '') : input;
   if (!nama) return '<span style="color:var(--ink3)">—</span>';
-  const n = nama.toUpperCase();
-  const wrap = (svg, label) =>
-    '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap">' + svg + label + '</span>';
-
-  // SVG icons monokrom
-  const SHOPEE_SVG  = '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><path d="M20 4C11.163 4 4 11.163 4 20c0 8.837 7.163 16 16 16s16-7.163 16-16S28.837 4 20 4z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M26 16c0-3.314-2.686-6-6-6s-6 2.686-6 6H11l1.5 14h15L29 16h-3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><circle cx="17" cy="16" r="1.2" fill="currentColor"/><circle cx="23" cy="16" r="1.2" fill="currentColor"/></svg>';
-  const LAZADA_SVG  = '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><rect x="4" y="4" width="32" height="32" rx="5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M11 28V12h4v12h10v4H11z" fill="currentColor"/></svg>';
-  const TIKTOK_SVG  = '<svg width="13" height="13" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><path d="M26 6c0 4.4 3.6 8 8 8v5c-3 0-5.8-1-8-2.7V26c0 6.1-4.9 11-11 11S4 32.1 4 26s4.9-11 11-11c.6 0 1.1 0 1.6.1v5.5c-.5-.1-1.1-.1-1.6-.1-3 0-5.5 2.5-5.5 5.5s2.5 5.5 5.5 5.5 5.5-2.5 5.5-5.5V6h5z" fill="currentColor"/></svg>';
-  const STORE_SVG   = '<i class="ti ti-store" style="font-size:13px"></i>';
-  const USERS_SVG   = '<i class="ti ti-users" style="font-size:13px"></i>';
-  const CHANNEL_SVG = '<i class="ti ti-antenna" style="font-size:13px"></i>';
-
-  if (n.indexOf('SHP') !== -1 || n.indexOf('SHOPEE') !== -1) return wrap(SHOPEE_SVG, nama);
-  if (n.indexOf('LZD') !== -1 || n.indexOf('LAZ') !== -1)    return wrap(LAZADA_SVG, nama);
-  if (n.indexOf('TT.') !== -1 || n.indexOf('TIKTOK') !== -1) return wrap(TIKTOK_SVG, nama);
-  if (n.indexOf('OFFLINE') !== -1 || n.indexOf('COD') !== -1) return wrap(STORE_SVG, nama);
-  if (n.indexOf('DIHI') !== -1 || n.indexOf('LOKAN') !== -1 || n.indexOf('OUTFIT') !== -1 || n.indexOf('RILOKA') !== -1) return wrap(USERS_SVG, nama);
-  return wrap(CHANNEL_SVG, nama);
+  return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap">' +
+    chIcon(input) + nama +
+  '</span>';
 }
 
 // ─── PREVENT DOUBLE-TAP ZOOM (Samsung Browser) ───────────────
