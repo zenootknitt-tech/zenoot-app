@@ -20,6 +20,9 @@ document.getElementById('page-channel').innerHTML = `
         </svg>
         Shopee
       </span>
+      <button class="btn btn-sm" onclick="showEditKategori('toko_utama','Shopee')" title="Set beban untuk semua channel Shopee sekaligus" style="margin-right:4px">
+        <i class="ti ti-adjustments"></i> Edit Kategori
+      </button>
       <button class="btn btn-sm btn-primary" onclick="showFormChannel('toko_utama')">
         <i class="ti ti-plus"></i> Tambah
       </button>
@@ -36,6 +39,9 @@ document.getElementById('page-channel').innerHTML = `
   <div class="card" style="margin-bottom:14px">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <span style="display:inline-flex;align-items:center;gap:6px"><i class="ti ti-users" style="font-size:16px"></i> Reseller</span>
+      <button class="btn btn-sm" onclick="showEditKategori('reseller','Reseller')" title="Set beban untuk semua reseller sekaligus" style="margin-right:4px">
+        <i class="ti ti-adjustments"></i> Edit Kategori
+      </button>
       <button class="btn btn-sm btn-primary" onclick="showFormChannel('reseller')">
         <i class="ti ti-plus"></i> Tambah
       </button>
@@ -52,6 +58,9 @@ document.getElementById('page-channel').innerHTML = `
   <div class="card" style="margin-bottom:14px">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <span><i class="ti ti-shopping-bag"></i> Lazada</span>
+      <button class="btn btn-sm" onclick="showEditKategori('lazada','Lazada')" title="Set beban untuk semua channel Lazada sekaligus" style="margin-right:4px">
+        <i class="ti ti-adjustments"></i> Edit Kategori
+      </button>
       <button class="btn btn-sm btn-primary" onclick="showFormChannel('lazada')">
         <i class="ti ti-plus"></i> Tambah
       </button>
@@ -71,6 +80,9 @@ document.getElementById('page-channel').innerHTML = `
         <svg width="16" height="16" viewBox="0 0 40 40" fill="none" style="flex-shrink:0"><path d="M28 8c0 4 3.2 7.2 7.2 7.2v4.8c-2.7 0-5.2-.9-7.2-2.4v11.2c0 5.5-4.5 10-10 10S8 34.3 8 28.8s4.5-10 10-10c.5 0 1 0 1.5.1v5c-.5-.1-1-.1-1.5-.1-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5V8h5z" fill="currentColor"/></svg>
         TikTok
       </span>
+      <button class="btn btn-sm" onclick="showEditKategori('tiktok','TikTok')" title="Set beban untuk semua channel TikTok sekaligus" style="margin-right:4px">
+        <i class="ti ti-adjustments"></i> Edit Kategori
+      </button>
       <button class="btn btn-sm btn-primary" onclick="showFormChannel('tiktok')">
         <i class="ti ti-plus"></i> Tambah
       </button>
@@ -87,6 +99,9 @@ document.getElementById('page-channel').innerHTML = `
   <div class="card">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <span><i class="ti ti-map-pin"></i> Offline</span>
+      <button class="btn btn-sm" onclick="showEditKategori('offline','Offline')" title="Set beban untuk semua channel Offline sekaligus" style="margin-right:4px">
+        <i class="ti ti-adjustments"></i> Edit Kategori
+      </button>
       <button class="btn btn-sm btn-primary" onclick="showFormChannel('offline')">
         <i class="ti ti-plus"></i> Tambah
       </button>
@@ -289,6 +304,89 @@ document.getElementById('page-channel').addEventListener('click', function(e) {
   }
 });
 
+// ─── EDIT BEBAN PER KATEGORI (bulk set semua channel dalam 1 kategori) ──
+async function showEditKategori(kat, label) {
+  document.getElementById('ek-kat').value              = kat;
+  document.getElementById('ek-label').textContent      = label;
+  document.getElementById('ek-beban').value            = '';
+  document.getElementById('ek-npm').value              = '';
+  document.getElementById('ek-preview').textContent    = '';
+  document.getElementById('ek-count').textContent      = '...';
+
+  // Hitung berapa channel dalam kategori ini
+  try {
+    const list = await dbGet('channels', '&kategori=eq.' + kat);
+    document.getElementById('ek-count').textContent = list ? list.length : 0;
+  } catch(e) { document.getElementById('ek-count').textContent = '?'; }
+
+  showModal('modal-edit-kategori');
+}
+
+function ekUpdatePreview() {
+  var b = parseFloat(document.getElementById('ek-beban').value) || 0;
+  var n = parseFloat(document.getElementById('ek-npm').value)   || 0;
+  var mult = (1 + (b + n) / 100).toFixed(3);
+  document.getElementById('ek-preview').innerHTML =
+    'Multiplier: <b>×' + mult + '</b> &nbsp;|&nbsp; ' +
+    'Contoh HPP Rp50.000 → <b>Rp' + Math.ceil(50000 * parseFloat(mult)).toLocaleString('id-ID') + '</b>';
+}
+
+async function simpanKategoriBeban() {
+  var kat   = document.getElementById('ek-kat').value;
+  var label = document.getElementById('ek-label').textContent;
+  var bVal  = document.getElementById('ek-beban').value;
+  var nVal  = document.getElementById('ek-npm').value;
+
+  if (bVal === '' && nVal === '') {
+    alert('Isi minimal salah satu nilai (Beban atau NPM)');
+    return;
+  }
+
+  var bebanPct = parseFloat(bVal) || 0;
+  var npmPct   = parseFloat(nVal) || 0;
+  var btn      = document.querySelector('#modal-edit-kategori .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+
+  try {
+    const list = await dbGet('channels', '&kategori=eq.' + kat);
+    if (!list || list.length === 0) {
+      alert('Tidak ada channel dalam kategori ' + label);
+      return;
+    }
+
+    // Upsert channel_beban untuk semua channel dalam kategori
+    // Reload cache beban dulu
+    const existingBeban = await dbGet('channel_beban', '');
+    const bebanById = {};
+    (existingBeban || []).forEach(b => { bebanById[b.channel_id] = b; });
+
+    await Promise.all(list.map(async function(ch) {
+      const existing = bebanById[ch.id];
+      if (existing && existing.id) {
+        await dbUpdate('channel_beban', existing.id, { beban_persen: bebanPct, npm_persen: npmPct });
+      } else {
+        await dbInsert('channel_beban', { channel_id: ch.id, beban_persen: bebanPct, npm_persen: npmPct });
+      }
+    }));
+
+    // Reload cache global
+    const bebanData = await dbGet('channel_beban', '');
+    _chBebanMap = {};
+    (bebanData || []).forEach(b => { _chBebanMap[b.channel_id] = b; });
+
+    hideModal('modal-edit-kategori');
+    loadChannelByKategori(kat);
+
+    // Refresh price list juga jika sedang terbuka
+    if (typeof loadPriceList === 'function') loadPriceList();
+
+  } catch(err) {
+    alert('Gagal simpan: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Simpan Semua'; }
+  }
+}
+
 // ─── INIT ────────────────────────────────────────────────────
 loadChannelMaster();
 
@@ -319,7 +417,38 @@ document.body.insertAdjacentHTML('beforeend', `
   </div>
 </div>`);
 
-// ─── MODAL SETTING BEBAN PER CHANNEL ─────────────────────────
+// ─── MODAL EDIT KATEGORI (bulk) ──────────────────────────────
+document.body.insertAdjacentHTML('beforeend', `
+<div class="modal-overlay" id="modal-edit-kategori" onclick="if(event.target===this)hideModal('modal-edit-kategori')">
+  <div class="modal" style="max-width:420px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:2px dashed var(--ink3)">
+      <div class="modal-title" style="margin:0;border:none;padding:0;font-size:18px">
+        <i class="ti ti-adjustments"></i> Edit Kategori — <span id="ek-label" style="color:var(--accent)"></span>
+      </div>
+      <button onclick="hideModal('modal-edit-kategori')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">&#10005;</button>
+    </div>
+    <input type="hidden" id="ek-kat">
+    <div style="padding:8px 12px;background:var(--cream2);border:1px dashed var(--ink3);border-radius:4px;font-size:12px;color:var(--ink2);margin-bottom:14px">
+      Akan mengubah <b><span id="ek-count">...</span> channel</b> sekaligus dalam kategori ini.<br>
+      Channel yang sudah punya setting sendiri akan di-<i>override</i>.
+    </div>
+    <div style="display:flex;gap:12px;margin-bottom:12px">
+      <div class="form-group" style="flex:1">
+        <label>Beban Ops (%)</label>
+        <input type="number" id="ek-beban" placeholder="mis: 10" step="0.1" min="0" max="100" oninput="ekUpdatePreview()" style="font-size:16px">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>Target NPM (%)</label>
+        <input type="number" id="ek-npm" placeholder="mis: 8" step="0.1" min="0" max="100" oninput="ekUpdatePreview()" style="font-size:16px">
+      </div>
+    </div>
+    <div id="ek-preview" style="padding:8px 12px;background:var(--cream2);border:1px dashed var(--ink3);border-radius:4px;font-size:12px;color:var(--ink2);margin-bottom:14px;min-height:28px;line-height:1.8"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="simpanKategoriBeban()"><i class="ti ti-device-floppy"></i> Simpan Semua</button>
+      <button class="btn btn-sm" onclick="hideModal('modal-edit-kategori')"><i class="ti ti-x"></i> Batal</button>
+    </div>
+  </div>
+</div>`);
 document.body.insertAdjacentHTML('beforeend', `
 <div class="modal-overlay" id="modal-channel-beban" onclick="if(event.target===this)hideModal('modal-channel-beban')">
   <div class="modal" style="max-width:400px;width:100%">

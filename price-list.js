@@ -41,7 +41,6 @@ document.getElementById('page-price-list').innerHTML = `
       <thead>
         <tr>
           <th>Katalog</th>
-          <th>SKU Variasi</th>
           <th style="text-align:right">HPP</th>
           <th style="text-align:right" id="pl-th-harga">Harga Jual</th>
           <th style="text-align:center">Margin</th>
@@ -98,8 +97,7 @@ async function loadPriceList() {
         var opt    = document.createElement('option');
         opt.value  = ch.id;
         var beban  = _plBebanMap[ch.id];
-        var suffix = beban ? ' (' + (beban.beban_persen||0).toFixed(1) + '% + ' + (beban.npm_persen||0).toFixed(1) + '%)' : ' —';
-        opt.textContent = ch.nama + suffix;
+        opt.textContent = ch.nama;
         grp.appendChild(opt);
       });
       sel.appendChild(grp);
@@ -157,13 +155,13 @@ function onPilihChannelPL() {
   renderPriceList(_plProdukData);
 }
 
-// ─── RENDER TABEL ────────────────────────────────────────────
+// ─── RENDER TABEL — 1 katalog = 1 baris ──────────────────────
 function renderPriceList(data) {
   var tbody = document.getElementById('pl-tbody');
   if (!_plChannelAktif && !document.getElementById('pl-channel-select').value) return;
 
   if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ink3);font-style:italic">Belum ada produk di Kelola Produk</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--ink3);font-style:italic">Belum ada produk di Kelola Produk</td></tr>';
     document.getElementById('pl-footer').textContent = '';
     _plRendered = [];
     return;
@@ -173,24 +171,36 @@ function renderPriceList(data) {
   var beban     = _plBebanMap[channelId] || { beban_persen: 0, npm_persen: 0 };
   var mult      = 1 + ((beban.beban_persen||0) + (beban.npm_persen||0)) / 100;
 
-  _plRendered = data.map(row => {
-    var hpp    = row.hpp || 0;
-    var harga  = Math.ceil(hpp * mult);
-    var margin = hpp > 0 ? (((harga - hpp) / hpp) * 100).toFixed(1) : 0;
-    return Object.assign({}, row, { hargaJual: harga, margin: margin });
+  // Group by katalog — ambil HPP dari baris pertama (HPP sama per katalog)
+  var katalogMap = {};
+  data.forEach(function(row) {
+    var kat = row.katalog || '—';
+    if (!katalogMap[kat]) {
+      katalogMap[kat] = { katalog: kat, hpp: row.hpp || 0 };
+    }
   });
 
-  tbody.innerHTML = _plRendered.map(row => {
+  var katalogList = Object.values(katalogMap).sort(function(a,b) {
+    return a.katalog.localeCompare(b.katalog);
+  });
+
+  _plRendered = katalogList.map(function(row) {
+    var hpp   = row.hpp;
+    var harga = Math.ceil(hpp * mult);
+    var margin = hpp > 0 ? (((harga - hpp) / hpp) * 100).toFixed(1) : 0;
+    return { katalog: row.katalog, hpp: hpp, hargaJual: harga, margin: margin };
+  });
+
+  tbody.innerHTML = _plRendered.map(function(row) {
     return '<tr>' +
-      '<td>' + (row.katalog || '—') + '</td>' +
-      '<td style="font-weight:600;color:var(--accent)">' + (row.sku || '—') + '</td>' +
-      '<td style="text-align:right;color:var(--ink2)">' + fmtRpFull(row.hpp || 0) + '</td>' +
+      '<td style="font-weight:600">' + row.katalog + '</td>' +
+      '<td style="text-align:right;color:var(--ink2)">' + fmtRpFull(row.hpp) + '</td>' +
       '<td style="text-align:right;font-weight:700;color:var(--ink)">' + fmtRpFull(row.hargaJual) + '</td>' +
       '<td style="text-align:center"><span style="color:var(--ok);font-weight:600">' + row.margin + '%</span></td>' +
     '</tr>';
   }).join('');
 
-  document.getElementById('pl-footer').textContent = data.length + ' SKU ditampilkan';
+  document.getElementById('pl-footer').textContent = _plRendered.length + ' katalog ditampilkan';
 }
 
 // ─── FILTER PENCARIAN ────────────────────────────────────────
@@ -208,8 +218,8 @@ function filterPriceList() {
 function exportPriceList() {
   if (!_plRendered || !_plRendered.length) { alert('Pilih channel dan pastikan ada data dulu'); return; }
   var chNama = _plChannelAktif ? _plChannelAktif.nama : 'channel';
-  var headers = ['Katalog','SKU Variasi','HPP','Harga Jual (' + chNama + ')','Margin (%)'];
-  var rows = _plRendered.map(r => [r.katalog, r.sku, r.hpp, r.hargaJual, r.margin]);
+  var headers = ['Katalog','HPP','Harga Jual (' + chNama + ')','Margin (%)'];
+  var rows = _plRendered.map(r => [r.katalog, r.hpp, r.hargaJual, r.margin]);
   exportCSV('zenoot-price-list-' + chNama.replace(/\./g,'-') + '.csv', headers, rows);
 }
 
