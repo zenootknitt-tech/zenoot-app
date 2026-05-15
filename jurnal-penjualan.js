@@ -59,7 +59,10 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
   <!-- PROGRESS BAR TARGET HARIAN -->
   <div id="jp-target-wrap" style="margin-bottom:12px;display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <span style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase">Target Harian</span>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase">Target Harian</span>
+        <span id="jp-target-nominal" style="font-size:12px;font-weight:700;color:var(--ink)">—</span>
+      </span>
       <span id="jp-target-label" style="font-size:11px;color:var(--ink3)">—</span>
     </div>
     <div style="height:6px;background:var(--cream2);border:1px solid var(--ink3);border-radius:3px;overflow:hidden">
@@ -661,13 +664,16 @@ async function jpLoadTargetHarian() {
     });
 
     // Render progress bar
-    var pct   = Math.min(omsetHari / targetHarian * 100, 100).toFixed(1);
-    var bar   = document.getElementById('jp-target-bar');
-    var label = document.getElementById('jp-target-label');
+    var fmtFn    = (typeof fmtRpFull === 'function') ? fmtRpFull : (typeof _fmtRp === 'function' ? _fmtRp : function(v){ return 'Rp'+Math.round(v).toLocaleString('id-ID'); });
+    var pct      = Math.min(omsetHari / targetHarian * 100, 100).toFixed(1);
+    var bar      = document.getElementById('jp-target-bar');
+    var label    = document.getElementById('jp-target-label');
+    var nominal  = document.getElementById('jp-target-nominal');
     if (bar) {
       bar.style.width      = pct + '%';
       bar.style.background = pct >= 100 ? 'var(--ok)' : pct >= 60 ? 'var(--warn)' : 'var(--danger)';
     }
+    if (nominal) nominal.textContent = fmtFn(targetHarian);
     if (label) {
       var fmtFn = (typeof fmtRpFull === 'function') ? fmtRpFull : (typeof _fmtRp === 'function' ? _fmtRp : function(v){ return 'Rp'+Math.round(v).toLocaleString('id-ID'); });
       label.textContent = fmtFn(omsetHari) + ' · ' + pct + '% tercapai';

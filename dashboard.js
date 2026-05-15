@@ -1030,14 +1030,35 @@ async function loadDashboard() {
       elLabaBersih.style.color = labaBersih>=0 ? 'var(--ok)' : 'var(--danger)';
     }
 
-    // ─ Target Omset
+    // ─ Target Omset — hitung dari nominal beban + rasio Shopee
     let target = _getTarget();
     if (bebanArr.length > 0) {
-      const bebanRow   = bebanArr.find(r => r.nama_beban && !isNaN(Number(String(r.nama_beban).replace(/[\.,]/g,''))));
-      const totalRasio = bebanArr.reduce((s,r) => s + (Number(r.beban_persen)||0), 0);
-      if (bebanRow && totalRasio > 0) {
-        const nominalBeban = Number(String(bebanRow.nama_beban).replace(/[\.,]/g,''));
-        target = Math.round(nominalBeban / (totalRasio / 100));
+      // Cara baru: sum kolom nominal
+      const totalNominal = bebanArr.reduce((s,r) => s + (Number(r.nominal)||0), 0);
+      if (totalNominal > 0) {
+        // Ambil rasio rata-rata channel Shopee dari channel_beban
+        try {
+          const [chData, chBeban] = await Promise.all([
+            dbGet('channels', '&kategori=eq.toko_utama').catch(()=>[]),
+            dbGet('channel_beban', '').catch(()=>[])
+          ]);
+          const bebanChMap = {};
+          (chBeban||[]).forEach(b => { bebanChMap[b.channel_id] = b; });
+          let sumR = 0, cntR = 0;
+          (chData||[]).forEach(ch => {
+            if (bebanChMap[ch.id]) { sumR += (bebanChMap[ch.id].beban_persen||0); cntR++; }
+          });
+          const rasio = cntR > 0 ? sumR / cntR : 0;
+          if (rasio > 0) target = Math.round(totalNominal / (rasio / 100));
+        } catch(e) { /* fallback ke target localStorage */ }
+      } else {
+        // Fallback cara lama: coba baca dari nama_beban
+        const bebanRow   = bebanArr.find(r => r.nama_beban && !isNaN(Number(String(r.nama_beban).replace(/[.,]/g,''))));
+        const totalRasio = bebanArr.reduce((s,r) => s + (Number(r.beban_persen)||0), 0);
+        if (bebanRow && totalRasio > 0) {
+          const nominalBeban = Number(String(bebanRow.nama_beban).replace(/[.,]/g,''));
+          target = Math.round(nominalBeban / (totalRasio / 100));
+        }
       }
     }
 
