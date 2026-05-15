@@ -1,24 +1,40 @@
-// ─── PRICE-LIST.JS v2 ─────────────────────────────────────────
+// ─── PRICE-LIST.JS v3 ─────────────────────────────────────────
 // Harga jual otomatis dari HPP × multiplier per channel
-// Dropdown channel → tampil harga untuk channel yang dipilih
+// 2 dropdown search: channel + katalog
 
 document.getElementById('page-price-list').innerHTML = `
-  <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+  <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-start">
     <button class="btn btn-sm btn-primary" onclick="loadPriceList()">
       <i class="ti ti-refresh"></i> Refresh
     </button>
     <button class="btn btn-sm" onclick="exportPriceList()">
       <i class="ti ti-download"></i> Export CSV
     </button>
-    <select id="pl-channel-select"
-      style="font-family:var(--f);font-size:13px;padding:5px 10px;border:2px solid var(--ink);background:var(--cream);min-width:160px"
-      onchange="onPilihChannelPL()">
-      <option value="">— Pilih Channel —</option>
-    </select>
-    <input type="text" id="pl-search"
-      placeholder="Cari SKU / katalog..."
-      style="font-family:var(--f);font-size:13px;padding:4px 8px;border:2px solid var(--ink);background:var(--cream);width:180px;margin-left:auto"
-      oninput="filterPriceList()">
+
+    <!-- DROPDOWN CHANNEL SEARCH -->
+    <div id="pl-ch-wrap" style="position:relative;min-width:200px">
+      <div style="position:relative">
+        <input type="text" id="pl-ch-input" autocomplete="off"
+          placeholder="🔍 Pilih Channel..."
+          style="font-family:var(--f);font-size:13px;padding:5px 30px 5px 10px;border:2px solid var(--ink);background:var(--cream);width:100%;box-sizing:border-box;cursor:pointer"
+          oninput="plChFilter()" onfocus="plChOpen()" onblur="setTimeout(()=>plChClose(),180)" readonly>
+        <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:11px;color:var(--ink3)">▼</span>
+      </div>
+      <div id="pl-ch-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--cream);border:2px solid var(--ink);border-top:none;z-index:999;max-height:220px;overflow-y:auto;box-shadow:2px 4px 0 rgba(0,0,0,0.12)"></div>
+      <input type="hidden" id="pl-channel-select">
+    </div>
+
+    <!-- DROPDOWN KATALOG SEARCH -->
+    <div id="pl-kat-wrap" style="position:relative;min-width:200px;display:none">
+      <div style="position:relative">
+        <input type="text" id="pl-kat-input" autocomplete="off"
+          placeholder="🔍 Filter Katalog..."
+          style="font-family:var(--f);font-size:13px;padding:5px 30px 5px 10px;border:2px solid var(--ink);background:var(--cream);width:100%;box-sizing:border-box"
+          oninput="plKatFilter()" onfocus="plKatOpen()" onblur="setTimeout(()=>plKatClose(),180)">
+        <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:11px;color:var(--ink3)">▼</span>
+      </div>
+      <div id="pl-kat-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--cream);border:2px solid var(--ink);border-top:none;z-index:999;max-height:220px;overflow-y:auto;box-shadow:2px 4px 0 rgba(0,0,0,0.12)"></div>
+    </div>
   </div>
 
   <!-- INFO BEBAN CHANNEL AKTIF -->
@@ -63,6 +79,115 @@ var _plBebanMap      = {};   // channel_id → { beban_persen, npm_persen }
 var _plRendered      = [];
 var _plChannelAktif  = null; // object channel yang dipilih
 
+// ─── DROPDOWN SEARCH — CHANNEL ───────────────────────────────
+var _plChAllItems = []; // { id, label, kat }
+
+function plBuildChannelItems() {
+  var katLabel = { toko_utama:'Shopee', reseller:'Reseller', lazada:'Lazada', tiktok:'TikTok', offline:'Offline' };
+  _plChAllItems = [];
+  var grouped = {};
+  _plChannelList.forEach(function(ch) {
+    var k = ch.kategori || 'lainnya';
+    if (!grouped[k]) grouped[k] = [];
+    grouped[k].push(ch);
+  });
+  Object.entries(grouped).forEach(function([kat, items]) {
+    items.forEach(function(ch) {
+      _plChAllItems.push({ id: ch.id, label: ch.nama, kat: katLabel[kat] || kat });
+    });
+  });
+}
+
+function plChOpen() {
+  document.getElementById('pl-ch-input').removeAttribute('readonly');
+  plChRenderList(_plChAllItems);
+  document.getElementById('pl-ch-list').style.display = 'block';
+}
+function plChClose() {
+  document.getElementById('pl-ch-list').style.display = 'none';
+  document.getElementById('pl-ch-input').setAttribute('readonly','');
+  // Restore label channel aktif jika ada
+  var selId = document.getElementById('pl-channel-select').value;
+  var found = _plChAllItems.find(function(i){ return i.id === selId; });
+  if (found) document.getElementById('pl-ch-input').value = found.label;
+  else if (!selId) document.getElementById('pl-ch-input').value = '';
+}
+function plChFilter() {
+  var q = document.getElementById('pl-ch-input').value.toLowerCase();
+  var filtered = q ? _plChAllItems.filter(function(i){ return i.label.toLowerCase().includes(q) || i.kat.toLowerCase().includes(q); }) : _plChAllItems;
+  plChRenderList(filtered);
+  document.getElementById('pl-ch-list').style.display = 'block';
+}
+function plChRenderList(items) {
+  var list = document.getElementById('pl-ch-list');
+  if (!items.length) {
+    list.innerHTML = '<div style="padding:8px 12px;color:var(--ink3);font-style:italic;font-size:13px">Tidak ditemukan</div>';
+    return;
+  }
+  // Group by kategori
+  var byKat = {};
+  items.forEach(function(i){ if(!byKat[i.kat]) byKat[i.kat]=[]; byKat[i.kat].push(i); });
+  list.innerHTML = Object.entries(byKat).map(function([kat, its]) {
+    return '<div style="padding:4px 10px;font-size:11px;font-weight:700;color:var(--ink3);background:var(--cream2);text-transform:uppercase;letter-spacing:0.5px">── ' + kat + ' ──</div>' +
+      its.map(function(i) {
+        return '<div data-id="'+i.id+'" style="padding:8px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--ink4,rgba(0,0,0,0.06))" '+
+          'onmouseenter="this.style.background=\'var(--cream2)\'" onmouseleave="this.style.background=\'\'" '+
+          'onmousedown="plChSelect(\''+i.id+'\',\''+i.label.replace(/'/g,"\\'")+'\')">'+ i.label +'</div>';
+      }).join('');
+  }).join('');
+}
+function plChSelect(id, label) {
+  document.getElementById('pl-channel-select').value = id;
+  document.getElementById('pl-ch-input').value       = label;
+  document.getElementById('pl-ch-list').style.display = 'none';
+  onPilihChannelPL();
+}
+
+// ─── DROPDOWN SEARCH — KATALOG ────────────────────────────────
+var _plKatAllItems  = []; // nama katalog unik
+var _plKatSelected  = ''; // '' = semua
+
+function plBuildKatalogItems() {
+  var unique = {};
+  _plProdukData.forEach(function(r){ if(r.katalog) unique[r.katalog] = true; });
+  _plKatAllItems = Object.keys(unique).sort();
+}
+
+function plKatOpen() {
+  plKatRenderList(_plKatAllItems);
+  document.getElementById('pl-kat-list').style.display = 'block';
+}
+function plKatClose() {
+  document.getElementById('pl-kat-list').style.display = 'none';
+}
+function plKatFilter() {
+  var q = document.getElementById('pl-kat-input').value.toLowerCase();
+  var filtered = q ? _plKatAllItems.filter(function(k){ return k.toLowerCase().includes(q); }) : _plKatAllItems;
+  plKatRenderList(filtered);
+  document.getElementById('pl-kat-list').style.display = 'block';
+}
+function plKatRenderList(items) {
+  var list = document.getElementById('pl-kat-list');
+  var html = '<div data-kat="" style="padding:8px 14px;font-size:13px;cursor:pointer;font-style:italic;color:var(--ink3);border-bottom:1px solid var(--ink4,rgba(0,0,0,0.06))" '+
+    'onmouseenter="this.style.background=\'var(--cream2)\'" onmouseleave="this.style.background=\'\'" '+
+    'onmousedown="plKatSelect(\'\',\'Semua Katalog\')">— Semua Katalog —</div>';
+  html += items.map(function(k) {
+    return '<div data-kat="'+k+'" style="padding:8px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--ink4,rgba(0,0,0,0.06))" '+
+      'onmouseenter="this.style.background=\'var(--cream2)\'" onmouseleave="this.style.background=\'\'" '+
+      'onmousedown="plKatSelect(\''+k.replace(/'/g,"\\'")+'\',\''+k.replace(/'/g,"\\'")+'\')">'+ k +'</div>';
+  }).join('');
+  list.innerHTML = html;
+}
+function plKatSelect(kat, label) {
+  _plKatSelected = kat;
+  document.getElementById('pl-kat-input').value       = kat ? label : '';
+  document.getElementById('pl-kat-input').placeholder = kat ? label : '🔍 Filter Katalog...';
+  document.getElementById('pl-kat-list').style.display = 'none';
+  // Re-render dengan filter katalog
+  var filtered = kat ? _plProdukData.filter(function(r){ return r.katalog === kat; }) : _plProdukData;
+  renderPriceList(filtered);
+}
+
 // ─── LOAD SEMUA DATA ─────────────────────────────────────────
 async function loadPriceList() {
   try {
@@ -77,35 +202,16 @@ async function loadPriceList() {
     _plBebanMap    = {};
     (bebanList || []).forEach(b => { _plBebanMap[b.channel_id] = b; });
 
-    // Isi dropdown channel (hanya yang sudah punya beban setting)
-    var sel = document.getElementById('pl-channel-select');
-    var prevVal = sel.value;
-    sel.innerHTML = '<option value="">— Pilih Channel —</option>';
+    // Build dropdown search items
+    plBuildChannelItems();
+    plBuildKatalogItems();
 
-    const katLabel = { toko_utama:'Shopee', reseller:'Reseller', lazada:'Lazada', tiktok:'TikTok', offline:'Offline' };
-    const grouped  = {};
-    _plChannelList.forEach(ch => {
-      const k = ch.kategori || 'lainnya';
-      if (!grouped[k]) grouped[k] = [];
-      grouped[k].push(ch);
-    });
-
-    Object.entries(grouped).forEach(([kat, items]) => {
-      var grp = document.createElement('optgroup');
-      grp.label = '── ' + (katLabel[kat] || kat) + ' ──';
-      items.forEach(ch => {
-        var opt    = document.createElement('option');
-        opt.value  = ch.id;
-        var beban  = _plBebanMap[ch.id];
-        opt.textContent = ch.nama;
-        grp.appendChild(opt);
-      });
-      sel.appendChild(grp);
-    });
-
-    // Restore pilihan sebelumnya jika masih ada
-    if (prevVal) sel.value = prevVal;
-    onPilihChannelPL();
+    // Jika channel sudah dipilih sebelumnya, refresh tampilan
+    var selId = document.getElementById('pl-channel-select').value;
+    if (selId) {
+      document.getElementById('pl-kat-wrap').style.display = '';
+      onPilihChannelPL();
+    }
 
   } catch(err) {
     document.getElementById('pl-hint').textContent = 'Error: ' + err.message;
@@ -114,16 +220,17 @@ async function loadPriceList() {
 
 // ─── SAAT PILIH CHANNEL ──────────────────────────────────────
 function onPilihChannelPL() {
-  var sel       = document.getElementById('pl-channel-select');
-  var channelId = sel.value;
+  var channelId = document.getElementById('pl-channel-select').value;
   var hint      = document.getElementById('pl-hint');
   var card      = document.getElementById('pl-card');
   var infoWrap  = document.getElementById('pl-info-wrap');
+  var katWrap   = document.getElementById('pl-kat-wrap');
 
   if (!channelId) {
-    hint.style.display    = '';
-    card.style.display    = 'none';
-    infoWrap.style.display= 'none';
+    hint.style.display     = '';
+    card.style.display     = 'none';
+    infoWrap.style.display = 'none';
+    katWrap.style.display  = 'none';
     _plChannelAktif = null;
     return;
   }
@@ -134,6 +241,12 @@ function onPilihChannelPL() {
   hint.style.display     = 'none';
   card.style.display     = '';
   infoWrap.style.display = '';
+  katWrap.style.display  = '';  // tampilkan dropdown katalog
+
+  // Reset filter katalog saat ganti channel
+  _plKatSelected = '';
+  document.getElementById('pl-kat-input').value = '';
+  document.getElementById('pl-kat-input').placeholder = '🔍 Filter Katalog...';
 
   // Update header kolom
   document.getElementById('pl-th-harga').textContent = 'Harga — ' + (_plChannelAktif ? _plChannelAktif.nama : '');
@@ -201,17 +314,6 @@ function renderPriceList(data) {
   }).join('');
 
   document.getElementById('pl-footer').textContent = _plRendered.length + ' katalog ditampilkan';
-}
-
-// ─── FILTER PENCARIAN ────────────────────────────────────────
-function filterPriceList() {
-  var q = document.getElementById('pl-search').value.toLowerCase().trim();
-  if (!q) { renderPriceList(_plProdukData); return; }
-  var filtered = _plProdukData.filter(r =>
-    (r.sku     || '').toLowerCase().includes(q) ||
-    (r.katalog || '').toLowerCase().includes(q)
-  );
-  renderPriceList(filtered);
 }
 
 // ─── EXPORT CSV ──────────────────────────────────────────────

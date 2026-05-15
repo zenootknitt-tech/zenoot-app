@@ -12,11 +12,15 @@ document.getElementById('page-channel').innerHTML = `
   <div class="card" style="margin-bottom:14px">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <span style="display:flex;align-items:center;gap:7px">
-        <svg width="18" height="18" viewBox="0 0 38 38" fill="none" style="flex-shrink:0;opacity:0.75">
-          <path d="M19 2C10.163 2 3 9.163 3 18c0 6.077 3.32 11.373 8.25 14.22L10 36l4.5-2.25A16.9 16.9 0 0019 34c8.837 0 16-7.163 16-16S27.837 2 19 2z" fill="currentColor" opacity="0.15"/>
-          <path d="M24.5 13.5c0-3.038-2.462-5.5-5.5-5.5S13.5 10.462 13.5 13.5H11L12.5 28h13L27 13.5h-2.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/>
-          <circle cx="16" cy="13.5" r="1.2" fill="currentColor"/>
-          <circle cx="22" cy="13.5" r="1.2" fill="currentColor"/>
+        <svg width="20" height="20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+          <!-- bag shape -->
+          <rect x="8" y="30" width="84" height="62" rx="10" fill="currentColor"/>
+          <!-- handle -->
+          <path d="M34 30 C34 16 66 16 66 30" stroke="currentColor" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <!-- S letter -->
+          <path d="M56.5 48.5C56.5 44.9 53.6 42 50 42C46.4 42 43.5 44.9 43.5 48.5C43.5 52.1 46.4 55 50 55C53.6 55 56.5 57.9 56.5 61.5C56.5 65.1 53.6 68 50 68C46.4 68 43.5 65.1 43.5 61.5" stroke="white" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+          <line x1="50" y1="40" x2="50" y2="44" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+          <line x1="50" y1="66" x2="50" y2="70" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
         </svg>
         Shopee
       </span>
