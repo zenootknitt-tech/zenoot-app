@@ -669,7 +669,8 @@ async function jpLoadTargetHarian() {
       bar.style.background = pct >= 100 ? 'var(--ok)' : pct >= 60 ? 'var(--warn)' : 'var(--danger)';
     }
     if (label) {
-      label.textContent = fmtRpFull(omsetHari) + ' · ' + pct + '% tercapai';
+      var fmtFn = (typeof fmtRpFull === 'function') ? fmtRpFull : (typeof _fmtRp === 'function' ? _fmtRp : function(v){ return 'Rp'+Math.round(v).toLocaleString('id-ID'); });
+      label.textContent = fmtFn(omsetHari) + ' · ' + pct + '% tercapai';
     }
     wrap.style.display = 'block';
   } catch(e) { /* silent fail */ }
