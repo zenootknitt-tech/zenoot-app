@@ -178,7 +178,7 @@ document.getElementById('page-channel').innerHTML = `
 
     </div>
   </div><!-- end tab beban -->
-`;`;
+`;
 
 setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-channel')); }, 80);
 
