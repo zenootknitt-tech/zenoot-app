@@ -3,10 +3,15 @@
 // Halaman Beban Operasional sudah dihapus, setting harga ada di sini
 
 document.getElementById('page-channel').innerHTML = `
-  <div style="margin-bottom:14px;padding:10px 14px;background:var(--cream2);border:2px dashed var(--ink3);border-radius:4px;font-size:13px;color:var(--ink2);line-height:1.7">
-    <b>Master Data Channel</b> — sumber data global untuk seluruh aplikasi.<br>
-    Setiap channel bisa punya <b>% Beban & NPM</b> sendiri untuk kalkulasi harga otomatis di Price List.
-  </div>
+  <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+
+  <!-- ══ KIRI: CHANNEL MASTER ══════════════════════════════ -->
+  <div style="flex:1 1 480px;min-width:0">
+
+    <div style="margin-bottom:14px;padding:10px 14px;background:var(--cream2);border:2px dashed var(--ink3);border-radius:4px;font-size:13px;color:var(--ink2);line-height:1.7">
+      <b>Master Data Channel</b> — sumber data global untuk seluruh aplikasi.<br>
+      Setiap channel bisa punya <b>% Beban & NPM</b> sendiri untuk kalkulasi harga otomatis di Price List.
+    </div>
 
   <!-- SHOPEE -->
   <div class="card" style="margin-bottom:14px">
@@ -117,9 +122,155 @@ document.getElementById('page-channel').innerHTML = `
       </tbody>
     </table></div>
   </div>
+  </div><!-- end kiri -->
+
+  <!-- ══ KANAN: BEBAN OPERASIONAL BULANAN ══════════════════ -->
+  <div style="flex:0 0 300px;min-width:260px;max-width:340px">
+    <div class="card" style="position:sticky;top:16px">
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <span><i class="ti ti-calculator"></i> Beban Ops Bulanan</span>
+        <button class="btn btn-sm btn-primary" onclick="simpanBebanOps()" id="btn-simpan-beban">
+          <i class="ti ti-device-floppy"></i> Simpan
+        </button>
+      </div>
+
+      <!-- 10 baris input -->
+      <div id="beban-ops-rows" style="margin-bottom:10px"></div>
+
+      <!-- Total -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:2px solid var(--ink);margin-bottom:10px">
+        <span style="font-weight:700;font-size:13px">Total Beban</span>
+        <span id="beban-ops-total" style="font-weight:700;font-size:15px;color:var(--danger)">Rp0</span>
+      </div>
+
+      <!-- Kalkulasi target -->
+      <div style="padding:8px 10px;background:var(--cream2);border:1px dashed var(--ink3);border-radius:4px;font-size:12px;color:var(--ink2);line-height:2">
+        <div style="display:flex;justify-content:space-between">
+          <span>Rasio Beban Shopee</span>
+          <span id="beban-ops-rasio" style="font-weight:700;color:var(--danger)">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span>Target Omset Bulanan</span>
+          <span id="beban-ops-target" style="font-weight:700;color:var(--ink)">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-top:1px dashed var(--ink3);margin-top:4px;padding-top:4px">
+          <span>Target Harian <span style="color:var(--ink3);font-weight:400">(÷ hari bln ini)</span></span>
+          <span id="beban-ops-harian" style="font-weight:700;color:var(--ok)">—</span>
+        </div>
+      </div>
+    </div>
+  </div><!-- end kanan -->
+
+  </div><!-- end flex wrapper -->
 `;
 
 setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-channel')); }, 80);
+
+// ─── BEBAN OPERASIONAL — 10 BARIS INPUT ──────────────────────
+var _bebanOpsData = [];
+
+async function loadBebanOps() {
+  try {
+    const data = await dbGet('beban_operasional', '&tipe=eq.toko_utama&order=id.asc');
+    _bebanOpsData = data || [];
+  } catch(e) { _bebanOpsData = []; }
+  renderBebanOpsRows();
+  updateBebanOpsKalkulasi();
+}
+
+function renderBebanOpsRows() {
+  var wrap = document.getElementById('beban-ops-rows');
+  if (!wrap) return;
+  var html = '';
+  for (var i = 0; i < 10; i++) {
+    var row = _bebanOpsData[i] || {};
+    var rowIdAttr = row.id ? 'data-id="'+row.id+'"' : '';
+    html += '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">' +
+      '<input type="text" ' + rowIdAttr + ' data-idx="'+i+'" data-field="nama" ' +
+        'value="' + (row.nama_beban || '').replace(/"/g,'&quot;') + '" ' +
+        'placeholder="Nama beban..." ' +
+        'style="flex:1;font-family:var(--f);font-size:12px;padding:4px 6px;border:1.5px solid var(--ink3);background:var(--cream);min-width:0" ' +
+        'oninput="bebanOpsChanged()"> ' +
+      '<input type="number" data-idx="'+i+'" data-field="nominal" ' +
+        'value="' + (row.nominal || '') + '" ' +
+        'placeholder="0" min="0" ' +
+        'style="width:100px;font-family:var(--f);font-size:12px;padding:4px 6px;border:1.5px solid var(--ink3);background:var(--cream);text-align:right" ' +
+        'oninput="bebanOpsChanged()">' +
+    '</div>';
+  }
+  wrap.innerHTML = html;
+}
+
+function bebanOpsChanged() { updateBebanOpsKalkulasi(); }
+
+function updateBebanOpsKalkulasi() {
+  var inputs = document.querySelectorAll('#beban-ops-rows input[data-field="nominal"]');
+  var total  = 0;
+  inputs.forEach(function(inp) { total += parseFloat(inp.value) || 0; });
+
+  var totalEl = document.getElementById('beban-ops-total');
+  if (totalEl) totalEl.textContent = 'Rp' + Math.round(total).toLocaleString('id-ID');
+
+  // Ambil rata-rata rasio beban channel kategori toko_utama
+  var shopeeIds = [];
+  var tbody = document.getElementById('ch-tbody-toko_utama');
+  if (tbody) {
+    tbody.querySelectorAll('tr').forEach(function(tr) {
+      var btn = tr.querySelector('[data-action="setting-beban"]');
+      if (btn && btn.dataset.id) shopeeIds.push(btn.dataset.id);
+    });
+  }
+  var sumRasio = 0; var cntRasio = 0;
+  shopeeIds.forEach(function(id) {
+    if (_chBebanMap[id]) { sumRasio += (_chBebanMap[id].beban_persen||0); cntRasio++; }
+  });
+  var shopeeBeban = cntRasio > 0 ? sumRasio / cntRasio : 0;
+
+  var rasioEl  = document.getElementById('beban-ops-rasio');
+  var targetEl = document.getElementById('beban-ops-target');
+  var harianEl = document.getElementById('beban-ops-harian');
+
+  if (rasioEl) rasioEl.textContent = shopeeBeban > 0 ? shopeeBeban.toFixed(1)+'%' : '—';
+
+  if (total > 0 && shopeeBeban > 0) {
+    var targetOmset  = Math.round(total / (shopeeBeban / 100));
+    var now          = new Date();
+    var hariDlmBulan = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    var targetHarian = Math.round(targetOmset / hariDlmBulan);
+    if (targetEl) targetEl.textContent = 'Rp' + targetOmset.toLocaleString('id-ID');
+    if (harianEl) harianEl.textContent = 'Rp' + targetHarian.toLocaleString('id-ID');
+  } else {
+    if (targetEl) targetEl.textContent = '—';
+    if (harianEl) harianEl.textContent = '—';
+  }
+}
+
+async function simpanBebanOps() {
+  var btn = document.getElementById('btn-simpan-beban');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Menyimpan...'; }
+  try {
+    var rows = [];
+    for (var i = 0; i < 10; i++) {
+      var namaEl    = document.querySelector('#beban-ops-rows input[data-field="nama"][data-idx="'+i+'"]');
+      var nominalEl = document.querySelector('#beban-ops-rows input[data-field="nominal"][data-idx="'+i+'"]');
+      var nama    = namaEl    ? namaEl.value.trim()            : '';
+      var nominal = nominalEl ? (parseFloat(nominalEl.value)||0) : 0;
+      if (nama || nominal > 0) {
+        rows.push({ nama: nama || ('Beban '+(i+1)), nominal: nominal });
+      }
+    }
+    const existing = await dbGet('beban_operasional', '&tipe=eq.toko_utama');
+    await Promise.all((existing||[]).map(function(r){ return dbDelete('beban_operasional', r.id); }));
+    await Promise.all(rows.map(function(r){
+      return dbInsert('beban_operasional', { tipe:'toko_utama', nama_beban:r.nama, nominal:r.nominal, beban_persen:0 });
+    }));
+    await loadBebanOps();
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-device-floppy"></i> Simpan'; }
+  } catch(err) {
+    alert('Gagal simpan: ' + err.message);
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-device-floppy"></i> Simpan'; }
+  }
+}
 
 // ─── CACHE BEBAN PER CHANNEL ─────────────────────────────────
 var _chBebanMap = {}; // channel_id → { beban_persen, npm_persen }
@@ -393,6 +544,7 @@ async function simpanKategoriBeban() {
 
 // ─── INIT ────────────────────────────────────────────────────
 loadChannelMaster();
+loadBebanOps();
 
 // ─── MODAL CHANNEL (tambah/edit nama) ────────────────────────
 document.body.insertAdjacentHTML('beforeend', `

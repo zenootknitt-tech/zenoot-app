@@ -16,29 +16,54 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
     </div>
   </div>
 
-  <!-- TOMBOL AKSI + FILTER -->
-  <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-    <button class="btn btn-sm btn-primary" onclick="showTambahJP()">
+  <!-- TOMBOL AKSI: Filter kiri, Tambah kanan -->
+  <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+    <div style="display:flex;gap:6px;align-items:center">
+      <div style="position:relative">
+        <button class="btn btn-sm" id="jp-filter-btn" onclick="jpToggleFilter()" style="display:flex;align-items:center;gap:5px">
+          <i class="ti ti-filter"></i> Filter
+          <span id="jp-filter-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;border-radius:10px;font-weight:700">!</span>
+          <span style="font-size:10px">&#9662;</span>
+        </button>
+        <div id="jp-filter-panel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--cream);border:2px solid var(--ink);min-width:220px;box-shadow:3px 4px 0 rgba(0,0,0,0.13)">
+          <div style="padding:8px 12px;border-bottom:1px solid var(--ink3)">
+            <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px">Bulan</div>
+            <input type="month" id="jp-filter-bulan"
+              style="font-family:var(--f);font-size:13px;padding:4px 8px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box"
+              oninput="filterJP();jpUpdateBadge()">
+          </div>
+          <div style="padding:8px 12px;border-bottom:1px solid var(--ink3)">
+            <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px">Channel</div>
+            <select id="jp-filter-channel"
+              style="font-family:var(--f);font-size:13px;padding:4px 8px;border:1.5px solid var(--ink3);background:var(--cream);width:100%"
+              onchange="filterJP();jpUpdateBadge()">
+              <option value="">Semua Channel</option>
+            </select>
+          </div>
+          <div style="padding:8px 12px">
+            <button class="btn btn-sm" style="width:100%" onclick="jpResetFilter()">
+              <i class="ti ti-x"></i> Reset Filter
+            </button>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-sm" onclick="loadJurnalPenjualan()">
+        <i class="ti ti-refresh"></i> Refresh
+      </button>
+    </div>
+    <button class="btn btn-sm btn-primary" onclick="showTambahJP()" style="margin-left:auto">
       <i class="ti ti-plus"></i> Tambah Penjualan
     </button>
-    <button class="btn btn-sm" onclick="loadJurnalPenjualan()">
-      <i class="ti ti-refresh"></i> Refresh
-    </button>
-    <button class="btn btn-sm" onclick="exportJurnalPenjualan()">
-      <i class="ti ti-download"></i> Export CSV
-    </button>
-    <div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-      <label style="font-size:12px;color:var(--ink2)">Bulan:</label>
-      <input type="month" id="jp-filter-bulan"
-        style="font-family:var(--f);font-size:13px;padding:4px 8px;border:2px solid var(--ink);background:var(--cream)"
-        oninput="filterJP()">
-      <button class="btn btn-sm" onclick="document.getElementById('jp-filter-bulan').value='';filterJP()">&#10005;</button>
-      <label style="font-size:12px;color:var(--ink2);margin-left:6px">Channel:</label>
-      <select id="jp-filter-channel"
-        style="font-family:var(--f);font-size:13px;padding:4px 8px;border:2px solid var(--ink);background:var(--cream)"
-        onchange="filterJP()">
-        <option value="">Semua</option>
-      </select>
+  </div>
+
+  <!-- PROGRESS BAR TARGET HARIAN -->
+  <div id="jp-target-wrap" style="margin-bottom:12px;display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <span style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase">Target Harian</span>
+      <span id="jp-target-label" style="font-size:11px;color:var(--ink3)">—</span>
+    </div>
+    <div style="height:6px;background:var(--cream2);border:1px solid var(--ink3);border-radius:3px;overflow:hidden">
+      <div id="jp-target-bar" style="height:100%;width:0%;background:var(--ok);transition:width .6s;border-radius:3px"></div>
     </div>
   </div>
 
@@ -550,12 +575,106 @@ async function loadJurnalPenjualan() {
     const data = await dbGet('jurnal_penjualan', filter + '&order=tanggal.desc');
     _jpAllData = data || [];
     filterJP();
+    jpLoadTargetHarian(); // progress bar target harian
   } catch(err) {
     tbody.innerHTML = '<tr><td colspan="7" style="color:var(--danger)">Error: ' + err.message + '</td></tr>';
   }
 }
 
-// ─── FILTER + SORT ───────────────────────────────────────────
+// ─── FILTER PANEL TOGGLE ─────────────────────────────────────
+function jpToggleFilter() {
+  var panel = document.getElementById('jp-filter-panel');
+  if (!panel) return;
+  var isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    // Tutup saat klik di luar
+    setTimeout(function() {
+      document.addEventListener('click', jpCloseFilterOutside, { once: true });
+    }, 50);
+  }
+}
+function jpCloseFilterOutside(e) {
+  var panel = document.getElementById('jp-filter-panel');
+  var btn   = document.getElementById('jp-filter-btn');
+  if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
+    panel.style.display = 'none';
+  }
+}
+function jpUpdateBadge() {
+  var bulan   = (document.getElementById('jp-filter-bulan')   || {}).value || '';
+  var channel = (document.getElementById('jp-filter-channel') || {}).value || '';
+  var badge   = document.getElementById('jp-filter-badge');
+  if (badge) badge.style.display = (bulan || channel) ? 'inline' : 'none';
+}
+function jpResetFilter() {
+  var b = document.getElementById('jp-filter-bulan');
+  var c = document.getElementById('jp-filter-channel');
+  if (b) b.value = '';
+  if (c) c.value = '';
+  jpUpdateBadge();
+  filterJP();
+  var panel = document.getElementById('jp-filter-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+// ─── PROGRESS BAR TARGET HARIAN ──────────────────────────────
+async function jpLoadTargetHarian() {
+  try {
+    var wrap = document.getElementById('jp-target-wrap');
+    if (!wrap) return;
+
+    // Ambil beban operasional
+    const bebanData = await dbGet('beban_operasional', '&tipe=eq.toko_utama');
+    if (!bebanData || !bebanData.length) return;
+
+    var totalNominal = 0;
+    bebanData.forEach(function(r) { totalNominal += (parseFloat(r.nominal)||0); });
+    if (totalNominal <= 0) return;
+
+    // Ambil rasio Shopee (rata2 beban channel toko_utama)
+    const chData    = await dbGet('channels',      '&kategori=eq.toko_utama');
+    const bebanCh   = await dbGet('channel_beban', '');
+    var bebanChMap  = {};
+    (bebanCh||[]).forEach(function(b){ bebanChMap[b.channel_id] = b; });
+    var sumRasio = 0; var cnt = 0;
+    (chData||[]).forEach(function(ch) {
+      if (bebanChMap[ch.id]) { sumRasio += (bebanChMap[ch.id].beban_persen||0); cnt++; }
+    });
+    var rasio = cnt > 0 ? sumRasio / cnt : 0;
+    if (rasio <= 0) return;
+
+    // Hitung target harian
+    var targetOmset  = Math.round(totalNominal / (rasio / 100));
+    var now          = new Date();
+    var hariDlmBulan = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    var targetHarian = Math.round(targetOmset / hariDlmBulan);
+    if (targetHarian <= 0) return;
+
+    // Hitung omset hari ini dari data yang sudah ter-load
+    var todayStr = now.toISOString().slice(0,10);
+    var omsetHari = 0;
+    (_jpAllData||[]).forEach(function(r) {
+      if (r.tanggal && String(r.tanggal).slice(0,10) === todayStr) {
+        omsetHari += (Number(r.total)||0);
+      }
+    });
+
+    // Render progress bar
+    var pct   = Math.min(omsetHari / targetHarian * 100, 100).toFixed(1);
+    var bar   = document.getElementById('jp-target-bar');
+    var label = document.getElementById('jp-target-label');
+    if (bar) {
+      bar.style.width      = pct + '%';
+      bar.style.background = pct >= 100 ? 'var(--ok)' : pct >= 60 ? 'var(--warn)' : 'var(--danger)';
+    }
+    if (label) {
+      label.textContent = fmtRpFull(omsetHari) + ' · ' + pct + '% tercapai';
+    }
+    wrap.style.display = 'block';
+  } catch(e) { /* silent fail */ }
+}
+
 function filterJP() {
   const q   = document.getElementById('jp-search').value.toLowerCase().trim();
   const kat = document.getElementById('jp-filter-channel').value;
