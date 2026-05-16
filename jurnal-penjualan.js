@@ -598,9 +598,9 @@ async function loadJurnalPenjualan() {
     let filter = '';
 
     if (mode === 'hari-ini') {
-      // 24 jam terakhir
-      const since = new Date(now - 24*60*60*1000).toISOString().split('T')[0];
-      filter = '&tanggal=gte.' + since;
+      // Dari jam 00:00 hari ini
+      const today = now.toISOString().split('T')[0];
+      filter = '&tanggal=gte.' + today + '&tanggal=lte.' + today;
     } else if (mode === 'kemarin') {
       const d = new Date(now);
       d.setDate(d.getDate() - 1);

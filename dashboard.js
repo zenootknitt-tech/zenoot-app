@@ -392,11 +392,99 @@ function _renderAlerts(stokData, saldo) {
   ).join('');
 }
 
+// ─── CHART HARI INI (per jam) ────────────────────────────────
+function _renderChartHariIni(jpData, canvas, tooltip) {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const labels = [], totals = [];
+
+  for (let h = 0; h <= 23; h++) {
+    const hStr = String(h).padStart(2,'0');
+    labels.push(hStr);
+    const jam = jpData
+      .filter(r => {
+        if (!r.tanggal || String(r.tanggal).slice(0,10) !== todayStr) return false;
+        const wkt = String(r.waktu || '00:00');
+        return wkt.slice(0,2) === hStr;
+      })
+      .reduce((s,r) => s + (Number(r.total)||0), 0);
+    totals.push(jam);
+  }
+
+  const total   = totals.reduce((s,v)=>s+v,0);
+  const emptyEl = document.getElementById('dash-chart-empty');
+  const leg     = document.getElementById('dash-chart-legend');
+
+  if (total === 0) {
+    canvas.style.display = 'none';
+    if (emptyEl) { emptyEl.style.display='flex'; emptyEl.textContent='Belum ada penjualan hari ini'; }
+    if (leg) leg.innerHTML = '';
+    return;
+  }
+  canvas.style.display = 'block';
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  const dpr = window.devicePixelRatio || 1;
+  const W   = canvas.offsetWidth  || 280;
+  const H   = canvas.offsetHeight || 160;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const padL=44, padR=16, padT=14, padB=34;
+  const cW=W-padL-padR, cH=H-padT-padB;
+  const maxVal = Math.max(...totals, 1);
+  const step   = cW / (totals.length - 1 || 1);
+  const colLine='#2a6e3a', colFill='rgba(42,110,58,0.1)', colGrid='rgba(28,26,20,0.08)', colLabel='#6b6354';
+
+  // Grid
+  ctx.clearRect(0, 0, W, H);
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + cH - (cH * i / 4);
+    ctx.strokeStyle=colGrid; ctx.lineWidth=0.7;
+    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+cW,y); ctx.stroke();
+    ctx.fillStyle=colLabel; ctx.font='10px sans-serif'; ctx.textAlign='right';
+    ctx.fillText(_fmtRpShort(maxVal*i/4), padL-4, y+3);
+  }
+
+  // Area fill
+  ctx.beginPath();
+  totals.forEach((v,i) => { const x=padL+i*step, y=padT+cH-(v/maxVal)*cH; i===0?ctx.moveTo(x,padT+cH):ctx.lineTo(x,y); });
+  ctx.lineTo(padL+(totals.length-1)*step, padT+cH);
+  ctx.closePath(); ctx.fillStyle=colFill; ctx.fill();
+
+  // Line
+  ctx.beginPath(); ctx.strokeStyle=colLine; ctx.lineWidth=2; ctx.lineJoin='round';
+  totals.forEach((v,i) => { const x=padL+i*step, y=padT+cH-(v/maxVal)*cH; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+
+  // X labels — tampilkan setiap 4 jam
+  labels.forEach((lbl,i) => {
+    if (i % 4 !== 0) return;
+    const x = padL + i * step;
+    ctx.fillStyle=colLabel; ctx.font='10px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(lbl+':00', x, padT+cH+14);
+  });
+
+  // Legend
+  if (leg) {
+    const colLegend = '#2a6e3a';
+    leg.innerHTML =
+      '<span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:3px;background:'+colLegend+';display:inline-block;border-radius:2px"></span>Hari Ini: '+_fmtRp(total)+'</span>';
+  }
+}
+
 // ─── CHART PENJUALAN + TOOLTIP HOVER ─────────────────────────
 function _renderChartPenjualan(jpData) {
   const canvas  = document.getElementById('dash-chart-penjualan');
   const tooltip = document.getElementById('dash-chart-tooltip');
   if (!canvas) return;
+
+  // Mode Hari Ini: tampil per jam 00-23
+  if (_dashPeriod === 1) {
+    _renderChartHariIni(jpData, canvas, tooltip);
+    return;
+  }
 
   const today = new Date();
   const labels = [], totals = [], dates = [];
