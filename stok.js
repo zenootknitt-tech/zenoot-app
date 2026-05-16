@@ -83,7 +83,7 @@ document.getElementById('page-stok').innerHTML = `
       <div class="modal-title"><i class="ti ti-clipboard"></i> Paste Massal Stok Masuk</div>
       <div style="font-size:12px;color:var(--ink3);margin-bottom:10px;line-height:1.6">
         Copy dari Google Sheet / Excel lalu paste di bawah.<br>
-        Urutan kolom: <b>SKU Variasi → Qty (stok masuk)</b>
+        Urutan kolom: <b>SKU Variasi → Qty (akan DITAMBAHKAN ke stok yang ada)</b>
       </div>
       <textarea id="paste-area-stok"
         style="width:100%;height:160px;font-family:var(--f);font-size:13px;padding:8px;border:2px solid var(--ink);background:var(--cream);resize:vertical;outline:none"
@@ -194,17 +194,7 @@ async function stokPilihKat(kat, produkId) {
     await dbUpdate('produk', produkId, { kategori_produk: kat });
     document.getElementById('modal-ganti-kat-stok').style.display = 'none';
     
-// ─── MODAL GANTI KATEGORI ─────────────────────────────────────
-document.body.insertAdjacentHTML('beforeend', `
-<div id="modal-ganti-kat-stok" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
-  <div style="background:var(--cream);border:2px solid var(--ink);max-width:380px;width:90%;box-shadow:4px 4px 0 var(--ink4)">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:2px dashed var(--ink3)">
-      <div style="font-weight:700;font-size:15px"><i class="ti ti-tag"></i> Kategori — <span id="ganti-kat-title"></span></div>
-      <button onclick="document.getElementById('modal-ganti-kat-stok').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3)">&#10005;</button>
-    </div>
-    <div id="ganti-kat-opts"></div>
-  </div>
-</div>`);
+
 
 loadStok();
   } catch(err) { alert('Gagal: ' + err.message); }
@@ -399,20 +389,7 @@ async function simpanStok() {
       await dbInsert('stok', payload);
     }
     cancelStokForm();
-    
-// ─── MODAL GANTI KATEGORI ─────────────────────────────────────
-document.body.insertAdjacentHTML('beforeend', `
-<div id="modal-ganti-kat-stok" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
-  <div style="background:var(--cream);border:2px solid var(--ink);max-width:380px;width:90%;box-shadow:4px 4px 0 var(--ink4)">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:2px dashed var(--ink3)">
-      <div style="font-weight:700;font-size:15px"><i class="ti ti-tag"></i> Kategori — <span id="ganti-kat-title"></span></div>
-      <button onclick="document.getElementById('modal-ganti-kat-stok').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3)">&#10005;</button>
-    </div>
-    <div id="ganti-kat-opts"></div>
-  </div>
-</div>`);
-
-loadStok();
+    loadStok();
   } catch(err) { alert('Gagal simpan: ' + err.message); }
 }
 
@@ -521,7 +498,9 @@ async function simpanPasteStok() {
         hpp:         prod ? prod.hpp     : 0,
       };
       if (existing) {
-        await dbUpdate('stok', existing.id, { stok_masuk: row.stok_masuk });
+        // Mode Tambah: stok_masuk baru = stok lama + qty yang diinput
+        const stokBaru = (existing.qty || 0) + row.stok_masuk;
+        await dbUpdate('stok', existing.id, { stok_masuk: stokBaru });
       } else {
         await dbInsert('stok', payload);
       }
@@ -741,6 +720,9 @@ document.addEventListener('click', function(e) {
     }
   }
 });
+
+
+
 
 
 // ─── MODAL GANTI KATEGORI ─────────────────────────────────────
