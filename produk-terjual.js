@@ -120,24 +120,26 @@ document.getElementById('page-produk-terjual').innerHTML = `
   </div>
 
   <!-- TABEL -->
-  <div class="card" style="overflow:hidden">
+  <div class="card" style="padding-bottom:0">
     <div class="card-title"><i class="ti ti-chart-bar"></i> Produk Terjual</div>
-    <div class="tbl-wrap" style="overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="tbl" style="min-width:520px">
-      <thead>
-        <tr>
-          <th>SKU</th>
-          <th>Katalog</th>
-          <th>Supplier</th>
-          <th style="text-align:center">Qty</th>
-          <th style="text-align:right">Omset</th>
-          <th style="text-align:center">% Omset</th>
-        </tr>
-      </thead>
-      <tbody id="pt-tbody">
-        <tr><td colspan="6" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
-      </tbody>
-    </table></div>
-    <div id="pt-footer" style="font-size:12px;color:var(--ink3);margin-top:8px;text-align:right"></div>
+    <div style="overflow:auto;-webkit-overflow-scrolling:touch;max-height:60vh;border-top:1px solid var(--ink4)">
+      <table class="tbl" style="min-width:520px;width:100%">
+        <thead style="position:sticky;top:0;z-index:3">
+          <tr>
+            <th style="background:var(--cream3)">SKU</th>
+            <th style="background:var(--cream3)">Katalog</th>
+            <th style="background:var(--cream3)">Supplier</th>
+            <th style="text-align:center;background:var(--cream3)">Qty</th>
+            <th style="text-align:right;background:var(--cream3)">Omset</th>
+            <th style="text-align:center;background:var(--cream3)">% Omset</th>
+          </tr>
+        </thead>
+        <tbody id="pt-tbody">
+          <tr><td colspan="6" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="pt-footer" style="font-size:12px;color:var(--ink3);padding:8px 10px;text-align:right;border-top:1px dashed var(--ink4)"></div>
   </div>
 `;
 
