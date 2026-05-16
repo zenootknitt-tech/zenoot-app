@@ -133,7 +133,7 @@ function renderProduk(data) {
 
   let html = '';
   Object.entries(groups).sort((a,b) => a[0].localeCompare(b[0])).forEach(([kat, rows]) => {
-    const expanded = _produkExpanded[kat] !== false; // default expand
+    const expanded = _produkExpanded[kat] === true; // default collapsed
     const triangle = expanded ? '▼' : '▶';
     const hpp      = rows[0] ? rows[0].hpp || 0 : 0;
     const boss     = rows[0] ? rows[0].boss || '—' : '—';
@@ -172,9 +172,7 @@ function renderProduk(data) {
           <td>Rp${(row.hpp||0).toLocaleString('id-ID')}</td>
           <td>${row.boss || '—'}</td>
           <td>${katBadgeProduk(row.kategori_produk || 'aktif')}</td>
-          <td>
-            <button class="btn btn-sm" data-action="edit-prd" data-id="${row.id}" style="margin-right:4px"><i class="ti ti-edit"></i></button>
-          </td>
+          <td></td>
         </tr>`;
       });
     }

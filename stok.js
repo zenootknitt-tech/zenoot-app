@@ -529,20 +529,7 @@ async function simpanPasteStok() {
       btn.textContent = `Menyimpan ${ok}/${_parsedStok.length}...`;
     }
     closeModal('modal-paste-stok');
-    
-// ─── MODAL GANTI KATEGORI ─────────────────────────────────────
-document.body.insertAdjacentHTML('beforeend', `
-<div id="modal-ganti-kat-stok" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
-  <div style="background:var(--cream);border:2px solid var(--ink);max-width:380px;width:90%;box-shadow:4px 4px 0 var(--ink4)">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:2px dashed var(--ink3)">
-      <div style="font-weight:700;font-size:15px"><i class="ti ti-tag"></i> Kategori — <span id="ganti-kat-title"></span></div>
-      <button onclick="document.getElementById('modal-ganti-kat-stok').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3)">&#10005;</button>
-    </div>
-    <div id="ganti-kat-opts"></div>
-  </div>
-</div>`);
-
-loadStok();
+    loadStok();
     alert(`✓ ${ok} SKU berhasil disimpan!`);
   } catch(err) {
     alert('Gagal simpan: ' + err.message);
