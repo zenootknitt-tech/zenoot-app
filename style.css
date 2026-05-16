@@ -271,15 +271,16 @@ body.sidebar-mini .sidebar-footer::before{
 .nav-item.active .ni-label{color:var(--cream)}
 .nav-item.active .ni-icon i{color:var(--cream)}
 .nav-item canvas.rough-nav{position:absolute;top:0;left:0;pointer-events:none;z-index:0}
-/* Nav item clean style — tanpa rough canvas */
+/* Nav item clean style — sudut kotak */
 .nav-item{
-  border-radius:20px;
+  border-radius:4px;
   transition:background .15s ease;
+  overflow:hidden;
 }
 .nav-item:hover{background:var(--cream3);}
 .nav-item.active{
   background:var(--ink);
-  border-radius:20px;
+  border-radius:4px;
 }
 .nav-item.active .ni-label{color:var(--cream);font-weight:700;}
 .nav-item.active .ni-icon i{color:var(--cream);}
@@ -514,7 +515,7 @@ body.sidebar-mini .sidebar-footer::before{
   background:var(--cream3);z-index:2;
   box-shadow:0 2px 0 0 var(--ink4);
 }
-.tbl td{padding:7px 8px;border-bottom:1.5px dashed var(--ink4);white-space:nowrap;font-size:14px;font-weight:500}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--ink4);white-space:nowrap;font-size:14px;font-weight:500}
 .tbl tr:last-child td{border:none}
 .tbl tr:hover td{background:rgba(0,0,0,0.025)}
 

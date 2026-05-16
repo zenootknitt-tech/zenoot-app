@@ -733,8 +733,7 @@ function renderTabelJP(data) {
     const chLabel = ch ? ch.nama : (row.channel_id ? '#'+row.channel_id : '—');
     const chHtml  = ch ? chBadge({ nama: ch.nama, kategori: ch.kategori||'' }) : '<span style="color:var(--ink3)">—</span>';
     return '<tr>'
-      + '<td style="white-space:nowrap"><b>' + tgl + '</b><br>'
-      + '<span style="font-size:11px;color:var(--ink3)">' + jam + '</span></td>'
+      + '<td style="white-space:nowrap"><b>' + tgl + '</b> <span style="font-size:11px;color:var(--ink3)">' + jam + '</span></td>'
       + '<td>' + chHtml + '</td>'
       + '<td><b style="color:var(--accent)">' + (row.sku||'—') + '</b></td>'
       + '<td style="text-align:center">' + (row.qty||0) + '</td>'
