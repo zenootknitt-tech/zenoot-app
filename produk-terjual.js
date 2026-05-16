@@ -71,9 +71,9 @@ document.getElementById('page-produk-terjual').innerHTML = `
         <!-- SUBMENU: Tanggal -->
         <div id="dd-pt-tgl" style="display:none;position:fixed;z-index:9999;background:#1c1a14;color:#f0ece0;min-width:240px;padding:12px;box-shadow:3px 4px 0 rgba(0,0,0,0.25)">
           <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px;text-transform:uppercase">Dari</div>
-          <input type="date" id="pt-tgl-dari" style="width:100%;font-family:var(--f);font-size:13px;padding:5px 8px;background:#2a2820;color:#f0ece0;border:1px solid rgba(255,255,255,0.2);margin-bottom:10px;box-sizing:border-box" onchange="ptApplyTgl()">
+          <input type="date" id="pt-tgl-dari" style="width:100%;font-family:var(--f);font-size:13px;padding:5px 8px;background:#2a2820;color:#f0ece0;border:1px solid rgba(255,255,255,0.2);margin-bottom:10px;box-sizing:border-box;-webkit-appearance:none;appearance:none;outline:none;cursor:pointer" onchange="ptApplyTgl()">
           <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px;text-transform:uppercase">Sampai</div>
-          <input type="date" id="pt-tgl-sampai" style="width:100%;font-family:var(--f);font-size:13px;padding:5px 8px;background:#2a2820;color:#f0ece0;border:1px solid rgba(255,255,255,0.2);box-sizing:border-box" onchange="ptApplyTgl()">
+          <input type="date" id="pt-tgl-sampai" style="width:100%;font-family:var(--f);font-size:13px;padding:5px 8px;background:#2a2820;color:#f0ece0;border:1px solid rgba(255,255,255,0.2);box-sizing:border-box;-webkit-appearance:none;appearance:none;outline:none;cursor:pointer" onchange="ptApplyTgl()">
         </div>
 
         <!-- SUBMENU: SKU Induk -->
@@ -293,7 +293,7 @@ function ptRender() {
       '<td style="text-align:right;font-weight:700;color:var(--ok)">Rp' + Math.round(r.omset).toLocaleString('id-ID') + '</td>' +
       '<td style="text-align:center">' +
         '<div style="display:flex;align-items:center;gap:4px;justify-content:center">' +
-          '<div style="width:40px;background:var(--cream2);height:4px;border-radius:2px;overflow:hidden;border:1px solid var(--ink4)">' +
+          '<div style="width:40px;background:var(--cream2);height:4px;border-radius:2px;overflow:hidden">' +
             '<div style="width:'+pct+'%;height:100%;background:var(--ok)"></div>' +
           '</div>' +
           '<span style="font-size:11px;color:var(--ink3)">'+pct+'%</span>' +
@@ -352,8 +352,12 @@ function ptOpenSub(sub, e) {
   var panel = document.getElementById('pt-filter-panel');
   var rect  = panel ? panel.getBoundingClientRect() : { right: 200, top: 100 };
   dd.style.display = 'block';
-  dd.style.left    = rect.right + 4 + 'px';
-  dd.style.top     = rect.top + 'px';
+  // Posisi ke kiri panel agar tidak offscreen
+  var ddW = 200;
+  var leftPos = rect.left - ddW - 4;
+  if (leftPos < 4) leftPos = rect.right + 4; // fallback kanan kalau kiri tidak cukup
+  dd.style.left = leftPos + 'px';
+  dd.style.top  = rect.top + 'px';
 }
 
 function ptUpdateBadge() {

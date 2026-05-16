@@ -975,3 +975,27 @@ body.sidebar-mini .sidebar-footer::before{
     left: 8px;
   }
 }
+
+/* ── Input Date — hapus coret-coret browser default ── */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: var(--f);
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+  filter: invert(0.3);
+}
+input[type="month"] {
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: var(--f);
+  cursor: pointer;
+}
+input[type="month"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+  filter: invert(0.3);
+}
