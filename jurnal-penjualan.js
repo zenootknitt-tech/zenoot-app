@@ -262,11 +262,9 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
     <div class="card-title"
       style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <span><i class="ti ti-receipt"></i> Jurnal Penjualan</span>
-      <input type="text" id="jp-search"
-        placeholder="Cari SKU / channel..."
-        style="font-family:var(--f);font-size:13px;padding:4px 8px;
-               border:2px solid var(--ink);background:var(--cream);width:200px"
-        oninput="filterJP()">
+      <button class="btn btn-sm" onclick="gotoPage('produk-terjual',null)" style="display:inline-flex;align-items:center;gap:5px;font-size:12px">
+        <i class="ti ti-chart-bar"></i> Produk Terjual
+      </button>
     </div>
     <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:auto"><table class="tbl">
       <thead>
