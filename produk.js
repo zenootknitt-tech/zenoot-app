@@ -1,3 +1,13 @@
+function katBadgeProduk(kat) {
+  var map = {
+    aktif:        '<span style="font-size:11px;font-weight:700;color:var(--ok);padding:2px 6px;border:1.5px solid var(--ok);border-radius:2px">Aktif</span>',
+    discontinued: '<span style="font-size:11px;font-weight:700;color:var(--ink3);padding:2px 6px;border:1.5px solid var(--ink3);border-radius:2px">Discontinued</span>',
+    seasonal:     '<span style="font-size:11px;font-weight:700;color:#c8a000;padding:2px 6px;border:1.5px solid #c8a000;border-radius:2px">Seasonal</span>',
+    clearance:    '<span style="font-size:11px;font-weight:700;color:var(--danger);padding:2px 6px;border:1.5px solid var(--danger);border-radius:2px">Clearance</span>',
+  };
+  return map[kat] || map['aktif'];
+}
+
 // ─── PRODUK.JS — Kelola Produk (master SKU + paste massal) ───
 
 document.getElementById('page-produk').innerHTML = `
@@ -47,7 +57,7 @@ document.getElementById('page-produk').innerHTML = `
         oninput="filterProduk()">
     </div>
     <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto"><table class="tbl">
-      <thead><tr><th>Katalog</th><th>SKU Variasi</th><th>HPP</th><th>Boss</th><th>Aksi</th></tr></thead>
+      <thead><tr><th>Katalog</th><th>SKU Variasi</th><th>HPP</th><th>Boss</th><th>Kategori</th><th>Aksi</th></tr></thead>
       <tbody id="produk-tbody">
         <tr><td colspan="5" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
       </tbody>
@@ -95,6 +105,7 @@ function renderProduk(data) {
       <td><b>${row.sku_variasi}</b></td>
       <td>Rp${(row.hpp||0).toLocaleString('id-ID')}</td>
       <td>${row.boss || '—'}</td>
+      <td>${katBadgeProduk(row.kategori_produk || 'aktif')}</td>
       <td>
         <button class="btn btn-sm" data-action="edit-prd" data-id="${row.id}" style="margin-right:4px"><i class="ti ti-edit"></i></button>
         <button class="btn btn-sm btn-danger" data-action="hapus-prd" data-id="${row.id}" data-sku="${safeSku}"><i class="ti ti-trash"></i></button>
@@ -120,6 +131,7 @@ function showFormProduk() {
   document.getElementById('prd-sku').value = '';
   document.getElementById('prd-hpp').value = '';
   document.getElementById('prd-boss').value = '';
+  document.getElementById('prd-kategori').value = 'aktif';
   showModal('modal-produk');
   document.getElementById('form-produk').scrollIntoView({behavior:'smooth'});
   sketchForm('form-produk');
@@ -137,7 +149,8 @@ async function editProduk(id) {
   document.getElementById('prd-katalog').value = r.katalog || '';
   document.getElementById('prd-sku').value     = r.sku_variasi || '';
   document.getElementById('prd-hpp').value     = r.hpp || 0;
-  document.getElementById('prd-boss').value    = r.boss || '';
+  document.getElementById('prd-boss').value     = r.boss || '';
+  document.getElementById('prd-kategori').value = r.kategori_produk || 'aktif';
   showModal('modal-produk');
   sketchForm('form-produk');
   document.getElementById('form-produk').scrollIntoView({behavior:'smooth'});
@@ -150,6 +163,7 @@ async function simpanProduk() {
     sku_variasi: document.getElementById('prd-sku').value.trim(),
     hpp:         parseInt(document.getElementById('prd-hpp').value) || 0,
     boss:        document.getElementById('prd-boss').value.trim().toUpperCase(),
+    kategori_produk: document.getElementById('prd-kategori').value || 'aktif',
   };
   if (!data.sku_variasi) { alert('SKU Variasi wajib diisi!'); return; }
   try {
@@ -284,6 +298,17 @@ document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="mo
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
       <div class="form-group" style="flex:1 1 120px"><label>HPP (Rp)</label><input type="number" id="prd-hpp" placeholder="0"></div>
       <div class="form-group" style="flex:1 1 120px"><label>Boss</label><input type="text" id="prd-boss" placeholder="mis: ALAN"></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 200px">
+        <label>Kategori Produk</label>
+        <select id="prd-kategori" style="font-family:var(--f);font-size:13px;padding:5px 8px;border:2px solid var(--ink);background:var(--cream);width:100%">
+          <option value="aktif">✅ Aktif</option>
+          <option value="discontinued">🚫 Discontinued</option>
+          <option value="seasonal">🌙 Seasonal</option>
+          <option value="clearance">🏷️ Clearance</option>
+        </select>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-primary btn-sm" onclick="simpanProduk()"><i class="ti ti-device-floppy"></i> Simpan</button>

@@ -192,7 +192,7 @@ function plKatSelect(kat, label) {
 async function loadPriceList() {
   try {
     const [produk, channels, bebanList] = await Promise.all([
-      dbGet('produk',        '&order=katalog.asc'),
+      dbGet('produk',        '&order=katalog.asc&kategori_produk=in.(aktif,clearance)').catch(()=>dbGet('produk','&order=katalog.asc')),
       dbGet('channels',      '&order=nama.asc'),
       dbGet('channel_beban', ''),
     ]);

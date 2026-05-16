@@ -38,8 +38,10 @@ function notifKirim(title, body, icon, tag) {
 // Dipanggil setelah load stok data
 function notifCekStok(stokData) {
   if (!stokData || !stokData.length) return;
-  const habis  = stokData.filter(r => r.sisa <= 0);
-  const kritis = stokData.filter(r => r.sisa > 0 && r.sisa <= 3);
+  // Hanya cek produk kategori 'aktif' — skip discontinued, seasonal, clearance
+  const dataAktif = stokData.filter(r => !r.kategori_produk || r.kategori_produk === 'aktif');
+  const habis  = dataAktif.filter(r => r.sisa <= 0);
+  const kritis = dataAktif.filter(r => r.sisa > 0 && r.sisa <= 3);
 
   if (habis.length > 0) {
     const skus = habis.slice(0,3).map(r => r.sku_variasi).join(', ');

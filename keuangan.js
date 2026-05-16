@@ -502,6 +502,32 @@ async function keuRenderNeraca() {
     const saldo = Math.max(0, a.saldoDebit - a.saldoKredit); totalAset += saldo;
     return `<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right;color:var(--ok)">${fmtRp(saldo)}</td></tr>`;
   }).join('') || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Belum ada akun aset</td></tr>`;
+  // Tambah Persediaan Barang (dari stok produk — semua kategori tetap aset)
+  try {
+    const [produkArr, stokArr, jualArr] = await Promise.all([
+      dbGet('produk', '').catch(()=>[]),
+      dbGet('stok',   '').catch(()=>[]),
+      dbGet('jurnal_penjualan', '&select=sku,qty').catch(()=>[])
+    ]);
+    const stokMap  = {};
+    (stokArr||[]).forEach(s => { stokMap[(s.sku_variasi||'').toUpperCase()] = s.stok_masuk||0; });
+    const keluarMap = {};
+    (jualArr||[]).forEach(j => { const k=(j.sku||'').toUpperCase(); keluarMap[k]=(keluarMap[k]||0)+(j.qty||0); });
+    let nilaiPersediaan = 0;
+    (produkArr||[]).forEach(p => {
+      const key   = (p.sku_variasi||'').toUpperCase();
+      const masuk = stokMap[key] || 0;
+      const keluar= keluarMap[key] || 0;
+      const sisa  = masuk - keluar;
+      if (sisa > 0) nilaiPersediaan += sisa * (p.hpp||0);
+    });
+    if (nilaiPersediaan > 0) {
+      const persediaanRow = `<tr><td style="padding-left:12px">Persediaan Barang</td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
+      document.getElementById('keu-neraca-aset').innerHTML += persediaanRow;
+      totalAset += nilaiPersediaan;
+    }
+  } catch(e) { console.warn('[NERACA-PERSEDIAAN]', e); }
+
   document.getElementById('keu-neraca-total-aset').textContent = fmtRp(totalAset);
 
   // KEWAJIBAN — dari hutang sisa
