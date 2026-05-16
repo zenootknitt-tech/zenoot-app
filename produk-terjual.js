@@ -101,7 +101,7 @@ document.getElementById('page-produk-terjual').innerHTML = `
   </div>
 
   <!-- SUMMARY METRICS -->
-  <div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px">
     <div class="metric">
       <div class="m-label">Total SKU Terjual</div>
       <div class="m-value" id="pt-total-sku">—</div>
@@ -120,9 +120,9 @@ document.getElementById('page-produk-terjual').innerHTML = `
   </div>
 
   <!-- TABEL -->
-  <div class="card">
+  <div class="card" style="overflow:hidden">
     <div class="card-title"><i class="ti ti-chart-bar"></i> Produk Terjual</div>
-    <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:auto"><table class="tbl">
+    <div class="tbl-wrap" style="overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="tbl" style="min-width:520px">
       <thead>
         <tr>
           <th>SKU</th>
