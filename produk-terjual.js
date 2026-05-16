@@ -340,24 +340,49 @@ function ptCloseAllSub() {
 
 function ptOpenSub(sub, e) {
   if (e) e.stopPropagation();
-  var mi  = document.getElementById('pt-mi-' + sub) || (e && e.currentTarget);
-  var dd  = document.getElementById('dd-pt-' + sub);
+  var dd = document.getElementById('dd-pt-' + sub);
   if (!dd) return;
   // Tutup sub lain
   ['bulan','tgl','katalog','supplier'].forEach(function(s) {
     if (s !== sub) { var el = document.getElementById('dd-pt-'+s); if(el) el.style.display='none'; }
   });
   if (dd.style.display !== 'none') { dd.style.display = 'none'; return; }
-  // Posisi di sebelah kanan panel
-  var panel = document.getElementById('pt-filter-panel');
-  var rect  = panel ? panel.getBoundingClientRect() : { right: 200, top: 100 };
-  dd.style.display = 'block';
-  // Posisi ke kiri panel agar tidak offscreen
-  var ddW = 200;
-  var leftPos = rect.left - ddW - 4;
-  if (leftPos < 4) leftPos = rect.right + 4; // fallback kanan kalau kiri tidak cukup
+
+  // Tampil dulu untuk ukur lebar
+  dd.style.display  = 'block';
+  dd.style.left     = '-9999px';
+  dd.style.top      = '-9999px';
+
+  var panel    = document.getElementById('pt-filter-panel');
+  var rect     = panel ? panel.getBoundingClientRect() : { left:0, right:200, top:100, bottom:300 };
+  var ddW      = dd.offsetWidth  || 200;
+  var ddH      = dd.offsetHeight || 200;
+  var vw       = window.innerWidth;
+  var vh       = window.innerHeight;
+
+  // Coba kiri dulu, fallback kanan, fallback di bawah (HP portrait)
+  var leftPos, topPos;
+
+  if (rect.left - ddW - 4 >= 4) {
+    // Cukup ruang di kiri
+    leftPos = rect.left - ddW - 4;
+    topPos  = rect.top;
+  } else if (rect.right + ddW + 4 <= vw) {
+    // Cukup ruang di kanan
+    leftPos = rect.right + 4;
+    topPos  = rect.top;
+  } else {
+    // HP portrait: tampil di bawah panel, full width
+    leftPos = Math.max(4, rect.left);
+    topPos  = rect.bottom + 4;
+    dd.style.width = Math.min(ddW, vw - 8) + 'px';
+  }
+
+  // Pastikan tidak keluar bawah layar
+  if (topPos + ddH > vh - 8) topPos = Math.max(4, vh - ddH - 8);
+
   dd.style.left = leftPos + 'px';
-  dd.style.top  = rect.top + 'px';
+  dd.style.top  = topPos  + 'px';
 }
 
 function ptUpdateBadge() {
