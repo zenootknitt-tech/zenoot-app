@@ -240,6 +240,10 @@ function renderStok(data) {
       </td>
     </tr>`;
   }).join('');
+  // Re-render rough UI setelah data selesai
+  requestAnimationFrame(function() {
+    if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-stok'));
+  });
 }
 
 // ─── FILTER ───────────────────────────────────────────────────

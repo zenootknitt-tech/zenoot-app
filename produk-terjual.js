@@ -141,8 +141,6 @@ document.getElementById('page-produk-terjual').innerHTML = `
   </div>
 `;
 
-setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-produk-terjual')); }, 80);
-
 // ─── STATE ───────────────────────────────────────────────────
 var _ptJpData      = [];  // semua jurnal_penjualan
 var _ptProdukMap   = {};  // sku → { katalog, boss/supplier }
@@ -303,6 +301,13 @@ function ptRender() {
   }).join('');
 
   document.getElementById('pt-footer').textContent = rows.length + ' SKU ditampilkan dari ' + filtered.length + ' transaksi';
+
+  // Re-render rough UI SETELAH data selesai dirender (card sudah punya tinggi yang benar)
+  requestAnimationFrame(function() {
+    if (typeof rerenderUI === 'function') {
+      rerenderUI(document.getElementById('page-produk-terjual'));
+    }
+  });
 }
 
 // ─── FILTER PANEL ────────────────────────────────────────────
