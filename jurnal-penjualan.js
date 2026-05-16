@@ -681,7 +681,7 @@ async function jpLoadTargetHarian() {
 }
 
 function filterJP() {
-  const q   = document.getElementById('jp-search').value.toLowerCase().trim();
+  const q   = ''; // search bar sudah dihapus, gunakan filter panel
   const kat = document.getElementById('jp-filter-channel').value;
   let hasil = _jpAllData.filter(r => {
     const ch = (_jpChannelMap[r.channel_id] ? _jpChannelMap[r.channel_id].nama : '').toLowerCase();
