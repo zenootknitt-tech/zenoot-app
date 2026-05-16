@@ -27,10 +27,38 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
         </button>
         <div id="jp-filter-panel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--cream);border:2px solid var(--ink);min-width:220px;box-shadow:3px 4px 0 rgba(0,0,0,0.13)">
           <div style="padding:8px 12px;border-bottom:1px solid var(--ink3)">
-            <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px">Bulan</div>
-            <input type="month" id="jp-filter-bulan"
-              style="font-family:var(--f);font-size:13px;padding:4px 8px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box"
-              oninput="filterJP();jpUpdateBadge()">
+            <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px">Waktu</div>
+            <div id="jp-waktu-opts" style="display:flex;flex-direction:column;gap:3px">
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                <input type="radio" name="jp-waktu" value="hari-ini" checked onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Hari Ini (24 jam)
+              </label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                <input type="radio" name="jp-waktu" value="kemarin" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Kemarin
+              </label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                <input type="radio" name="jp-waktu" value="7hari" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> 7 Hari Terakhir
+              </label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                <input type="radio" name="jp-waktu" value="30hari" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> 30 Hari Terakhir
+              </label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                <input type="radio" name="jp-waktu" value="bulan" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Per Bulan
+              </label>
+              <div id="jp-bulan-wrap" style="display:none;padding-left:20px;margin-top:2px">
+                <input type="month" id="jp-filter-bulan"
+                  style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box"
+                  oninput="loadJurnalPenjualan();jpUpdateBadge()">
+              </div>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                <input type="radio" name="jp-waktu" value="custom" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Custom
+              </label>
+              <div id="jp-custom-wrap" style="display:none;padding-left:20px;margin-top:2px">
+                <div style="font-size:11px;color:var(--ink3);margin-bottom:3px">Dari</div>
+                <input type="date" id="jp-dari" style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box;margin-bottom:5px" onchange="loadJurnalPenjualan();jpUpdateBadge()">
+                <div style="font-size:11px;color:var(--ink3);margin-bottom:3px">Sampai</div>
+                <input type="date" id="jp-sampai" style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box" onchange="loadJurnalPenjualan();jpUpdateBadge()">
+              </div>
+            </div>
           </div>
           <div style="padding:8px 12px;border-bottom:1px solid var(--ink3)">
             <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px">Channel</div>
@@ -565,20 +593,63 @@ async function loadJurnalPenjualan() {
   const tbody = document.getElementById('jp-tbody');
   tbody.innerHTML = '<tr><td colspan="7" style="color:var(--ink3);font-style:italic">Memuat data...</td></tr>';
   try {
-    const fBulan = document.getElementById('jp-filter-bulan').value;
+    const mode = _jpWaktuMode || 'hari-ini';
+    const now  = new Date();
     let filter = '';
-    if (fBulan) {
-      const [y, m] = fBulan.split('-');
-      const from = y + '-' + m + '-01';
-      const to   = new Date(y, parseInt(m), 0).toISOString().split('T')[0];
-      filter = '&tanggal=gte.' + from + '&tanggal=lte.' + to;
+
+    if (mode === 'hari-ini') {
+      // 24 jam terakhir
+      const since = new Date(now - 24*60*60*1000).toISOString().split('T')[0];
+      filter = '&tanggal=gte.' + since;
+    } else if (mode === 'kemarin') {
+      const d = new Date(now);
+      d.setDate(d.getDate() - 1);
+      const tgl = d.toISOString().split('T')[0];
+      filter = '&tanggal=gte.' + tgl + '&tanggal=lte.' + tgl;
+    } else if (mode === '7hari') {
+      const since = new Date(now - 7*24*60*60*1000).toISOString().split('T')[0];
+      filter = '&tanggal=gte.' + since;
+    } else if (mode === '30hari') {
+      const since = new Date(now - 30*24*60*60*1000).toISOString().split('T')[0];
+      filter = '&tanggal=gte.' + since;
+    } else if (mode === 'bulan') {
+      const fBulan = (document.getElementById('jp-filter-bulan')||{}).value || '';
+      if (fBulan) {
+        const [y, m] = fBulan.split('-');
+        const from = y + '-' + m + '-01';
+        const to   = new Date(y, parseInt(m), 0).toISOString().split('T')[0];
+        filter = '&tanggal=gte.' + from + '&tanggal=lte.' + to;
+      }
+    } else if (mode === 'custom') {
+      const dari   = (document.getElementById('jp-dari')   ||{}).value || '';
+      const sampai = (document.getElementById('jp-sampai') ||{}).value || '';
+      if (dari)   filter += '&tanggal=gte.' + dari;
+      if (sampai) filter += '&tanggal=lte.' + sampai;
     }
+
     const data = await dbGet('jurnal_penjualan', filter + '&order=tanggal.desc');
     _jpAllData = data || [];
     filterJP();
     jpLoadTargetHarian(); // progress bar target harian
   } catch(err) {
     tbody.innerHTML = '<tr><td colspan="7" style="color:var(--danger)">Error: ' + err.message + '</td></tr>';
+  }
+}
+
+
+// ─── FILTER WAKTU BERGAYA SHOPEE ─────────────────────────────
+var _jpWaktuMode = 'hari-ini'; // default
+
+function jpSetWaktu(mode) {
+  _jpWaktuMode = mode;
+  // Show/hide sub-input
+  var bulanWrap  = document.getElementById('jp-bulan-wrap');
+  var customWrap = document.getElementById('jp-custom-wrap');
+  if (bulanWrap)  bulanWrap.style.display  = mode === 'bulan'  ? 'block' : 'none';
+  if (customWrap) customWrap.style.display = mode === 'custom' ? 'block' : 'none';
+  if (mode !== 'bulan' && mode !== 'custom') {
+    loadJurnalPenjualan();
+    jpUpdateBadge();
   }
 }
 
@@ -603,18 +674,25 @@ function jpCloseFilterOutside(e) {
   }
 }
 function jpUpdateBadge() {
-  var bulan   = (document.getElementById('jp-filter-bulan')   || {}).value || '';
+  var mode    = _jpWaktuMode || 'hari-ini';
   var channel = (document.getElementById('jp-filter-channel') || {}).value || '';
   var badge   = document.getElementById('jp-filter-badge');
-  if (badge) badge.style.display = (bulan || channel) ? 'inline' : 'none';
+  // Badge aktif jika bukan default (hari-ini) atau ada filter channel
+  if (badge) badge.style.display = (mode !== 'hari-ini' || channel) ? 'inline' : 'none';
 }
 function jpResetFilter() {
-  var b = document.getElementById('jp-filter-bulan');
-  var c = document.getElementById('jp-filter-channel');
-  if (b) b.value = '';
-  if (c) c.value = '';
+  _jpWaktuMode = 'hari-ini';
+  // Reset radio ke hari-ini
+  var radios = document.querySelectorAll('input[name="jp-waktu"]');
+  radios.forEach(function(r) { r.checked = r.value === 'hari-ini'; });
+  var bulanWrap  = document.getElementById('jp-bulan-wrap');
+  var customWrap = document.getElementById('jp-custom-wrap');
+  if (bulanWrap)  bulanWrap.style.display  = 'none';
+  if (customWrap) customWrap.style.display = 'none';
+  var ch = document.getElementById('jp-filter-channel');
+  if (ch) ch.value = '';
   jpUpdateBadge();
-  filterJP();
+  loadJurnalPenjualan();
   var panel = document.getElementById('jp-filter-panel');
   if (panel) panel.style.display = 'none';
 }

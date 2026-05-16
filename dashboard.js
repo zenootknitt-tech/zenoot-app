@@ -115,11 +115,20 @@ document.getElementById('page-dashboard').innerHTML = `
 
     <div class="card">
       <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-        <span><i class="ti ti-chart-line"></i> Tren Penjualan</span>
-        <div style="display:flex;gap:4px">
-          <button class="btn btn-sm dash-period-btn active-period" onclick="setDashPeriod(7,this)">7H</button>
-          <button class="btn btn-sm dash-period-btn" onclick="setDashPeriod(14,this)">14H</button>
-          <button class="btn btn-sm dash-period-btn" onclick="setDashPeriod(30,this)">30H</button>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span><i class="ti ti-chart-line"></i> Tren Penjualan</span>
+          <div style="position:relative">
+            <button class="btn btn-sm" id="dash-period-btn" onclick="dashTogglePeriodMenu()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px">
+              <span id="dash-period-label">Hari Ini</span>
+              <span style="font-size:10px">&#9662;</span>
+            </button>
+            <div id="dash-period-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:#1c1a14;color:#f0ece0;min-width:160px;box-shadow:3px 4px 0 rgba(0,0,0,0.25);border-radius:2px">
+              <div onclick="setDashPeriod(1,'Hari Ini')"   style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">Hari Ini</div>
+              <div onclick="setDashPeriod(7,'7 Hari')"     style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">7 Hari</div>
+              <div onclick="setDashPeriod(14,'14 Hari')"   style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">14 Hari</div>
+              <div onclick="setDashPeriod(30,'30 Hari')"   style="padding:9px 14px;cursor:pointer;font-size:13px;" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">30 Hari</div>
+            </div>
+          </div>
         </div>
       </div>
       <div style="position:relative;height:170px;width:100%">
@@ -285,7 +294,7 @@ document.getElementById('page-dashboard').innerHTML = `
 
 
 // ─── STATE ────────────────────────────────────────────────────
-let _dashPeriod     = 7;
+let _dashPeriod     = 1; // default Hari Ini
 let _dashJPData     = [];
 let _dashStokData   = [];
 let _dashChannelMap = {};
@@ -340,10 +349,31 @@ function openTargetModal() {
 }
 
 // ─── PERIOD TOGGLE ────────────────────────────────────────────
-function setDashPeriod(days, btn) {
+function dashTogglePeriodMenu() {
+  var menu = document.getElementById('dash-period-menu');
+  if (!menu) return;
+  var isOpen = menu.style.display !== 'none';
+  menu.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    setTimeout(function() {
+      document.addEventListener('click', function closeDashMenu(e) {
+        var btn  = document.getElementById('dash-period-btn');
+        var menu = document.getElementById('dash-period-menu');
+        if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+          menu.style.display = 'none';
+        }
+        document.removeEventListener('click', closeDashMenu);
+      });
+    }, 50);
+  }
+}
+
+function setDashPeriod(days, label) {
   _dashPeriod = days;
-  document.querySelectorAll('.dash-period-btn').forEach(b => b.classList.remove('active-period'));
-  if (btn) btn.classList.add('active-period');
+  var lbl = document.getElementById('dash-period-label');
+  if (lbl) lbl.textContent = label || (days + ' Hari');
+  var menu = document.getElementById('dash-period-menu');
+  if (menu) menu.style.display = 'none';
   _renderChartPenjualan(_dashJPData);
 }
 
@@ -487,7 +517,7 @@ function _renderChartPenjualan(jpData) {
     const dStr  = delta!==null ? (delta>=0?'▲ +':'▼ ') + delta + '% vs paruh pertama' : '';
     const dCol  = delta>=0?'var(--ok)':'var(--danger)';
     leg.innerHTML =
-      '<span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:3px;background:'+colLine+';display:inline-block;border-radius:2px"></span>'+_dashPeriod+' hari: '+_fmtRp(total)+'</span>' +
+      '<span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:3px;background:'+colLine+';display:inline-block;border-radius:2px"></span>'+(document.getElementById('dash-period-label')?document.getElementById('dash-period-label').textContent:_dashPeriod+' hari')+': '+_fmtRp(total)+'</span>' +
       (dStr ? '<span style="color:'+dCol+';font-weight:700">'+dStr+'</span>' : '');
   }
 }
