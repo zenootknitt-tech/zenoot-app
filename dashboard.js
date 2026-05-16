@@ -397,17 +397,20 @@ function _renderChartHariIni(jpData, canvas, tooltip) {
   const todayStr = new Date().toISOString().split('T')[0];
   const labels = [], totals = [];
 
-  for (let h = 0; h <= 23; h++) {
-    const hStr = String(h).padStart(2,'0');
+  for (let h = 0; h <= 24; h++) {
+    const hStr = h === 24 ? '24' : String(h).padStart(2,'0');
     labels.push(hStr);
-    const jam = jpData
-      .filter(r => {
-        if (!r.tanggal || String(r.tanggal).slice(0,10) !== todayStr) return false;
-        const wkt = String(r.waktu || '00:00');
-        return wkt.slice(0,2) === hStr;
-      })
-      .reduce((s,r) => s + (Number(r.total)||0), 0);
-    totals.push(jam);
+    if (h === 24) { totals.push(0); }
+    else {
+      const jam = jpData
+        .filter(r => {
+          if (!r.tanggal || String(r.tanggal).slice(0,10) !== todayStr) return false;
+          const wkt = String(r.waktu || '00:00');
+          return wkt.slice(0,2) === String(h).padStart(2,'0');
+        })
+        .reduce((s,r) => s + (Number(r.total)||0), 0);
+      totals.push(jam);
+    }
   }
 
   const total   = totals.reduce((s,v)=>s+v,0);
@@ -458,12 +461,12 @@ function _renderChartHariIni(jpData, canvas, tooltip) {
   totals.forEach((v,i) => { const x=padL+i*step, y=padT+cH-(v/maxVal)*cH; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
   ctx.stroke();
 
-  // X labels — tampilkan setiap 4 jam
+  // X labels — tampilkan setiap 3 jam agar muat (00,03,06,09,12,15,18,21)
   labels.forEach((lbl,i) => {
-    if (i % 4 !== 0) return;
+    if (i % 3 !== 0) return;
     const x = padL + i * step;
     ctx.fillStyle=colLabel; ctx.font='10px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(lbl+':00', x, padT+cH+14);
+    ctx.fillText(lbl, x, padT+cH+14);
   });
 
   // Legend

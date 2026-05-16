@@ -297,12 +297,12 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
     <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:auto"><table class="tbl">
       <thead>
         <tr>
-          <th onclick="sortJP('tanggal')" style="cursor:pointer">Tgl &amp; Waktu <span id="sort-tanggal">&#8597;</span></th>
+          <th onclick="sortJP('tanggal')" style="cursor:pointer;user-select:none">Tgl &amp; Waktu <span id="sort-tanggal">&#8597;</span></th>
           <th>Channel</th>
-          <th onclick="sortJP('sku')" style="cursor:pointer">SKU <span id="sort-sku">&#8597;</span></th>
-          <th onclick="sortJP('qty')" style="cursor:pointer">Qty <span id="sort-qty">&#8597;</span></th>
+          <th onclick="sortJP('sku')" style="cursor:pointer;user-select:none">SKU <span id="sort-sku">&#8597;</span></th>
+          <th onclick="sortJP('qty')" style="cursor:pointer;user-select:none">Qty <span id="sort-qty">&#8597;</span></th>
           <th>Harga Sat.</th>
-          <th onclick="sortJP('total')" style="cursor:pointer">Total <span id="sort-total">&#8597;</span></th>
+          <th onclick="sortJP('total')" style="cursor:pointer;user-select:none">Total <span id="sort-total">&#8597;</span></th>
           <th>Aksi</th>
         </tr>
       </thead>

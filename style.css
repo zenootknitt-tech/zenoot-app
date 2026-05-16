@@ -1000,3 +1000,10 @@ input[type="month"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   filter: invert(0.3);
 }
+
+/* Fix: th dengan onclick tidak terhalang canvas rough */
+.tbl th[onclick] {
+  position: relative;
+  z-index: 3;
+  pointer-events: all;
+}
