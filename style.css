@@ -2,9 +2,9 @@
 html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
   --ink:#f0f0f0;--ink2:#a0a0a0;--ink3:#505060;--ink4:#1a1a1a;
-  --cream:#0d0d0d;--cream2:#060606;--cream3:#030303;--cream4:#000000;
+  --cream:#050505;--cream2:#0d0d0d;--cream3:#141414;--cream4:#1c1c1c;
   --paper-line:rgba(255,255,255,0.01);
-  --card-shadow:inset 0 2px 8px rgba(0,0,0,0.8),inset 0 1px 2px rgba(0,0,0,0.9),0 1px 0 rgba(255,255,255,0.03);
+  --card-shadow:0 2px 4px rgba(0,0,0,0.6),0 8px 28px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.025);
   --f:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
   --f2:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
   --warn:#e6a817;--danger:#e05252;--ok:#2ecc7a;
