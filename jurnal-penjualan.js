@@ -247,7 +247,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
           </button>
           <!-- Panel Periode -->
           <div id="jp-periode-panel"
-            style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;
+            style="display:none;position:fixed;top:0;left:0;z-index:9999;
                    background:var(--cream);border:2px solid var(--ink);min-width:210px;
                    box-shadow:3px 4px 0 rgba(0,0,0,0.13)">
             <div style="padding:10px 12px">
@@ -301,7 +301,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
           </button>
           <!-- Panel Channel -->
           <div id="jp-channel-panel"
-            style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;
+            style="display:none;position:fixed;top:0;left:0;z-index:9999;
                    background:var(--cream);border:2px solid var(--ink);min-width:200px;
                    box-shadow:3px 4px 0 rgba(0,0,0,0.13)">
             <div style="padding:10px 12px">
@@ -687,13 +687,24 @@ function jpSetWaktu(mode) {
   }
 }
 
+// ─── HELPER: posisikan panel tepat di bawah tombol (fixed) ───
+function _jpPositionPanel(btnId, panelId) {
+  var btn   = document.getElementById(btnId);
+  var panel = document.getElementById(panelId);
+  if (!btn || !panel) return;
+  var rect = btn.getBoundingClientRect();
+  panel.style.top  = (rect.bottom + 4) + 'px';
+  panel.style.left = rect.left + 'px';
+}
+
 // ─── FILTER PANEL: PERIODE ───────────────────────────────────
 function jpTogglePeriode() {
   var panel = document.getElementById('jp-periode-panel');
   var chPanel = document.getElementById('jp-channel-panel');
   if (!panel) return;
-  if (chPanel) chPanel.style.display = 'none'; // tutup panel lain
+  if (chPanel) chPanel.style.display = 'none';
   var isOpen = panel.style.display !== 'none';
+  if (!isOpen) _jpPositionPanel('jp-periode-btn', 'jp-periode-panel');
   panel.style.display = isOpen ? 'none' : 'block';
   if (!isOpen) {
     setTimeout(function() {
@@ -728,8 +739,9 @@ function jpToggleChannel() {
   var panel = document.getElementById('jp-channel-panel');
   var perPanel = document.getElementById('jp-periode-panel');
   if (!panel) return;
-  if (perPanel) perPanel.style.display = 'none'; // tutup panel lain
+  if (perPanel) perPanel.style.display = 'none';
   var isOpen = panel.style.display !== 'none';
+  if (!isOpen) _jpPositionPanel('jp-channel-btn', 'jp-channel-panel');
   panel.style.display = isOpen ? 'none' : 'block';
   if (!isOpen) {
     setTimeout(function() {
