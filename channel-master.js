@@ -240,7 +240,7 @@ document.getElementById('page-channel').innerHTML = `
       </div>
     </div>
   </div>
-\`;
+`;
 
 setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-channel')); }, 80);
 
