@@ -13,7 +13,7 @@ var ASSETS = [
   './rough-ui.js',
   './channels.js',
   './hpp.js',
-  './dashboard.js?v=5',
+  './dashboard.js',
   './produk.js',
   './stok.js',
   './restock.js',
@@ -44,6 +44,7 @@ self.addEventListener('message', function(e) {
 
 self.addEventListener('install', function(e) {
   CACHE = 'zenot-' + Date.now();
+  self.skipWaiting(); // langsung aktif tanpa tunggu tab ditutup
   e.waitUntil(
     caches.open(CACHE).then(function(c) {
       // addAll satu-satu agar satu file gagal tidak blokir semua
