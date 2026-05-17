@@ -253,6 +253,12 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
           <span id="jp-channel-badge" style="display:none;background:var(--accent);color:#fff;font-size:9px;padding:1px 4px;border-radius:8px;font-weight:700">●</span>
           <span style="font-size:10px">&#9662;</span>
         </button>
+
+        <!-- RESET FILTER — muncul otomatis bila ada filter aktif -->
+        <button class="btn btn-sm" id="jp-reset-btn" onclick="jpResetFilter()"
+          style="display:none;align-items:center;gap:4px;font-size:12px;border-color:var(--danger);color:var(--danger)">
+          <i class="ti ti-x"></i> Reset Filter
+        </button>
       </div>
 
       <!-- Kanan: tombol Produk Terjual -->
@@ -738,7 +744,7 @@ function jpUpdateChannelLabel() {
 
 function jpToggleFilter() {} // legacy stub — sudah diganti 2 panel
 function jpUpdateBadge() {
-  var mode    = _jpWaktuMode || 'hari-ini';
+  var mode    = _jpWaktuMode || 'bulan';
   var channel = (document.getElementById('jp-filter-channel') || {}).value || '';
   // Badge Periode
   var pBadge = document.getElementById('jp-periode-badge');
@@ -746,6 +752,10 @@ function jpUpdateBadge() {
   // Badge Channel
   var cBadge = document.getElementById('jp-channel-badge');
   if (cBadge) cBadge.style.display = channel ? 'inline' : 'none';
+  // Tombol Reset — muncul bila ada filter non-default aktif
+  var resetBtn = document.getElementById('jp-reset-btn');
+  var filterAktif = (mode !== 'bulan') || (channel !== '');
+  if (resetBtn) resetBtn.style.display = filterAktif ? 'inline-flex' : 'none';
   // Update label
   jpUpdatePeriodeLabel();
   jpUpdateChannelLabel();
