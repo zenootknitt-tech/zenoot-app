@@ -1,12 +1,12 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
-  --ink:#1a1d24;--ink2:#3a3f4e;--ink3:#6b7385;--ink4:#9aa0b0;
-  --cream:#f5f6f8;--cream2:#eaecf0;--cream3:#d8dbe2;--cream4:#c8ccd6;
-  --paper-line:rgba(26,29,36,0.07);
+  --ink:#e2e4ec;--ink2:#b0b6c8;--ink3:#8088a0;--ink4:#2e3347;
+  --cream:#12141a;--cream2:#1a1d26;--cream3:#22263a;--cream4:#2a2f45;
+  --paper-line:rgba(255,255,255,0.04);
   --f:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
   --f2:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
-  --warn:#d97706;--danger:#dc2626;--ok:#16a34a;
+  --warn:#e6a817;--danger:#e05252;--ok:#2ecc7a;
   --sidebar-w:200px;
 }
 
@@ -34,7 +34,7 @@ body{
   -webkit-align-items:center;align-items:center;
   -webkit-justify-content:center;justify-content:center;
   border-radius:50%;
-  box-shadow:0 4px 14px rgba(0,0,0,0.18);
+  box-shadow:0 4px 14px rgba(0,0,0,0.5);
   color:var(--cream);
   -webkit-tap-highlight-color:transparent;
   touch-action:manipulation;
@@ -222,7 +222,7 @@ body.sidebar-mini .sidebar-footer::before{
   -webkit-tap-highlight-color:transparent;
   touch-action:manipulation;
 }
-.nav-group-header:hover{background:rgba(0,0,0,0.03)}
+.nav-group-header:hover{background:rgba(255,255,255,0.03)}
 .nav-group-label{
   font-size:10px;font-weight:700;color:var(--ink3);
   text-transform:uppercase;letter-spacing:.1em;font-family:var(--f2);
@@ -327,7 +327,7 @@ body.sidebar-mini .sidebar-footer::before{
 }
 .topbar::before{
   content:'';position:absolute;left:52px;top:0;bottom:0;
-  width:1px;background:rgba(154,160,176,0.35);
+  width:1px;background:rgba(200,80,80,0.18);
 }
 .page-title{
   font-size:24px;font-weight:700;padding-left:10px;
@@ -518,7 +518,7 @@ body.sidebar-mini .sidebar-footer::before{
 }
 .tbl td{padding:7px 8px;border-bottom:1px solid var(--cream3);white-space:nowrap;font-size:14px;font-weight:500}
 .tbl tr:last-child td{border:none}
-.tbl tr:hover td{background:rgba(154,160,176,0.12)}
+.tbl tr:hover td{background:rgba(255,255,255,0.03)}
 
 /* ─── BADGE ──────────────────────────────────────────────── */
 .badge{
@@ -563,7 +563,7 @@ body.sidebar-mini .sidebar-footer::before{
   min-height:44px;
 }
 .form-group select{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%231a1d24' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23e2e4ec' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 10px center;
   padding-right:30px;
 }
@@ -597,10 +597,10 @@ body.sidebar-mini .sidebar-footer::before{
 
 /* ─── STICKY NOTE ────────────────────────────────────────── */
 .sticky{
-  background:#fefce8;border:1.5px solid #d97706;padding:8px 10px;
-  font-size:12px;font-weight:600;color:#92400e;
+  background:#2a2610;border:1.5px solid #e6a817;padding:8px 10px;
+  font-size:12px;font-weight:600;color:#f0d070;
   -webkit-transform:rotate(1.5deg);transform:rotate(1.5deg);
-  box-shadow:2px 3px 6px rgba(0,0,0,0.08);line-height:1.4;
+  box-shadow:2px 3px 6px rgba(0,0,0,0.25);line-height:1.4;
   margin:8px 10px 4px;font-family:var(--f2);
 }
 .sticky::before{content:'📌';display:block;font-size:13px;margin-bottom:2px}
@@ -625,10 +625,10 @@ body.sidebar-mini .sidebar-footer::before{
   display:inline-block;padding:2px 7px;border-radius:20px;
   font-size:11px;font-weight:600;border:1.5px solid currentColor;white-space:nowrap;
 }
-.badge-tunai   {color:#16a34a;background:#dcfce7}
-.badge-transfer{color:#2563eb;background:#dbeafe}
-.badge-cod     {color:#d97706;background:#fef3c7}
-.badge-kredit  {color:#db2777;background:#fce7f3}
+.badge-tunai   {color:#2ecc7a;background:#0d2e1c}
+.badge-transfer{color:#5b9cf6;background:#0d1e3a}
+.badge-cod     {color:#e6a817;background:#2a1e06}
+.badge-kredit  {color:#e07ab0;background:#2a0d1e}
 .badge-lainnya {color:var(--ink2);background:var(--cream3)}
 
 @media (min-width:901px){
