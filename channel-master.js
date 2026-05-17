@@ -14,6 +14,10 @@ document.getElementById('page-channel').innerHTML = `
       style="padding:8px 20px;font-family:var(--f);font-size:13px;font-weight:700;border:2px solid var(--ink);border-bottom:none;border-left:none;background:var(--cream);color:var(--ink);cursor:pointer;margin-bottom:-2px">
       <i class="ti ti-calculator"></i> Beban Operasional
     </button>
+    <button id="ch-tab-supplier" onclick="chSwitchTab('supplier')"
+      style="padding:8px 20px;font-family:var(--f);font-size:13px;font-weight:700;border:2px solid var(--ink);border-bottom:none;border-left:none;background:var(--cream);color:var(--ink);cursor:pointer;margin-bottom:-2px">
+      <i class="ti ti-truck"></i> Supplier &amp; ROP
+    </button>
   </div>
 
   <!-- ══ TAB: CHANNEL MASTER ══ -->
@@ -178,13 +182,71 @@ document.getElementById('page-channel').innerHTML = `
 
     </div>
   </div><!-- end tab beban -->
-`;
+
+  <!-- ══ TAB: SUPPLIER & ROP ══ -->
+  <div id="ch-tab-content-supplier" style="display:none">
+    <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div style="font-size:12px;color:var(--ink3)">
+        <i class="ti ti-info-circle"></i>
+        Setting per supplier — dipakai otomatis untuk kalkulasi ROP di halaman Re-Stock.
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showModalSupplier()">
+        <i class="ti ti-plus"></i> Tambah Supplier
+      </button>
+    </div>
+    <div id="supplier-rop-list">
+      <div style="color:var(--ink3);font-style:italic;padding:12px 0">
+        <i class="ti ti-loader"></i> Memuat data supplier...
+      </div>
+    </div>
+  </div><!-- end tab supplier -->
+
+  <!-- Modal Supplier -->
+  <div class="modal-overlay" id="modal-supplier-rop">
+    <div class="modal">
+      <div class="modal-title"><i class="ti ti-truck"></i> <span id="supplier-modal-title">Tambah Supplier</span></div>
+      <input type="hidden" id="supplier-id">
+      <div class="form-row" style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="form-group" style="flex:2;min-width:140px">
+          <label>Nama Boss / Supplier</label>
+          <input type="text" id="supplier-nama" placeholder="cth: H SOLAH" style="text-transform:uppercase">
+        </div>
+        <div class="form-group" style="flex:1;min-width:100px">
+          <label>Lead Time (hari)</label>
+          <input type="number" id="supplier-leadtime" placeholder="7" min="1" max="90" value="7">
+        </div>
+      </div>
+      <div class="form-row" style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="form-group" style="flex:1;min-width:100px">
+          <label>Min Order (pcs)</label>
+          <input type="number" id="supplier-minorder" placeholder="12" min="1">
+        </div>
+        <div class="form-group" style="flex:1;min-width:100px">
+          <label>Kelipatan Order</label>
+          <input type="number" id="supplier-kelipatan" placeholder="12" min="1">
+        </div>
+        <div class="form-group" style="flex:2;min-width:140px">
+          <label>Budget Restock (Rp)</label>
+          <input type="number" id="supplier-budget" placeholder="0 = tidak dibatasi" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Catatan</label>
+        <input type="text" id="supplier-catatan" placeholder="cth: bayar transfer, dp dulu, dll">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-sm" onclick="simpanSupplier()"><i class="ti ti-device-floppy"></i> Simpan</button>
+        <button class="btn btn-sm" onclick="hideModal('modal-supplier-rop')"><i class="ti ti-x"></i> Batal</button>
+      </div>
+    </div>
+  </div>
+\`;
 
 setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-channel')); }, 80);
 
 // ─── TAB SWITCH ──────────────────────────────────────────────
 function chSwitchTab(tab) {
-  var tabs    = ['channel', 'beban'];
+  var tabs    = ['channel', 'beban', 'supplier'];
   tabs.forEach(function(t) {
     var btn     = document.getElementById('ch-tab-' + t);
     var content = document.getElementById('ch-tab-content-' + t);
@@ -195,9 +257,8 @@ function chSwitchTab(tab) {
     }
     if (content) content.style.display = active ? 'block' : 'none';
   });
-  if (tab === 'beban') {
-    loadBebanOps();
-  }
+  if (tab === 'beban')    loadBebanOps();
+  if (tab === 'supplier') loadSupplierROP();
 }
 
 var _bebanOpsData = [];
@@ -671,3 +732,152 @@ document.body.insertAdjacentHTML('beforeend', `
     </div>
   </div>
 </div>`);
+
+// ═══════════════════════════════════════════════════════════════
+// ─── SUPPLIER & ROP ────────────────────────────────────────────
+// Tabel Supabase: restock_supplier
+// Kolom: id, boss, lead_time, min_order, kelipatan, budget, catatan, created_at
+// ═══════════════════════════════════════════════════════════════
+
+var _supplierData = [];
+
+async function loadSupplierROP() {
+  const wrap = document.getElementById('supplier-rop-list');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="color:var(--ink3);font-style:italic;padding:12px 0"><i class="ti ti-loader"></i> Memuat...</div>';
+  try {
+    const data = await dbGet('restock_supplier', '&order=boss.asc');
+    _supplierData = data || [];
+    renderSupplierROP();
+  } catch(e) {
+    wrap.innerHTML = `
+      <div style="color:var(--danger);padding:12px 0">
+        ⚠️ Tabel <b>restock_supplier</b> belum ada di Supabase.<br>
+        <span style="font-size:12px;color:var(--ink3)">
+          Buat di Supabase → Table Editor → New Table → nama: <b>restock_supplier</b><br>
+          Kolom: id (int8 PK auto), boss (text), lead_time (int4 default 7),
+          min_order (int4 default 6), kelipatan (int4 default 6),
+          budget (int8 default 0), catatan (text), created_at (timestamptz default now())
+        </span>
+      </div>`;
+  }
+}
+
+function renderSupplierROP() {
+  const wrap = document.getElementById('supplier-rop-list');
+  if (!wrap) return;
+  const fmtRp = v => v ? 'Rp' + Number(v).toLocaleString('id-ID') : '—';
+
+  if (!_supplierData.length) {
+    wrap.innerHTML = '<div style="color:var(--ink3);font-style:italic;padding:12px 0">Belum ada supplier. Klik "+ Tambah Supplier" untuk mulai.</div>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Boss / Supplier</th>
+          <th style="text-align:center">Lead Time</th>
+          <th style="text-align:center">Min Order</th>
+          <th style="text-align:center">Kelipatan</th>
+          <th style="text-align:right">Budget</th>
+          <th>Catatan</th>
+          <th style="text-align:center">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${_supplierData.map(s => `
+          <tr>
+            <td><b style="color:var(--ink)">${s.boss || '—'}</b></td>
+            <td style="text-align:center">${s.lead_time || 7} hari</td>
+            <td style="text-align:center">${s.min_order || 6} pcs</td>
+            <td style="text-align:center">× ${s.kelipatan || s.min_order || 6}</td>
+            <td style="text-align:right;color:${s.budget ? 'var(--warn)' : 'var(--ink3)'}">
+              ${s.budget ? fmtRp(s.budget) : 'Tidak dibatasi'}
+            </td>
+            <td style="color:var(--ink3);font-size:12px">${s.catatan || '—'}</td>
+            <td style="text-align:center;white-space:nowrap">
+              <button class="btn btn-sm" onclick="editSupplier(${s.id})" style="margin-right:4px">
+                <i class="ti ti-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="hapusSupplier(${s.id},'${(s.boss||'').replace(/'/g,"\\'")}')">
+                <i class="ti ti-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:12px;padding:10px 14px;background:var(--cream3);border-radius:6px;font-size:12px;color:var(--ink3)">
+      <i class="ti ti-info-circle"></i>
+      <b>Formula ROP:</b> &nbsp;
+      Avg Harian = Qty 14 hari ÷ 14 &nbsp;·&nbsp;
+      ROP = Avg Harian × Lead Time &nbsp;·&nbsp;
+      Qty Order = bulatkan ROP ke atas → kelipatan terdekat
+    </div>
+  `;
+  if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-channel'));
+}
+
+function showModalSupplier() {
+  document.getElementById('supplier-modal-title').textContent = 'Tambah Supplier';
+  document.getElementById('supplier-id').value       = '';
+  document.getElementById('supplier-nama').value     = '';
+  document.getElementById('supplier-leadtime').value = '7';
+  document.getElementById('supplier-minorder').value = '';
+  document.getElementById('supplier-kelipatan').value = '';
+  document.getElementById('supplier-budget').value   = '';
+  document.getElementById('supplier-catatan').value  = '';
+  showModal('modal-supplier-rop');
+}
+
+function editSupplier(id) {
+  const s = _supplierData.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('supplier-modal-title').textContent = 'Edit Supplier';
+  document.getElementById('supplier-id').value        = s.id;
+  document.getElementById('supplier-nama').value      = s.boss || '';
+  document.getElementById('supplier-leadtime').value  = s.lead_time || 7;
+  document.getElementById('supplier-minorder').value  = s.min_order || '';
+  document.getElementById('supplier-kelipatan').value = s.kelipatan || s.min_order || '';
+  document.getElementById('supplier-budget').value    = s.budget || '';
+  document.getElementById('supplier-catatan').value   = s.catatan || '';
+  showModal('modal-supplier-rop');
+}
+
+async function simpanSupplier() {
+  const id        = document.getElementById('supplier-id').value;
+  const boss      = (document.getElementById('supplier-nama').value || '').trim().toUpperCase();
+  const lead_time = parseInt(document.getElementById('supplier-leadtime').value) || 7;
+  const min_order = parseInt(document.getElementById('supplier-minorder').value) || 6;
+  const kelipatan = parseInt(document.getElementById('supplier-kelipatan').value) || min_order;
+  const budget    = parseInt(document.getElementById('supplier-budget').value) || 0;
+  const catatan   = (document.getElementById('supplier-catatan').value || '').trim();
+
+  if (!boss) { alert('Nama boss/supplier wajib diisi!'); return; }
+
+  const payload = { boss, lead_time, min_order, kelipatan, budget, catatan };
+
+  try {
+    if (id) {
+      await dbUpdate('restock_supplier', id, payload);
+    } else {
+      await dbInsert('restock_supplier', payload);
+    }
+    hideModal('modal-supplier-rop');
+    loadSupplierROP();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+async function hapusSupplier(id, nama) {
+  if (!confirm('Hapus supplier "' + nama + '"?')) return;
+  try {
+    await dbDelete('restock_supplier', id);
+    loadSupplierROP();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
