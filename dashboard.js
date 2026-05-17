@@ -122,24 +122,24 @@ document.getElementById('page-dashboard').innerHTML = `
           <!-- Tombol Periode -->
           <div style="position:relative" id="trench-wrap-periode">
             <button class="btn btn-sm" id="trench-btn-periode" onclick="trenchTogglePeriode(event)"
-              style="display:inline-flex;align-items:center;gap:5px;font-size:12px">
+              style="display:inline-flex;align-items:center;gap:5px;font-size:12px;background:var(--ink);color:var(--cream);border:2px solid var(--ink)">
               <i class="ti ti-clock"></i>
-              <span id="trench-lbl-periode">Periode</span>
+              <span id="trench-lbl-periode">30 Hari</span>
               <i class="ti ti-chevron-down" style="font-size:10px"></i>
             </button>
-            <div id="trench-dd-periode" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:9999;
-              min-width:175px;background:var(--cream);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink4);padding:8px 10px"
+            <div id="trench-dd-periode" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:99999;
+              min-width:175px;background:var(--cream);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink4);padding:8px 10px;pointer-events:auto"
               onclick="event.stopPropagation()">
               <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
                 <i class="ti ti-clock" style="font-size:11px"></i> Pilih Periode
               </div>
               <div style="display:flex;flex-direction:column;gap:2px" id="trench-waktu-chips">
-                <div class="trench-sub-item trench-chip-w" data-w="bulan"   onclick="trenchSelWaktu(this)">📅 Bulan Ini (default)</div>
+                <div class="trench-sub-item trench-chip-w" data-w="bulan"   onclick="trenchSelWaktu(this)">📅 Bulan Ini</div>
                 <div class="trench-sub-item trench-chip-w" data-w="1"       onclick="trenchSelWaktu(this)">Hari Ini</div>
                 <div class="trench-sub-item trench-chip-w" data-w="kemarin" onclick="trenchSelWaktu(this)">Kemarin</div>
                 <div class="trench-sub-item trench-chip-w" data-w="7"       onclick="trenchSelWaktu(this)">7 Hari Terakhir</div>
                 <div class="trench-sub-item trench-chip-w" data-w="14"      onclick="trenchSelWaktu(this)">14 Hari Terakhir</div>
-                <div class="trench-sub-item trench-chip-w" data-w="30"      onclick="trenchSelWaktu(this)">30 Hari Terakhir</div>
+                <div class="trench-sub-item trench-chip-w" data-w="30"      onclick="trenchSelWaktu(this)">30 Hari Terakhir (default)</div>
               </div>
               <div style="margin-top:8px;display:flex;gap:6px">
                 <button class="btn btn-sm" onclick="trenchResetPeriode()" style="flex:1;font-size:12px"><i class="ti ti-x"></i> Reset</button>
@@ -151,13 +151,13 @@ document.getElementById('page-dashboard').innerHTML = `
           <!-- Tombol Channel -->
           <div style="position:relative" id="trench-wrap-channel">
             <button class="btn btn-sm" id="trench-btn-channel" onclick="trenchToggleChannel(event)"
-              style="display:inline-flex;align-items:center;gap:5px;font-size:12px">
+              style="display:inline-flex;align-items:center;gap:5px;font-size:12px;background:var(--cream2);color:var(--ink);border:2px solid var(--ink)">
               <i class="ti ti-store"></i>
               <span id="trench-lbl-channel">Channel</span>
               <i class="ti ti-chevron-down" style="font-size:10px"></i>
             </button>
-            <div id="trench-dd-channel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:9999;
-              min-width:175px;background:var(--cream);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink4)"
+            <div id="trench-dd-channel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:99999;
+              min-width:175px;background:var(--cream);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink4);pointer-events:auto"
               onclick="event.stopPropagation()">
               <div id="trench-channel-list" style="max-height:240px;overflow-y:auto"></div>
               <div style="padding:6px 10px;display:flex;gap:6px;border-top:1px dashed var(--ink4)">
@@ -320,7 +320,7 @@ document.getElementById('page-dashboard').innerHTML = `
     .trench-ch-active{background:var(--cream2) !important;border-color:var(--ink) !important;color:var(--ink) !important;font-weight:700}
     .trench-cat-label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:5px;margin-bottom:4px}
     .trench-cat-line{flex:1;height:1px;background:var(--ink4)}
-    .trench-sub-item{padding:8px 12px;cursor:pointer;font-size:13px;font-family:var(--f);border-bottom:1px dashed var(--ink4);transition:background .1s}
+    .trench-sub-item{padding:8px 12px;cursor:pointer;font-size:13px;font-family:var(--f);border-bottom:1px dashed var(--ink4);transition:background .1s;pointer-events:auto;user-select:none;-webkit-user-select:none}
     .trench-sub-item:hover{background:var(--cream2)}
     .trench-sub-item:last-child{border-bottom:none}
     .trench-kat-item:hover{background:var(--cream2)}
@@ -345,7 +345,7 @@ document.getElementById('page-dashboard').innerHTML = `
 
 
 // ─── STATE ────────────────────────────────────────────────────
-let _dashPeriod     = 'bulan'; // default Bulan Ini
+let _dashPeriod     = 30; // default 30 Hari Terakhir
 let _dashJPData     = [];
 let _trenchJPData   = []; // data khusus chart tren — TIDAK boleh dipakai card lain
 let _dashStokData   = [];
@@ -417,7 +417,7 @@ function openTargetModal() {
 }
 
 // ─── TREN FILTER — 2 tombol terpisah: Periode & Channel ────────────
-var _trenchPeriod   = 'bulan';
+var _trenchPeriod   = 30; // default 30 Hari Terakhir
 var _trenchChannels = [];
 
 // Periode dropdown
@@ -436,7 +436,8 @@ function trenchRefreshPeriodeChips() {
   var wrap = document.getElementById('trench-waktu-chips');
   if (!wrap) return;
   Array.from(wrap.children).forEach(function(c) {
-    var wVal = isNaN(c.dataset.w) ? c.dataset.w : Number(c.dataset.w);
+    var rawW = c.dataset.w;
+    var wVal = (!isNaN(rawW) && rawW !== '') ? Number(rawW) : rawW;
     var isAct = String(wVal) === String(_trenchPeriod);
     c.style.background = isAct ? 'var(--ink)' : '';
     c.style.color      = isAct ? 'var(--cream)' : '';
@@ -450,18 +451,22 @@ function trenchSelWaktu(el) {
   trenchRefreshPeriodeChips();
   var wm = {bulan:'Bulan Ini', 1:'Hari Ini', kemarin:'Kemarin', 7:'7 Hari', 14:'14 Hari', 30:'30 Hari'};
   var lbl = document.getElementById('trench-lbl-periode');
-  if (lbl) lbl.textContent = _trenchPeriod === 'bulan' ? 'Periode' : (wm[_trenchPeriod] || 'Periode');
+  if (lbl) lbl.textContent = wm[_trenchPeriod] || 'Periode';
   var btn = document.getElementById('trench-btn-periode');
-  if (btn) { btn.style.background = _trenchPeriod !== 'bulan' ? 'var(--ink)' : ''; btn.style.color = _trenchPeriod !== 'bulan' ? 'var(--cream)' : ''; }
+  if (btn) {
+    btn.style.background = 'var(--ink)';
+    btn.style.color = 'var(--cream)';
+    btn.style.borderColor = 'var(--ink)';
+  }
 }
 
 function trenchResetPeriode() {
-  _trenchPeriod = 'bulan';
+  _trenchPeriod = 30;
   trenchRefreshPeriodeChips();
   var lbl = document.getElementById('trench-lbl-periode');
-  if (lbl) lbl.textContent = 'Periode';
+  if (lbl) lbl.textContent = '30 Hari';
   var btn = document.getElementById('trench-btn-periode');
-  if (btn) { btn.style.background = ''; btn.style.color = ''; }
+  if (btn) { btn.style.background = 'var(--ink)'; btn.style.color = 'var(--cream)'; btn.style.borderColor = 'var(--ink)'; }
   document.getElementById('trench-dd-periode').style.display = 'none';
 }
 
@@ -561,45 +566,52 @@ document.addEventListener('click', function(e) {
 });
 
 function trenchBuildChannelList() { /* deprecated */ }
-function trenchReset() { trenchResetPeriode(); trenchResetChannel(); }
+function trenchReset() {
+  _trenchPeriod   = 30;
+  _trenchChannels = [];
+  _dashPeriod     = 30;
+  _trenchJPData   = []; // akan di-refetch saat apply
+  trenchCloseAll();
+  trenchResetPeriode();
+  trenchResetChannel();
+  _trenchRenderChart();
+  trenchUpdateBadge();
+}
 
 async function trenchApply() {
   trenchCloseAll();
-  // Sinkronkan _dashPeriod agar _renderChartPenjualan tahu mode yang aktif
   _dashPeriod = _trenchPeriod;
 
-  // Kalau periode bukan bulan-ini, fetch ke _trenchJPData (TIDAK sentuh _dashJPData)
-  if (_trenchPeriod !== 'bulan') {
-    var filter = '&order=tanggal.desc';
-    if (_trenchPeriod === 1) {
-      filter = '&tanggal=gte.' + _localDateStr() + '&order=tanggal.desc';
-    } else if (_trenchPeriod === 'kemarin') {
-      var y = new Date(); y.setDate(y.getDate()-1);
-      var yStr = _localDateStr(y);
-      filter = '&tanggal=gte.' + yStr + '&tanggal=lte.' + yStr + '&order=tanggal.desc';
-    } else if (typeof _trenchPeriod === 'number') {
-      filter = '&tanggal=gte.' + _localDateOffset(_trenchPeriod) + '&order=tanggal.desc';
-    }
-    try {
-      _trenchJPData = (await dbGet('jurnal_penjualan', filter)) || [];
-    } catch(e) {
-      _trenchJPData = _dashJPData; // fallback pakai data yang ada, jangan crash
-    }
-  } else {
-    _trenchJPData = _dashJPData; // bulan ini = data utama sudah cukup
+  var filter = '&order=tanggal.desc';
+  if (_trenchPeriod === 1) {
+    filter = '&tanggal=gte.' + _localDateStr() + '&order=tanggal.desc';
+  } else if (_trenchPeriod === 'kemarin') {
+    var y = new Date(); y.setDate(y.getDate()-1);
+    var yStr = _localDateStr(y);
+    filter = '&tanggal=gte.' + yStr + '&tanggal=lte.' + yStr + '&order=tanggal.desc';
+  } else if (_trenchPeriod === 'bulan') {
+    var bulanStr = _localDateStr(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+    filter = '&tanggal=gte.' + bulanStr + '&order=tanggal.desc';
+  } else if (typeof _trenchPeriod === 'number') {
+    filter = '&tanggal=gte.' + _localDateOffset(_trenchPeriod) + '&order=tanggal.desc';
+  }
+
+  try {
+    _trenchJPData = (await dbGet('jurnal_penjualan', filter)) || [];
+  } catch(e) {
+    _trenchJPData = _dashJPData;
   }
 
   _trenchRenderChart();
   trenchUpdateBadge();
 }
 
-// Reset filter
-function trenchReset() {
-  _trenchPeriod   = 'bulan';
+// Reset filter — handled by trenchReset() above
+function _trenchResetAll() {
+  _trenchPeriod   = 30;
   _trenchChannels = [];
-  _trenchKatActive = null;
-  _dashPeriod     = 'bulan';
-  _trenchJPData   = _dashJPData; // kembali ke data bulan ini
+  _dashPeriod     = 30;
+  _trenchJPData   = _dashJPData;
   trenchCloseAll();
   _trenchRenderChart();
   trenchUpdateBadge();
@@ -621,23 +633,14 @@ function _trenchRenderChart() {
 function trenchUpdateBadge() {
   var waktuMap = { 1:'Hari Ini', kemarin:'Kemarin', 7:'7 Hari', 14:'14 Hari', 30:'30 Hari', bulan:'Bulan Ini' };
   var chipsEl = document.getElementById('trench-active-chips');
-  var filterLbl = document.getElementById('trench-filter-lbl');
-  var filterBtn = document.getElementById('trench-filter-btn');
 
   var parts = [];
-  if (_trenchPeriod !== 'bulan') parts.push(waktuMap[_trenchPeriod] || String(_trenchPeriod));
+  if (_trenchPeriod !== 30) parts.push(waktuMap[_trenchPeriod] || String(_trenchPeriod)+' Hari');
   if (_trenchChannels.length > 0) parts.push(_trenchChannels.length + ' channel');
-
-  // Update label tombol Filter
-  if (filterLbl) filterLbl.textContent = parts.length ? parts.join(' · ') : 'Filter';
-  if (filterBtn) {
-    filterBtn.style.background = parts.length ? 'var(--ink)' : '';
-    filterBtn.style.color      = parts.length ? 'var(--cream)' : '';
-  }
 
   // Update active chips di header
   var html = '';
-  if (_trenchPeriod !== 'bulan') {
+  if (_trenchPeriod !== 30) {
     html += '<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#EE4D2D;color:#fff;font-weight:700">' + (waktuMap[_trenchPeriod]||_trenchPeriod) + '</span>';
   }
   _trenchChannels.forEach(function(id) {
@@ -1433,11 +1436,12 @@ async function loadDashboard() {
     const today    = _localDateStr(); // FIX: WIB bukan UTC
     const todayYM  = today.slice(0,7);
 
-    const [produkData, stokRaw, jurnalData, jpData, jurnalAllData, channelData, bebanData] = await Promise.all([
+    const [produkData, stokRaw, jurnalData, jpData, jpChart30, jurnalAllData, channelData, bebanData] = await Promise.all([
       dbGet('produk', '&order=katalog.asc,sku_variasi.asc'),
       dbGet('stok'),
       dbGet('jurnal', '&order=created_at.desc&limit=8'),
       dbGet('jurnal_penjualan', '&tanggal=gte.' + _localDateStr(new Date(new Date().getFullYear(), new Date().getMonth(), 1)) + '&order=tanggal.desc'),
+      dbGet('jurnal_penjualan', '&tanggal=gte.' + _localDateOffset(30) + '&order=tanggal.desc'),
       dbGet('jurnal'),
       dbGet('channels').catch(() => []),
       dbGet('beban_operasional', '&tipe=eq.toko_utama').catch(() => [])
@@ -1473,7 +1477,7 @@ async function loadDashboard() {
     });
 
     _dashJPData   = jpData || [];
-    _trenchJPData = _dashJPData; // chart tren mulai dari data yang sama
+    _trenchJPData = jpChart30 || _dashJPData; // chart default 30 hari terakhir
     _dashChannelMap = {};
     (channelData||[]).forEach(ch => { _dashChannelMap[ch.id] = ch; });
 
