@@ -130,6 +130,16 @@ document.getElementById('page-dashboard').innerHTML = `
               <div data-period="30" data-label="30 Hari"   class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;">30 Hari</div>
             </div>
           </div>
+          <div style="position:relative">
+            <button class="btn btn-sm" id="dash-channel-btn" onclick="dashToggleChannelMenu()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px">
+              <i class="ti ti-building-store" style="font-size:11px"></i>
+              <span id="dash-channel-label">Semua Channel</span>
+              <span style="font-size:10px">&#9662;</span>
+            </button>
+            <div id="dash-channel-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:#1c1a14;color:#f0ece0;min-width:180px;box-shadow:3px 4px 0 rgba(0,0,0,0.25);border-radius:2px">
+              <div data-ch="" data-ch-label="Semua Channel" class="dash-ch-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">Semua Channel</div>
+            </div>
+          </div>
         </div>
       </div>
       <div style="position:relative;height:170px;width:100%">
@@ -295,11 +305,12 @@ document.getElementById('page-dashboard').innerHTML = `
 
 
 // ─── STATE ────────────────────────────────────────────────────
-let _dashPeriod     = 1; // default Hari Ini  (bisa juga string 'kemarin')
-let _dashJPData     = [];
-let _dashStokData   = [];
-let _dashChannelMap = {};
-let _dashChartPoints = []; // untuk tooltip hover
+let _dashPeriod        = 1; // default Hari Ini  (bisa juga string 'kemarin')
+let _dashChannelFilter = ''; // '' = semua channel
+let _dashJPData        = [];
+let _dashStokData      = [];
+let _dashChannelMap    = {};
+let _dashChartPoints   = []; // untuk tooltip hover
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function _fmtRp(v) {
@@ -410,6 +421,60 @@ function setDashPeriod(days, label) {
   }
 }
 
+// ─── CHANNEL FILTER TOGGLE ───────────────────────────────────
+function dashToggleChannelMenu() {
+  var menu = document.getElementById('dash-channel-menu');
+  if (!menu) return;
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+    return;
+  }
+  menu.style.display = 'block';
+}
+
+function setDashChannelFilter(chId, label) {
+  _dashChannelFilter = chId;
+  var lbl = document.getElementById('dash-channel-label');
+  if (lbl) lbl.textContent = label || 'Semua Channel';
+  var menu = document.getElementById('dash-channel-menu');
+  if (menu) menu.style.display = 'none';
+  var btn = document.getElementById('dash-channel-btn');
+  if (btn) btn.style.background = chId ? 'var(--ink)' : '';
+  if (btn) btn.style.color = chId ? 'var(--cream)' : '';
+  if (_dashJPData && _dashJPData.length >= 0) {
+    _renderChartPenjualan(_dashJPData);
+  }
+}
+
+function _buildChannelMenu() {
+  var menu = document.getElementById('dash-channel-menu');
+  if (!menu) return;
+  var items = '<div data-ch="" data-ch-label="Semua Channel" class="dash-ch-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">Semua Channel</div>';
+  var channels = Object.values(_dashChannelMap).sort((a,b)=>(a.nama||'').localeCompare(b.nama||''));
+  channels.forEach(function(ch, i) {
+    var isLast = i === channels.length - 1;
+    items += '<div data-ch="' + ch.id + '" data-ch-label="' + (ch.nama||('Ch#'+ch.id)) + '" class="dash-ch-item" style="padding:9px 14px;cursor:pointer;font-size:13px;' + (!isLast ? 'border-bottom:1px solid rgba(255,255,255,0.08)' : '') + '">' + (ch.nama||('Ch#'+ch.id)) + '</div>';
+  });
+  menu.innerHTML = items;
+}
+
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('dash-channel-menu');
+  var btn  = document.getElementById('dash-channel-btn');
+  if (!menu || menu.style.display !== 'block') return;
+  var item = e.target.closest('.dash-ch-item');
+  if (item) {
+    var ch = item.getAttribute('data-ch');
+    var l  = item.getAttribute('data-ch-label');
+    setDashChannelFilter(ch, l);
+    menu.style.display = 'none';
+    return;
+  }
+  if (!menu.contains(e.target) && btn && !btn.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
+
 // ─── ALERTS ──────────────────────────────────────────────────
 function _renderAlerts(stokData, saldo) {
   const wrap = document.getElementById('dash-alerts-wrap');
@@ -429,12 +494,16 @@ function _renderAlerts(stokData, saldo) {
 function _renderChartHariIni(jpData, canvas, tooltip) {
   const todayStr = _localDateStr(); // FIX: pakai lokal WIB bukan UTC
   const labels = [], totals = [];
+  // Filter by channel if set
+  const filteredData = _dashChannelFilter
+    ? jpData.filter(r => String(r.channel_id) === String(_dashChannelFilter))
+    : jpData;
 
   // FIX: loop 0-23 saja (jam 24 tidak valid)
   for (let h = 0; h <= 23; h++) {
     const hStr = String(h).padStart(2,'0');
     labels.push(hStr + ':00');
-    const jam = jpData
+    const jam = filteredData
       .filter(r => {
         if (!r.tanggal || String(r.tanggal).slice(0,10) !== todayStr) return false;
         const wkt = String(r.waktu || '00:00');
@@ -522,11 +591,15 @@ function _renderChartKemarin(jpData, canvas, tooltip) {
   yesterday.setDate(yesterday.getDate() - 1);
   const yStr = _localDateStr(yesterday);
   const labels = [], totals = [];
+  // Filter by channel if set
+  const filteredData = _dashChannelFilter
+    ? jpData.filter(r => String(r.channel_id) === String(_dashChannelFilter))
+    : jpData;
 
   for (let h = 0; h <= 23; h++) {
     const hStr = String(h).padStart(2,'0');
     labels.push(hStr + ':00');
-    const jam = jpData
+    const jam = filteredData
       .filter(r => {
         if (!r.tanggal || String(r.tanggal).slice(0,10) !== yStr) return false;
         const wkt = String(r.waktu || '00:00');
@@ -620,13 +693,18 @@ function _renderChartPenjualan(jpData) {
 
   const today = new Date();
   const labels = [], totals = [], dates = [];
+  // Filter by channel if set
+  const filteredData = _dashChannelFilter
+    ? jpData.filter(r => String(r.channel_id) === String(_dashChannelFilter))
+    : jpData;
+
   for (let i = _dashPeriod - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     const key = _localDateStr(d); // FIX: pakai lokal WIB bukan UTC
     dates.push(key);
     labels.push(String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'));
-    const dayTotal = jpData
+    const dayTotal = filteredData
       .filter(r => r.tanggal && String(r.tanggal).slice(0,10) === key)
       .reduce((s,r) => s + (Number(r.total)||0), 0);
     totals.push(dayTotal);
@@ -718,7 +796,7 @@ function _renderChartPenjualan(jpData) {
         if (dist < minDist) { minDist = dist; closest = pt; }
       });
       if (closest) {
-        const txn = jpData.filter(r => r.tanggal && String(r.tanggal).slice(0,10) === closest.date);
+        const txn = filteredData.filter(r => r.tanggal && String(r.tanggal).slice(0,10) === closest.date);
         const qty = txn.reduce((s,r)=>s+(Number(r.qty)||0),0);
         tooltip.innerHTML = '<b>' + closest.label + '</b>  ' + _fmtRp(closest.val) + '  ·  ' + qty + ' pcs  ·  ' + txn.length + ' trx';
         const tooltipX = Math.min(closest.x + 10, W - 170);
@@ -1202,6 +1280,7 @@ async function loadDashboard() {
     _dashJPData     = jpData     || [];
     _dashChannelMap = {};
     (channelData||[]).forEach(ch => { _dashChannelMap[ch.id] = ch; });
+    _buildChannelMenu(); // Populate channel filter dropdown
 
     // ─ Metric 1-4
     const kritis    = _dashStokData.filter(r => r.sisa <= 3).length;
