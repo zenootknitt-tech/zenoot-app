@@ -1,0 +1,35 @@
+name: Auto Version Bump
+
+# Jalan otomatis setiap push ke branch main
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+
+      # 1. Checkout repo
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 2. Inject timestamp ke index.html
+      #    Ganti baris APP_VERSION dengan timestamp build terbaru
+      - name: Inject build timestamp
+        run: |
+          TIMESTAMP=$(date +%s%3N)
+          sed -i "s|window.APP_VERSION = .*|window.APP_VERSION = 'v${TIMESTAMP}'; // auto-generated|" index.html
+          echo "✅ APP_VERSION = v${TIMESTAMP}"
+
+      # 3. Commit & push index.html yang sudah diupdate
+      - name: Commit updated index.html
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          # Hanya commit jika ada perubahan
+          git diff --staged --quiet || git commit -m "chore: auto bump version [skip ci]"
+          git push
