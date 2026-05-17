@@ -435,6 +435,7 @@ body.sidebar-mini .sidebar-footer::before{
   display:-webkit-flex;display:flex;
   -webkit-flex-wrap:wrap;flex-wrap:wrap;
   gap:12px;margin-bottom:12px;
+  -webkit-align-items:flex-start;align-items:flex-start;
 }
 .grid2 > *{-webkit-flex:1 1 300px;flex:1 1 300px;min-width:0}
 
