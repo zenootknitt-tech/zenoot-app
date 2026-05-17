@@ -369,39 +369,34 @@ function openTargetModal() {
 function dashTogglePeriodMenu() {
   var menu = document.getElementById('dash-period-menu');
   if (!menu) return;
-  var isOpen = menu.style.display !== 'none';
-  if (isOpen) {
+  if (menu.style.display === 'block') {
     menu.style.display = 'none';
     return;
   }
   menu.style.display = 'block';
-
-  // Event delegation — satu listener di menu untuk semua item
-  menu.querySelectorAll('.dash-period-item').forEach(function(item) {
-    item.onmouseenter = function() { this.style.background = 'rgba(255,255,255,0.1)'; };
-    item.onmouseleave = function() { this.style.background = ''; };
-    item.onclick = function(e) {
-      e.stopPropagation();
-      var p = this.getAttribute('data-period');
-      var l = this.getAttribute('data-label');
-      setDashPeriod(isNaN(p) ? p : Number(p), l);
-    };
-  });
-
-  // Tutup menu saat klik di luar — pakai mousedown agar tidak conflict dengan onclick item
-  setTimeout(function() {
-    function outsideClose(e) {
-      var btn  = document.getElementById('dash-period-btn');
-      var menu = document.getElementById('dash-period-menu');
-      if (!menu) { document.removeEventListener('mousedown', outsideClose); return; }
-      if (!menu.contains(e.target) && btn && !btn.contains(e.target)) {
-        menu.style.display = 'none';
-        document.removeEventListener('mousedown', outsideClose);
-      }
-    }
-    document.addEventListener('mousedown', outsideClose);
-  }, 50);
 }
+
+// Permanent listener — persis pola stok.js
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('dash-period-menu');
+  var btn  = document.getElementById('dash-period-btn');
+  if (!menu || menu.style.display !== 'block') return;
+
+  // Klik di item menu — jalankan setDashPeriod
+  var item = e.target.closest('.dash-period-item');
+  if (item) {
+    var p = item.getAttribute('data-period');
+    var l = item.getAttribute('data-label');
+    setDashPeriod(isNaN(p) ? p : Number(p), l);
+    menu.style.display = 'none';
+    return;
+  }
+
+  // Klik di luar menu & bukan tombol — tutup
+  if (!menu.contains(e.target) && btn && !btn.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
 
 function setDashPeriod(days, label) {
   _dashPeriod = days;
