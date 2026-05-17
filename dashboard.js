@@ -123,11 +123,11 @@ document.getElementById('page-dashboard').innerHTML = `
               <span style="font-size:10px">&#9662;</span>
             </button>
             <div id="dash-period-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:#1c1a14;color:#f0ece0;min-width:160px;box-shadow:3px 4px 0 rgba(0,0,0,0.25);border-radius:2px">
-              <div onclick="setDashPeriod(1,'Hari Ini')"       class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">Hari Ini</div>
-              <div onclick="setDashPeriod('kemarin','Kemarin')" class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">Kemarin</div>
-              <div onclick="setDashPeriod(7,'7 Hari')"         class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">7 Hari</div>
-              <div onclick="setDashPeriod(14,'14 Hari')"       class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">14 Hari</div>
-              <div onclick="setDashPeriod(30,'30 Hari')"       class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;">30 Hari</div>
+              <div onclick="event.stopPropagation();setDashPeriod(1,'Hari Ini')"       class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">Hari Ini</div>
+              <div onclick="event.stopPropagation();setDashPeriod('kemarin','Kemarin')" class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">Kemarin</div>
+              <div onclick="event.stopPropagation();setDashPeriod(7,'7 Hari')"         class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">7 Hari</div>
+              <div onclick="event.stopPropagation();setDashPeriod(14,'14 Hari')"       class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">14 Hari</div>
+              <div onclick="event.stopPropagation();setDashPeriod(30,'30 Hari')"       class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;">30 Hari</div>
             </div>
           </div>
         </div>
