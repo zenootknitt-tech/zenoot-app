@@ -105,34 +105,53 @@ document.getElementById('page-stok').innerHTML = `
   </div>
 
   <!-- FORM TAMBAH/EDIT STOK MASUK -->
-  <div id="form-tambah-stok" style="display:none;margin-bottom:12px">
-    <div class="card">
-      <div class="card-title" id="stok-form-title"><i class="ti ti-plus"></i> Tambah Stok Masuk</div>
+  <!-- Modal Tambah Stok Masuk -->
+  <div class="modal-overlay" id="modal-stok-masuk" style="display:none">
+    <div class="modal" style="max-width:480px;width:92%">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;
+                  margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.07)">
+        <div class="modal-title" id="stok-form-title" style="margin:0;border:none;padding:0;font-size:18px">
+          <i class="ti ti-plus"></i> Tambah Stok Masuk
+        </div>
+        <button onclick="cancelStokForm()"
+          style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink3);line-height:1;padding:4px 8px">✕</button>
+      </div>
+
       <input type="hidden" id="inp-id">
-      <div class="form-row">
-        <div class="form-group" style="flex:2;position:relative">
-          <label>SKU Variasi</label>
-          <div style="display:flex">
-            <input type="text" id="inp-sku" placeholder="Ketik atau pilih SKU..." autocomplete="off"
-              oninput="stokSuggestSku()" onfocus="stokSuggestSku()"
-              style="flex:1;border-right:none">
-            <button onclick="stokToggleSkuFull()"
-              style="background:var(--cream2);border:2px solid var(--ink);border-left:none;padding:0 10px;cursor:pointer;font-size:14px">▼</button>
-          </div>
-          <div id="stok-sku-dropdown"
-            style="display:none;position:absolute;top:100%;left:0;right:0;z-index:999;
-                   background:var(--cream);border:2px solid var(--ink);border-top:none;
-                   max-height:180px;overflow-y:auto;box-shadow:4px 4px 0 var(--ink4)"></div>
+
+      <!-- SKU Variasi -->
+      <div class="form-group" style="margin-bottom:12px;position:relative">
+        <label>SKU Variasi</label>
+        <div style="display:flex;gap:0">
+          <input type="text" id="inp-sku" placeholder="Ketik atau pilih SKU..." autocomplete="off"
+            oninput="stokSuggestSku()" onfocus="stokSuggestSku()"
+            style="flex:1;border-radius:6px 0 0 6px">
+          <button onclick="stokToggleSkuFull()"
+            style="background:var(--cream3);border:1px solid rgba(255,255,255,0.08);border-left:none;
+                   border-radius:0 6px 6px 0;padding:0 12px;cursor:pointer;font-size:14px;color:var(--ink2)">▼</button>
         </div>
-        <div class="form-group">
-          <label>Stok Masuk (Qty)</label>
-          <input type="number" id="inp-masuk" placeholder="0" min="0">
-        </div>
-        <div class="form-group" style="flex:0;justify-content:flex-end">
-          <label>&nbsp;</label>
-          <button class="btn btn-primary btn-sm" onclick="simpanStok()"><i class="ti ti-device-floppy"></i> Simpan</button>
-          <button class="btn btn-sm" onclick="cancelStokForm()" style="margin-top:4px"><i class="ti ti-x"></i> Batal</button>
-        </div>
+        <div id="stok-sku-dropdown"
+          style="display:none;position:absolute;top:100%;left:0;right:0;z-index:999;
+                 background:var(--cream2);border:1px solid rgba(255,255,255,0.08);border-top:none;
+                 max-height:200px;overflow-y:auto;border-radius:0 0 8px 8px;
+                 box-shadow:0 8px 24px rgba(0,0,0,0.5)"></div>
+      </div>
+
+      <!-- Stok Masuk -->
+      <div class="form-group" style="margin-bottom:20px">
+        <label>Stok Masuk (Qty)</label>
+        <input type="number" id="inp-masuk" placeholder="0" min="0" style="font-size:20px;font-weight:700">
+      </div>
+
+      <!-- Tombol -->
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="simpanStok()" style="flex:1">
+          <i class="ti ti-device-floppy"></i> Simpan
+        </button>
+        <button class="btn" onclick="cancelStokForm()" style="min-width:90px">
+          <i class="ti ti-x"></i> Batal
+        </button>
       </div>
     </div>
   </div>
@@ -340,13 +359,12 @@ function showTambahStok() {
   document.getElementById('inp-id').value    = '';
   document.getElementById('inp-sku').value   = '';
   document.getElementById('inp-masuk').value = '';
-  document.getElementById('form-tambah-stok').style.display = 'block';
-  sketchForm('form-tambah-stok');
-  document.getElementById('form-tambah-stok').scrollIntoView({behavior:'smooth'});
+  document.getElementById('modal-stok-masuk').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('inp-sku').focus(); }, 100);
 }
 
 function cancelStokForm() {
-  document.getElementById('form-tambah-stok').style.display = 'none';
+  document.getElementById('modal-stok-masuk').style.display = 'none';
   stokTutupDropdown();
 }
 
@@ -357,9 +375,8 @@ function editStok(sku) {
   document.getElementById('inp-id').value    = existing ? existing.id : '';
   document.getElementById('inp-sku').value   = sku;
   document.getElementById('inp-masuk').value = existing ? existing.qty : 0;
-  document.getElementById('form-tambah-stok').style.display = 'block';
-  sketchForm('form-tambah-stok');
-  document.getElementById('form-tambah-stok').scrollIntoView({behavior:'smooth'});
+  document.getElementById('modal-stok-masuk').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('inp-masuk').focus(); }, 100);
 }
 
 async function simpanStok() {
