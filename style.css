@@ -103,8 +103,7 @@ body{
   width:36px;height:36px;display:block;
   object-fit:contain;
   -webkit-flex-shrink:0;flex-shrink:0;
-  filter:brightness(0) invert(1);
-  opacity:0.92;
+  opacity:0.95;
 }
 .logo-text-group{
   display:-webkit-flex;display:flex;
