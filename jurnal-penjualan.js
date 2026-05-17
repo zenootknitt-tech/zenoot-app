@@ -266,16 +266,16 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
         <i class="ti ti-chart-bar"></i> Produk Terjual
       </button>
     </div>
-    <div class="tbl-wrap" style="overflow-x:auto"><table class="tbl">
-      <thead>
+    <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="tbl">
+      <thead style="position:sticky;top:0;z-index:10;box-shadow:0 2px 0 0 var(--ink3)">
         <tr>
-          <th onclick="sortJP('tanggal')" style="cursor:pointer;user-select:none">Tgl &amp; Waktu <span id="sort-tanggal">&#8597;</span></th>
-          <th>Channel</th>
-          <th onclick="sortJP('sku')" style="cursor:pointer;user-select:none">SKU <span id="sort-sku">&#8597;</span></th>
-          <th onclick="sortJP('qty')" style="cursor:pointer;user-select:none">Qty <span id="sort-qty">&#8597;</span></th>
-          <th>Harga Sat.</th>
-          <th onclick="sortJP('total')" style="cursor:pointer;user-select:none">Total <span id="sort-total">&#8597;</span></th>
-          <th>Aksi</th>
+          <th onclick="sortJP('tanggal')" style="cursor:pointer;user-select:none;position:sticky;top:0;background:var(--cream3);z-index:10">Tgl &amp; Waktu <span id="sort-tanggal">&#8597;</span></th>
+          <th style="position:sticky;top:0;background:var(--cream3);z-index:10">Channel</th>
+          <th onclick="sortJP('sku')" style="cursor:pointer;user-select:none;position:sticky;top:0;background:var(--cream3);z-index:10">SKU <span id="sort-sku">&#8597;</span></th>
+          <th onclick="sortJP('qty')" style="cursor:pointer;user-select:none;position:sticky;top:0;background:var(--cream3);z-index:10">Qty <span id="sort-qty">&#8597;</span></th>
+          <th style="position:sticky;top:0;background:var(--cream3);z-index:10">Harga Sat.</th>
+          <th onclick="sortJP('total')" style="cursor:pointer;user-select:none;position:sticky;top:0;background:var(--cream3);z-index:10">Total <span id="sort-total">&#8597;</span></th>
+          <th style="position:sticky;top:0;background:var(--cream3);z-index:10">Aksi</th>
         </tr>
       </thead>
       <tbody id="jp-tbody">
