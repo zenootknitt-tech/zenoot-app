@@ -266,7 +266,7 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
         <i class="ti ti-chart-bar"></i> Produk Terjual
       </button>
     </div>
-    <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:auto"><table class="tbl">
+    <div class="tbl-wrap" style="overflow-x:auto"><table class="tbl">
       <thead>
         <tr>
           <th onclick="sortJP('tanggal')" style="cursor:pointer;user-select:none">Tgl &amp; Waktu <span id="sort-tanggal">&#8597;</span></th>

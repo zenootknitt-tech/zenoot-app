@@ -747,14 +747,14 @@ function _renderChartHariIni(jpData, canvas, tooltip) {
     return;
   }
 
-  // FIX: retry canvas DULU sebelum lanjut render (canvas bisa belum punya ukuran)
+  // FIX: tampilkan canvas DULU agar offsetWidth tidak 0 (canvas:none → retry selamanya)
+  canvas.style.display = 'block';
+  if (emptyEl) emptyEl.style.display = 'none';
+
   if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
     setTimeout(() => _renderChartHariIni(jpData, canvas, tooltip), 80);
     return;
   }
-
-  canvas.style.display = 'block';
-  if (emptyEl) emptyEl.style.display = 'none';
 
   const dpr = window.devicePixelRatio || 1;
   const W   = canvas.offsetWidth;
@@ -839,13 +839,14 @@ function _renderChartKemarin(jpData, canvas, tooltip) {
     return;
   }
 
+  // FIX: tampilkan canvas DULU agar offsetWidth tidak 0
+  canvas.style.display = 'block';
+  if (emptyEl) emptyEl.style.display = 'none';
+
   if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
     setTimeout(() => _renderChartKemarin(jpData, canvas, tooltip), 80);
     return;
   }
-
-  canvas.style.display = 'block';
-  if (emptyEl) emptyEl.style.display = 'none';
 
   const dpr = window.devicePixelRatio || 1;
   const W   = canvas.offsetWidth;
@@ -936,27 +937,29 @@ function _renderChartPenjualan(jpData) {
     totals.push(dayTotal);
   }
 
-  // FIX: retry canvas DULU sebelum lanjut (canvas bisa belum punya ukuran saat pertama load)
-  if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
-    setTimeout(() => _renderChartPenjualan(jpData), 80);
-    return;
-  }
-
   const maxVal  = Math.max(...totals, 1);
   const hasData = totals.some(v => v > 0);
   const emptyEl = document.getElementById('dash-chart-empty');
-  if (emptyEl) {
-    if (!hasData) {
+
+  if (!hasData) {
+    canvas.style.display = 'none';
+    if (emptyEl) {
       const wm = { 1:'Hari Ini', kemarin:'Kemarin', 7:'7 Hari', 14:'14 Hari', 30:'30 Hari', bulan:'Bulan Ini' };
       const lbl = wm[_dashPeriod] || (_dashPeriod + ' Hari');
       emptyEl.textContent = 'Belum ada data penjualan (' + lbl + ')';
       emptyEl.style.display = 'flex';
-    } else {
-      emptyEl.style.display = 'none';
     }
+    return;
   }
-  if (!hasData) { canvas.style.display = 'none'; return; }
+
+  // FIX: tampilkan canvas DULU agar offsetWidth tidak 0 (canvas:none → retry selamanya)
   canvas.style.display = 'block';
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
+    setTimeout(() => _renderChartPenjualan(jpData), 80);
+    return;
+  }
 
   const dpr = window.devicePixelRatio || 1;
   const W   = canvas.offsetWidth;
