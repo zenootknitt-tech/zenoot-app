@@ -168,7 +168,8 @@ document.getElementById('page-dashboard').innerHTML = `
             <i class="ti ti-x"></i> Reset
           </button>
         </div>
-      </div> (tidak dipakai lagi tapi referensi JS lama aman) -->
+      </div>
+      <!-- id="trench-ch-wrap" dipertahankan kosong (tidak dipakai lagi tapi referensi JS lama aman) -->
       <div id="trench-ch-wrap" style="display:none"></div>
       <div style="position:relative;height:170px;width:100%">
         <canvas id="dash-chart-penjualan" style="width:100%;height:100%;display:block"></canvas>

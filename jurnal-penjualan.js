@@ -709,6 +709,13 @@ function jpResetChannel() {
   var panel = document.getElementById('jp-channel-panel');
   if (panel) panel.style.display = 'none';
 }
+function jpPilihChannel() {
+  filterJP();
+  jpUpdateBadge();
+  jpUpdateChannelLabel();
+  var panel = document.getElementById('jp-channel-panel');
+  if (panel) panel.style.display = 'none';
+}
 
 // ─── UPDATE LABEL TOMBOL ─────────────────────────────────────
 function jpUpdatePeriodeLabel() {
@@ -1058,7 +1065,7 @@ async function exportJurnalPenjualan() {
       + 'box-shadow:3px 4px 0 rgba(0,0,0,0.13)';
     cp.innerHTML = '<div style="padding:10px 12px">'
       + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:7px;letter-spacing:.5px">Pilih Channel</div>'
-      + '<select id="jp-filter-channel" style="font-family:var(--f);font-size:13px;padding:5px 8px;border:1.5px solid var(--ink3);background:var(--cream);width:100%" onchange="filterJP();jpUpdateBadge();jpUpdateChannelLabel()">'
+      + '<select id="jp-filter-channel" style="font-family:var(--f);font-size:13px;padding:5px 8px;border:1.5px solid var(--ink3);background:var(--cream);width:100%" onchange="jpPilihChannel()">'
       + '<option value="">Semua Channel</option>'
       + '</select>'
       + '</div>';
