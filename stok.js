@@ -145,7 +145,7 @@ document.getElementById('page-stok').innerHTML = `
     <div class="tbl-wrap" id="stok-tbl-wrap" style="max-height:65vh;overflow-y:auto"><table class="tbl">
       <thead><tr>
         <th>SKU Variasi</th><th>Katalog</th><th>Boss</th>
-        <th>Masuk</th><th>Keluar</th><th>Sisa</th>
+        <th>Sisa</th><th>Masuk</th><th>Keluar</th>
         <th>HPP</th><th>Nilai Stok</th><th>Status</th><th>Kategori</th><th>Aksi</th>
       </tr></thead>
       <tbody id="stok-tbody">
@@ -286,9 +286,9 @@ function renderStok(data) {
       <td><b>${row.sku_variasi || '—'}</b></td>
       <td>${row.katalog || '—'}</td>
       <td>${row.boss || '—'}</td>
+      <td style="text-align:center"><b>${row.sisa}</b></td>
       <td style="text-align:center">${row.stok_masuk}</td>
       <td style="text-align:center;color:var(--danger)">${row.stok_keluar}</td>
-      <td style="text-align:center"><b>${row.sisa}</b></td>
       <td>${hpp}</td>
       <td style="color:var(--ok);font-weight:700">${nilai}</td>
       <td>${statusBadge(row.sisa)}</td>
@@ -696,7 +696,7 @@ function stokSetFilter(type, val) {
 document.addEventListener('click', function(e) {
   var dd  = document.getElementById('dd-filter-all');
   var btn = document.getElementById('btn-filter-all');
-  var subs = ['dd-filter-boss','dd-filter-katalog','dd-filter-status'];
+  var subs = ['dd-filter-boss','dd-filter-katalog','dd-filter-status','dd-filter-kategori_produk'];
   // Cek apakah klik di dalam salah satu submenu
   var inSub = subs.some(function(id) {
     var s = document.getElementById(id);

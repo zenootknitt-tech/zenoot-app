@@ -1067,7 +1067,7 @@ async function exportJurnalPenjualan() {
       + 'box-shadow:3px 4px 0 rgba(0,0,0,0.13)';
     cp.innerHTML = '<div style="padding:10px 12px">'
       + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:7px;letter-spacing:.5px">Pilih Channel</div>'
-      + '<select id="jp-filter-channel" size="8" style="font-family:var(--f);font-size:13px;padding:2px 4px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;max-height:220px;overflow-y:auto;display:block" onchange="filterJP();jpUpdateBadge();jpUpdateChannelLabel();jpCloseChannelPanel()">'
+      + '<select id="jp-filter-channel" size="8" style="font-family:var(--f);font-size:13px;padding:2px 4px;border:1.5px solid var(--ink3);background:var(--cream3);color:var(--ink);width:100%;max-height:220px;overflow-y:auto;display:block;border-radius:6px" onchange="filterJP();jpUpdateBadge();jpUpdateChannelLabel();jpCloseChannelPanel()">'
       + '<option value="">Semua Channel</option>'
       + '</select>'
       + '</div>';
