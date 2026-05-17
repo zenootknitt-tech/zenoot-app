@@ -16,69 +16,11 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
     </div>
   </div>
 
-  <!-- TOMBOL AKSI: Filter kiri, Tambah kanan -->
+  <!-- TOMBOL AKSI: hanya Refresh kiri, Tambah kanan -->
   <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-    <div style="display:flex;gap:6px;align-items:center">
-      <div style="position:relative">
-        <button class="btn btn-sm" id="jp-filter-btn" onclick="jpToggleFilter()" style="display:flex;align-items:center;gap:5px">
-          <i class="ti ti-filter"></i> Filter
-          <span id="jp-filter-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;border-radius:10px;font-weight:700">!</span>
-          <span style="font-size:10px">&#9662;</span>
-        </button>
-        <div id="jp-filter-panel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--cream);border:2px solid var(--ink);min-width:220px;box-shadow:3px 4px 0 rgba(0,0,0,0.13)">
-          <div style="padding:8px 12px;border-bottom:1px solid var(--ink3)">
-            <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px">Waktu</div>
-            <div id="jp-waktu-opts" style="display:flex;flex-direction:column;gap:3px">
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
-                <input type="radio" name="jp-waktu" value="hari-ini" checked onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Hari Ini (24 jam)
-              </label>
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
-                <input type="radio" name="jp-waktu" value="kemarin" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Kemarin
-              </label>
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
-                <input type="radio" name="jp-waktu" value="7hari" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> 7 Hari Terakhir
-              </label>
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
-                <input type="radio" name="jp-waktu" value="30hari" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> 30 Hari Terakhir
-              </label>
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
-                <input type="radio" name="jp-waktu" value="bulan" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Per Bulan
-              </label>
-              <div id="jp-bulan-wrap" style="display:none;padding-left:20px;margin-top:2px">
-                <input type="month" id="jp-filter-bulan"
-                  style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box"
-                  oninput="loadJurnalPenjualan();jpUpdateBadge()">
-              </div>
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
-                <input type="radio" name="jp-waktu" value="custom" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Custom
-              </label>
-              <div id="jp-custom-wrap" style="display:none;padding-left:20px;margin-top:2px">
-                <div style="font-size:11px;color:var(--ink3);margin-bottom:3px">Dari</div>
-                <input type="date" id="jp-dari" style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box;margin-bottom:5px" onchange="loadJurnalPenjualan();jpUpdateBadge()">
-                <div style="font-size:11px;color:var(--ink3);margin-bottom:3px">Sampai</div>
-                <input type="date" id="jp-sampai" style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box" onchange="loadJurnalPenjualan();jpUpdateBadge()">
-              </div>
-            </div>
-          </div>
-          <div style="padding:8px 12px;border-bottom:1px solid var(--ink3)">
-            <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px">Channel</div>
-            <select id="jp-filter-channel"
-              style="font-family:var(--f);font-size:13px;padding:4px 8px;border:1.5px solid var(--ink3);background:var(--cream);width:100%"
-              onchange="filterJP();jpUpdateBadge()">
-              <option value="">Semua Channel</option>
-            </select>
-          </div>
-          <div style="padding:8px 12px">
-            <button class="btn btn-sm" style="width:100%" onclick="jpResetFilter()">
-              <i class="ti ti-x"></i> Reset Filter
-            </button>
-          </div>
-        </div>
-      </div>
-      <button class="btn btn-sm" onclick="loadJurnalPenjualan()">
-        <i class="ti ti-refresh"></i> Refresh
-      </button>
-    </div>
+    <button class="btn btn-sm" onclick="loadJurnalPenjualan()">
+      <i class="ti ti-refresh"></i> Refresh
+    </button>
     <button class="btn btn-sm btn-primary" onclick="showTambahJP()" style="margin-left:auto">
       <i class="ti ti-plus"></i> Tambah Penjualan
     </button>
@@ -289,7 +231,95 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
   <div class="card">
     <div class="card-title"
       style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <span><i class="ti ti-receipt"></i> Jurnal Penjualan</span>
+
+      <!-- Kiri: judul + 2 tombol filter -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span><i class="ti ti-receipt"></i> Jurnal Penjualan</span>
+
+        <!-- TOMBOL PERIODE -->
+        <div style="position:relative">
+          <button class="btn btn-sm" id="jp-periode-btn" onclick="jpTogglePeriode()"
+            style="display:flex;align-items:center;gap:4px;font-size:12px">
+            <i class="ti ti-calendar"></i>
+            <span id="jp-periode-label">Hari Ini</span>
+            <span id="jp-periode-badge" style="display:none;background:var(--accent);color:#fff;font-size:9px;padding:1px 4px;border-radius:8px;font-weight:700">●</span>
+            <span style="font-size:10px">&#9662;</span>
+          </button>
+          <!-- Panel Periode -->
+          <div id="jp-periode-panel"
+            style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;
+                   background:var(--cream);border:2px solid var(--ink);min-width:210px;
+                   box-shadow:3px 4px 0 rgba(0,0,0,0.13)">
+            <div style="padding:10px 12px">
+              <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:7px;letter-spacing:.5px">Pilih Periode</div>
+              <div id="jp-waktu-opts" style="display:flex;flex-direction:column;gap:3px">
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                  <input type="radio" name="jp-waktu" value="hari-ini" checked onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Hari Ini (24 jam)
+                </label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                  <input type="radio" name="jp-waktu" value="kemarin" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Kemarin
+                </label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                  <input type="radio" name="jp-waktu" value="7hari" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> 7 Hari Terakhir
+                </label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                  <input type="radio" name="jp-waktu" value="30hari" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> 30 Hari Terakhir
+                </label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                  <input type="radio" name="jp-waktu" value="bulan" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Per Bulan
+                </label>
+                <div id="jp-bulan-wrap" style="display:none;padding-left:20px;margin-top:2px">
+                  <input type="month" id="jp-filter-bulan"
+                    style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box"
+                    oninput="loadJurnalPenjualan();jpUpdateBadge()">
+                </div>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0">
+                  <input type="radio" name="jp-waktu" value="custom" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Custom
+                </label>
+                <div id="jp-custom-wrap" style="display:none;padding-left:20px;margin-top:2px">
+                  <div style="font-size:11px;color:var(--ink3);margin-bottom:3px">Dari</div>
+                  <input type="date" id="jp-dari" style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box;margin-bottom:5px" onchange="loadJurnalPenjualan();jpUpdateBadge()">
+                  <div style="font-size:11px;color:var(--ink3);margin-bottom:3px">Sampai</div>
+                  <input type="date" id="jp-sampai" style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box" onchange="loadJurnalPenjualan();jpUpdateBadge()">
+                </div>
+              </div>
+              <button class="btn btn-sm" style="width:100%;margin-top:8px" onclick="jpResetPeriode()">
+                <i class="ti ti-x"></i> Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOMBOL CHANNEL -->
+        <div style="position:relative">
+          <button class="btn btn-sm" id="jp-channel-btn" onclick="jpToggleChannel()"
+            style="display:flex;align-items:center;gap:4px;font-size:12px">
+            <i class="ti ti-building-store"></i>
+            <span id="jp-channel-label">Semua Channel</span>
+            <span id="jp-channel-badge" style="display:none;background:var(--accent);color:#fff;font-size:9px;padding:1px 4px;border-radius:8px;font-weight:700">●</span>
+            <span style="font-size:10px">&#9662;</span>
+          </button>
+          <!-- Panel Channel -->
+          <div id="jp-channel-panel"
+            style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;
+                   background:var(--cream);border:2px solid var(--ink);min-width:200px;
+                   box-shadow:3px 4px 0 rgba(0,0,0,0.13)">
+            <div style="padding:10px 12px">
+              <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:7px;letter-spacing:.5px">Pilih Channel</div>
+              <select id="jp-filter-channel"
+                style="font-family:var(--f);font-size:13px;padding:5px 8px;border:1.5px solid var(--ink3);background:var(--cream);width:100%"
+                onchange="filterJP();jpUpdateBadge();jpUpdateChannelLabel()">
+                <option value="">Semua Channel</option>
+              </select>
+              <button class="btn btn-sm" style="width:100%;margin-top:8px" onclick="jpResetChannel()">
+                <i class="ti ti-x"></i> Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kanan: tombol Produk Terjual -->
       <button class="btn btn-sm" onclick="gotoPage('produk-terjual',null)" style="display:inline-flex;align-items:center;gap:5px;font-size:12px">
         <i class="ti ti-chart-bar"></i> Produk Terjual
       </button>
@@ -647,54 +677,121 @@ function jpSetWaktu(mode) {
   var customWrap = document.getElementById('jp-custom-wrap');
   if (bulanWrap)  bulanWrap.style.display  = mode === 'bulan'  ? 'block' : 'none';
   if (customWrap) customWrap.style.display = mode === 'custom' ? 'block' : 'none';
+  jpUpdatePeriodeLabel();
+  jpUpdateBadge();
   if (mode !== 'bulan' && mode !== 'custom') {
     loadJurnalPenjualan();
-    jpUpdateBadge();
+    // Tutup panel periode setelah pilih (kecuali bulan/custom yang butuh sub-input)
+    var panel = document.getElementById('jp-periode-panel');
+    if (panel) panel.style.display = 'none';
   }
 }
 
-// ─── FILTER PANEL TOGGLE ─────────────────────────────────────
-function jpToggleFilter() {
-  var panel = document.getElementById('jp-filter-panel');
+// ─── FILTER PANEL: PERIODE ───────────────────────────────────
+function jpTogglePeriode() {
+  var panel = document.getElementById('jp-periode-panel');
+  var chPanel = document.getElementById('jp-channel-panel');
   if (!panel) return;
+  if (chPanel) chPanel.style.display = 'none'; // tutup panel lain
   var isOpen = panel.style.display !== 'none';
   panel.style.display = isOpen ? 'none' : 'block';
   if (!isOpen) {
-    // Tutup saat klik di luar
     setTimeout(function() {
-      document.addEventListener('click', jpCloseFilterOutside, { once: true });
+      document.addEventListener('click', jpClosePeriodeOutside, { once: true });
     }, 50);
   }
 }
-function jpCloseFilterOutside(e) {
-  var panel = document.getElementById('jp-filter-panel');
-  var btn   = document.getElementById('jp-filter-btn');
+function jpClosePeriodeOutside(e) {
+  var panel = document.getElementById('jp-periode-panel');
+  var btn   = document.getElementById('jp-periode-btn');
   if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
     panel.style.display = 'none';
   }
 }
-function jpUpdateBadge() {
-  var mode    = _jpWaktuMode || 'hari-ini';
-  var channel = (document.getElementById('jp-filter-channel') || {}).value || '';
-  var badge   = document.getElementById('jp-filter-badge');
-  // Badge aktif jika bukan default (hari-ini) atau ada filter channel
-  if (badge) badge.style.display = (mode !== 'hari-ini' || channel) ? 'inline' : 'none';
-}
-function jpResetFilter() {
+function jpResetPeriode() {
   _jpWaktuMode = 'hari-ini';
-  // Reset radio ke hari-ini
   var radios = document.querySelectorAll('input[name="jp-waktu"]');
   radios.forEach(function(r) { r.checked = r.value === 'hari-ini'; });
   var bulanWrap  = document.getElementById('jp-bulan-wrap');
   var customWrap = document.getElementById('jp-custom-wrap');
   if (bulanWrap)  bulanWrap.style.display  = 'none';
   if (customWrap) customWrap.style.display = 'none';
+  jpUpdateBadge();
+  jpUpdatePeriodeLabel();
+  loadJurnalPenjualan();
+  var panel = document.getElementById('jp-periode-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+// ─── FILTER PANEL: CHANNEL ───────────────────────────────────
+function jpToggleChannel() {
+  var panel = document.getElementById('jp-channel-panel');
+  var perPanel = document.getElementById('jp-periode-panel');
+  if (!panel) return;
+  if (perPanel) perPanel.style.display = 'none'; // tutup panel lain
+  var isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    setTimeout(function() {
+      document.addEventListener('click', jpCloseChannelOutside, { once: true });
+    }, 50);
+  }
+}
+function jpCloseChannelOutside(e) {
+  var panel = document.getElementById('jp-channel-panel');
+  var btn   = document.getElementById('jp-channel-btn');
+  if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
+    panel.style.display = 'none';
+  }
+}
+function jpResetChannel() {
   var ch = document.getElementById('jp-filter-channel');
   if (ch) ch.value = '';
   jpUpdateBadge();
-  loadJurnalPenjualan();
-  var panel = document.getElementById('jp-filter-panel');
+  jpUpdateChannelLabel();
+  filterJP();
+  var panel = document.getElementById('jp-channel-panel');
   if (panel) panel.style.display = 'none';
+}
+
+// ─── UPDATE LABEL TOMBOL ─────────────────────────────────────
+function jpUpdatePeriodeLabel() {
+  var map = {
+    'hari-ini': 'Hari Ini',
+    'kemarin':  'Kemarin',
+    '7hari':    '7 Hari',
+    '30hari':   '30 Hari',
+    'bulan':    'Per Bulan',
+    'custom':   'Custom'
+  };
+  var el = document.getElementById('jp-periode-label');
+  if (el) el.textContent = map[_jpWaktuMode] || 'Hari Ini';
+}
+function jpUpdateChannelLabel() {
+  var sel = document.getElementById('jp-filter-channel');
+  var el  = document.getElementById('jp-channel-label');
+  if (!sel || !el) return;
+  var opt = sel.options[sel.selectedIndex];
+  el.textContent = (opt && opt.value) ? opt.textContent : 'Semua Channel';
+}
+
+function jpToggleFilter() {} // legacy stub — sudah diganti 2 panel
+function jpUpdateBadge() {
+  var mode    = _jpWaktuMode || 'hari-ini';
+  var channel = (document.getElementById('jp-filter-channel') || {}).value || '';
+  // Badge Periode
+  var pBadge = document.getElementById('jp-periode-badge');
+  if (pBadge) pBadge.style.display = mode !== 'hari-ini' ? 'inline' : 'none';
+  // Badge Channel
+  var cBadge = document.getElementById('jp-channel-badge');
+  if (cBadge) cBadge.style.display = channel ? 'inline' : 'none';
+  // Update label
+  jpUpdatePeriodeLabel();
+  jpUpdateChannelLabel();
+}
+function jpResetFilter() {
+  jpResetPeriode();
+  jpResetChannel();
 }
 
 // ─── PROGRESS BAR TARGET HARIAN ──────────────────────────────
