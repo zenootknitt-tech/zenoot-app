@@ -124,6 +124,7 @@ document.getElementById('page-dashboard').innerHTML = `
             </button>
             <div id="dash-period-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:#1c1a14;color:#f0ece0;min-width:160px;box-shadow:3px 4px 0 rgba(0,0,0,0.25);border-radius:2px">
               <div onclick="setDashPeriod(1,'Hari Ini')"   style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">Hari Ini</div>
+              <div onclick="setDashPeriod('kemarin','Kemarin')" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">Kemarin</div>
               <div onclick="setDashPeriod(7,'7 Hari')"     style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">7 Hari</div>
               <div onclick="setDashPeriod(14,'14 Hari')"   style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">14 Hari</div>
               <div onclick="setDashPeriod(30,'30 Hari')"   style="padding:9px 14px;cursor:pointer;font-size:13px;" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">30 Hari</div>
@@ -294,7 +295,7 @@ document.getElementById('page-dashboard').innerHTML = `
 
 
 // ─── STATE ────────────────────────────────────────────────────
-let _dashPeriod     = 1; // default Hari Ini
+let _dashPeriod     = 1; // default Hari Ini  (bisa juga string 'kemarin')
 let _dashJPData     = [];
 let _dashStokData   = [];
 let _dashChannelMap = {};
@@ -390,7 +391,10 @@ function setDashPeriod(days, label) {
   if (lbl) lbl.textContent = label || (days + ' Hari');
   var menu = document.getElementById('dash-period-menu');
   if (menu) menu.style.display = 'none';
-  _renderChartPenjualan(_dashJPData);
+  // Pastikan data sudah tersedia sebelum render
+  if (_dashJPData && _dashJPData.length >= 0) {
+    _renderChartPenjualan(_dashJPData);
+  }
 }
 
 // ─── ALERTS ──────────────────────────────────────────────────
@@ -498,6 +502,91 @@ function _renderChartHariIni(jpData, canvas, tooltip) {
   }
 }
 
+
+// ─── CHART KEMARIN (per jam) ─────────────────────────────────
+function _renderChartKemarin(jpData, canvas, tooltip) {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = _localDateStr(yesterday);
+  const labels = [], totals = [];
+
+  for (let h = 0; h <= 23; h++) {
+    const hStr = String(h).padStart(2,'0');
+    labels.push(hStr + ':00');
+    const jam = jpData
+      .filter(r => {
+        if (!r.tanggal || String(r.tanggal).slice(0,10) !== yStr) return false;
+        const wkt = String(r.waktu || '00:00');
+        return wkt.slice(0,2) === hStr;
+      })
+      .reduce((s,r) => s + (Number(r.total)||0), 0);
+    totals.push(jam);
+  }
+
+  const total   = totals.reduce((s,v)=>s+v,0);
+  const emptyEl = document.getElementById('dash-chart-empty');
+  const leg     = document.getElementById('dash-chart-legend');
+
+  if (total === 0) {
+    canvas.style.display = 'none';
+    if (emptyEl) { emptyEl.style.display='flex'; emptyEl.textContent='Belum ada penjualan kemarin'; }
+    if (leg) leg.innerHTML = '';
+    return;
+  }
+
+  if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
+    setTimeout(() => _renderChartKemarin(jpData, canvas, tooltip), 80);
+    return;
+  }
+
+  canvas.style.display = 'block';
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  const dpr = window.devicePixelRatio || 1;
+  const W   = canvas.offsetWidth;
+  const H   = canvas.offsetHeight || 160;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const padL=44, padR=16, padT=14, padB=34;
+  const cW=W-padL-padR, cH=H-padT-padB;
+  const maxVal = Math.max(...totals, 1);
+  const step   = cW / (totals.length - 1 || 1);
+  const colLine='#2a6e3a', colFill='rgba(42,110,58,0.1)', colGrid='rgba(28,26,20,0.08)', colLabel='#6b6354';
+
+  ctx.clearRect(0, 0, W, H);
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + cH - (cH * i / 4);
+    ctx.strokeStyle=colGrid; ctx.lineWidth=0.7;
+    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+cW,y); ctx.stroke();
+    ctx.fillStyle=colLabel; ctx.font='10px sans-serif'; ctx.textAlign='right';
+    ctx.fillText(_fmtRpShort(maxVal*i/4), padL-4, y+3);
+  }
+
+  ctx.beginPath();
+  totals.forEach((v,i) => { const x=padL+i*step, y=padT+cH-(v/maxVal)*cH; i===0?ctx.moveTo(x,padT+cH):ctx.lineTo(x,y); });
+  ctx.lineTo(padL+(totals.length-1)*step, padT+cH);
+  ctx.closePath(); ctx.fillStyle=colFill; ctx.fill();
+
+  ctx.beginPath(); ctx.strokeStyle=colLine; ctx.lineWidth=2; ctx.lineJoin='round';
+  totals.forEach((v,i) => { const x=padL+i*step, y=padT+cH-(v/maxVal)*cH; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+
+  labels.forEach((lbl,i) => {
+    if (i % 3 !== 0) return;
+    const x = padL + i * step;
+    ctx.fillStyle=colLabel; ctx.font='10px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(lbl, x, padT+cH+14);
+  });
+
+  if (leg) {
+    const d = yesterday;
+    const tgl = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+    leg.innerHTML = '<span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:3px;background:#2a6e3a;display:inline-block;border-radius:2px"></span>Kemarin (' + tgl + '): ' + _fmtRp(total) + '</span>';
+  }
+}
 // ─── CHART PENJUALAN + TOOLTIP HOVER ─────────────────────────
 function _renderChartPenjualan(jpData) {
   const canvas  = document.getElementById('dash-chart-penjualan');
@@ -507,6 +596,12 @@ function _renderChartPenjualan(jpData) {
   // Mode Hari Ini: tampil per jam 00-23
   if (_dashPeriod === 1) {
     _renderChartHariIni(jpData, canvas, tooltip);
+    return;
+  }
+
+  // Mode Kemarin: tampil per jam 00-23, date = kemarin
+  if (_dashPeriod === 'kemarin') {
+    _renderChartKemarin(jpData, canvas, tooltip);
     return;
   }
 
