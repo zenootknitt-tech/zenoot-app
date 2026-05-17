@@ -114,9 +114,9 @@ document.getElementById('page-dashboard').innerHTML = `
   <div class="grid2" style="margin-bottom:12px">
 
     <div class="card">
-      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-        <span><i class="ti ti-chart-line"></i> Tren Penjualan</span>
-        <div style="display:flex;align-items:center;gap:6px">
+      <div class="card-title" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">
+        <span style="flex-shrink:0"><i class="ti ti-chart-line"></i> Tren Penjualan</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <div id="trench-active-chips" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center"></div>
 
           <!-- Tombol Filter utama — nested dropdown seperti Stok Produk -->
@@ -129,8 +129,8 @@ document.getElementById('page-dashboard').innerHTML = `
             </button>
 
             <!-- DROPDOWN UTAMA: Periode + Channel -->
-            <div id="trench-dd-main" style="display:none;position:absolute;top:calc(100% + 2px);right:0;z-index:500;
-              background:var(--cream);border:2px solid var(--ink);min-width:160px;box-shadow:4px 4px 0 var(--ink4)">
+            <div id="trench-dd-main" style="display:none;position:absolute;top:calc(100% + 2px);left:0;z-index:1000;
+              background:var(--cream);border:2px solid var(--ink);min-width:160px;box-shadow:4px 4px 0 var(--ink4)" onclick="event.stopPropagation()">
 
               <!-- Menu: Periode -->
               <div id="trench-mi-periode" onclick="trenchOpenSub('periode',event)"
@@ -162,9 +162,9 @@ document.getElementById('page-dashboard').innerHTML = `
             </div>
 
             <!-- SUBMENU BARIS 2: Periode (chips waktu) -->
-            <div id="trench-dd-periode" style="display:none;position:fixed;z-index:600;
+            <div id="trench-dd-periode" style="display:none;position:fixed;z-index:1100;
               background:var(--cream);border:2px solid var(--ink);min-width:180px;
-              box-shadow:4px 4px 0 var(--ink4);padding:8px 10px">
+              box-shadow:4px 4px 0 var(--ink4);padding:8px 10px" onclick="event.stopPropagation()">
               <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px">
                 <i class="ti ti-clock" style="font-size:11px"></i> Pilih Periode
               </div>
@@ -179,17 +179,15 @@ document.getElementById('page-dashboard').innerHTML = `
             </div>
 
             <!-- SUBMENU BARIS 2: Channel — daftar marketplace/kategori -->
-            <div id="trench-dd-channel" style="display:none;position:fixed;z-index:600;
+            <div id="trench-dd-channel" style="display:none;position:fixed;z-index:1100;
               background:var(--cream);border:2px solid var(--ink);min-width:180px;
-              box-shadow:4px 4px 0 var(--ink4)">
-              <!-- Diisi oleh trenchOpenSub('channel') -->
+              box-shadow:4px 4px 0 var(--ink4)" onclick="event.stopPropagation()">
             </div>
 
             <!-- SUBMENU BARIS 3: Nama toko per marketplace -->
-            <div id="trench-dd-toko" style="display:none;position:fixed;z-index:700;
+            <div id="trench-dd-toko" style="display:none;position:fixed;z-index:1200;
               background:var(--cream);border:2px solid var(--ink);min-width:180px;max-height:260px;overflow-y:auto;
-              box-shadow:4px 4px 0 var(--ink4)">
-              <!-- Diisi oleh trenchOpenKat() -->
+              box-shadow:4px 4px 0 var(--ink4)" onclick="event.stopPropagation()">
             </div>
 
           </div><!-- /trench-filter-wrap -->
@@ -668,7 +666,13 @@ function trenchSelWaktu(el) {
 document.addEventListener('click', function(e) {
   var wrap = document.getElementById('trench-filter-wrap');
   if (!wrap) return;
-  if (!wrap.contains(e.target)) trenchCloseAll();
+  // Juga cek fixed submenu agar klik di dalamnya tidak menutup
+  var fixedSubs = ['trench-dd-periode','trench-dd-channel','trench-dd-toko'];
+  var insideSub = fixedSubs.some(function(id) {
+    var el = document.getElementById(id);
+    return el && el.contains(e.target);
+  });
+  if (!wrap.contains(e.target) && !insideSub) trenchCloseAll();
 });
 
 // Build daftar channel per kategori dari _dashChannelMap
