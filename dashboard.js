@@ -141,10 +141,7 @@ document.getElementById('page-dashboard').innerHTML = `
                 <div class="trench-sub-item trench-chip-w" data-w="14"      onclick="trenchSelWaktu(this)">14 Hari Terakhir</div>
                 <div class="trench-sub-item trench-chip-w" data-w="30"      onclick="trenchSelWaktu(this)">30 Hari Terakhir (default)</div>
               </div>
-              <div style="margin-top:8px;display:flex;gap:6px">
-                <button class="btn btn-sm" onclick="trenchResetPeriode()" style="flex:1;font-size:12px"><i class="ti ti-x"></i> Reset</button>
-                <button class="btn btn-sm btn-primary" onclick="trenchApply()" style="flex:1;font-size:12px;font-weight:700"><i class="ti ti-check"></i> Terapkan</button>
-              </div>
+
             </div>
           </div>
 
@@ -160,12 +157,15 @@ document.getElementById('page-dashboard').innerHTML = `
               min-width:190px;background:var(--cream);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink4);pointer-events:auto"
               onclick="event.stopPropagation()">
               <div id="trench-channel-list" style="max-height:220px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch"></div>
-              <div style="padding:6px 10px;display:flex;gap:6px;border-top:1px dashed var(--ink4)">
-                <button class="btn btn-sm" onclick="trenchResetChannel()" style="flex:1;font-size:12px"><i class="ti ti-x"></i> Reset</button>
-                <button class="btn btn-sm btn-primary" onclick="trenchApply()" style="flex:1;font-size:12px;font-weight:700"><i class="ti ti-check"></i> Terapkan</button>
-              </div>
+
             </div>
           </div>
+
+          <!-- RESET FILTER — muncul otomatis bila ada filter aktif -->
+          <button class="btn btn-sm" id="trench-reset-btn" onclick="trenchReset()"
+            style="display:none;align-items:center;gap:4px;font-size:12px;border-color:var(--danger);color:var(--danger)">
+            <i class="ti ti-x"></i> Reset Filter
+          </button>
         </div>
       </div>
       <!-- id="trench-ch-wrap" dipertahankan kosong (tidak dipakai lagi tapi referensi JS lama aman) -->
@@ -458,6 +458,10 @@ function trenchSelWaktu(el) {
     btn.style.color = 'var(--cream)';
     btn.style.borderColor = 'var(--ink)';
   }
+  // Auto-apply + tutup panel
+  var dd = document.getElementById('trench-dd-periode');
+  if (dd) dd.style.display = 'none';
+  trenchApply();
 }
 
 function trenchResetPeriode() {
@@ -522,7 +526,7 @@ function trenchRenderChannelList() {
       row.style.cssText = 'padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px dashed var(--ink4);' +
         'background:'+(isActive?'var(--ink)':'transparent')+';' +
         'color:'+(isActive?'var(--cream)':'inherit')+';' +
-        'font-weight:'+(isActive?'700':'normal')+';' +
+        'font-weight:'+(isActive?'700':'400')+';' +
         'user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation';
       row.textContent = (isActive?'✓ ':'')+ch.nama;
       // Pakai addEventListener — lebih reliable daripada onclick di innerHTML
@@ -546,20 +550,21 @@ function trenchRenderChannelList() {
 
 function trenchToggleCh(el) {
   var id = String(el.dataset.chid);
-  var idx = _trenchChannels.indexOf(id);
-  if (idx > -1) {
-    _trenchChannels.splice(idx, 1);
-    el.style.background = ''; el.style.color = ''; el.style.fontWeight = '';
-    el.textContent = el.textContent.replace('✓ ', '');
+  // Single-select: kalau sudah aktif → deselect (kembali semua channel)
+  if (_trenchChannels.length === 1 && _trenchChannels[0] === id) {
+    _trenchChannels = [];
   } else {
-    _trenchChannels.push(id);
-    el.style.background = 'var(--ink)'; el.style.color = 'var(--cream)'; el.style.fontWeight = '700';
-    el.textContent = '✓ ' + el.textContent;
+    _trenchChannels = [id];
   }
   var btn = document.getElementById('trench-btn-channel');
   if (btn) { btn.style.background = _trenchChannels.length ? 'var(--ink)' : ''; btn.style.color = _trenchChannels.length ? 'var(--cream)' : ''; }
   var lbl = document.getElementById('trench-lbl-channel');
-  if (lbl) lbl.textContent = _trenchChannels.length ? 'Channel ('+_trenchChannels.length+')' : 'Channel';
+  var selCh = _trenchChannels.length && _dashChannelMap[_trenchChannels[0]];
+  if (lbl) lbl.textContent = selCh ? selCh.nama : 'Channel';
+  // Auto-apply + tutup panel
+  var dd = document.getElementById('trench-dd-channel');
+  if (dd) dd.style.display = 'none';
+  trenchApply();
 }
 
 function trenchResetChannel() {
@@ -673,6 +678,11 @@ function trenchUpdateBadge() {
   // Update badge channel di menu
   var bdgCh = document.getElementById('trench-badge-channel');
   if (bdgCh) bdgCh.textContent = _trenchChannels.length > 0 ? '· ' + _trenchChannels.length + ' dipilih' : '';
+
+  // Tombol Reset otomatis — muncul bila ada filter non-default aktif
+  var resetBtn = document.getElementById('trench-reset-btn');
+  var filterAktif = (_trenchPeriod !== 30) || (_trenchChannels.length > 0);
+  if (resetBtn) resetBtn.style.display = filterAktif ? 'inline-flex' : 'none';
 }
 
 // ─── PERIOD TOGGLE (LAMA — dipertahankan agar tidak break referensi lain) ──
