@@ -36,25 +36,14 @@
     el.querySelectorAll('canvas.rough-btn').forEach(c => c.remove());
   }
 
-  // ── 3. CARD / METRIC BOX
+  // ── 3. CARD / METRIC BOX — no rough strokes, CSS shadow handles elevation
   function sketchCard(el) {
-    if (!el.offsetWidth || !el.offsetHeight) return;
-    const W = el.offsetWidth, H = el.offsetHeight;
-    const cvs = _makeRoughCanvas(el, 'rough-card', W, H);
-    rough.canvas(cvs).rectangle(2, 2, W - 4, H - 4, {
-      ...BASE, roughness:1.2, bowing:0.6,
-      fill: CREAM, fillStyle: 'solid'
-    });
+    el.querySelectorAll('canvas.rough-card').forEach(c => c.remove());
   }
 
-  // ── 4. DATE PILL
+  // ── 4. DATE PILL — no rough strokes
   function sketchPill(el) {
-    if (!el.offsetWidth || !el.offsetHeight) return;
-    const W = el.offsetWidth, H = el.offsetHeight;
-    const cvs = _makeRoughCanvas(el, 'rough-pill', W, H);
-    rough.canvas(cvs).rectangle(2, 2, W - 4, H - 4, {
-      ...BASE, roughness:2, bowing:2, fill:'none'
-    });
+    el.querySelectorAll('canvas.rough-pill').forEach(c => c.remove());
   }
 
   // ── Migrasi nav-item lama ke struktur pill baru

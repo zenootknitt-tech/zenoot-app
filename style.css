@@ -1,9 +1,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
-  --ink:#dde1ed;--ink2:#9da4bc;--ink3:#6b7290;--ink4:#2a2e45;
-  --cream:#0e1018;--cream2:#13161f;--cream3:#1c2030;--cream4:#222640;
-  --paper-line:rgba(255,255,255,0.025);
+  --ink:#e8eaf2;--ink2:#a0a8c0;--ink3:#5c6480;--ink4:#1e2235;
+  --cream:#080a0f;--cream2:#111318;--cream3:#181b24;--cream4:#1e2230;
+  --paper-line:rgba(255,255,255,0.02);
+  --card-shadow:0 4px 6px rgba(0,0,0,0.4),0 8px 24px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04);
   --f:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
   --f2:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
   --warn:#e6a817;--danger:#e05252;--ok:#2ecc7a;
@@ -67,8 +68,8 @@ body{
 /* ─── SIDEBAR ────────────────────────────────────────────── */
 .sidebar{
   width:var(--sidebar-w);min-width:var(--sidebar-w);
-  background:#0e1018;
-  border-right:1.5px solid var(--ink4);
+  background:#080a0f;
+  border-right:1px solid rgba(255,255,255,0.05);
   display:-webkit-flex;display:flex;
   -webkit-flex-direction:column;flex-direction:column;
   position:relative;overflow:hidden;
@@ -95,7 +96,7 @@ body{
   -webkit-flex-direction:row;flex-direction:row;
   -webkit-align-items:center;align-items:center;
   gap:8px;
-  background:#0e1018;
+  background:#080a0f;
   z-index:10;
 }
 .logo-img{
@@ -128,12 +129,12 @@ body{
   display:none;
   position:absolute;top:10px;right:-14px;
   width:26px;height:26px;
-  background:#0e1018;border:1.5px solid var(--ink4);
+  background:#080a0f;border:1.5px solid var(--ink4);
   cursor:pointer;z-index:300;
   -webkit-align-items:center;align-items:center;
   -webkit-justify-content:center;justify-content:center;
   border-radius:50%;font-size:13px;color:var(--ink2);
-  box-shadow:2px 2px 0 var(--ink4);
+  box-shadow:var(--card-shadow);
   -webkit-transition:opacity .15s;transition:opacity .15s;
   -webkit-flex-shrink:0;flex-shrink:0;
 }
@@ -184,7 +185,7 @@ body.sidebar-mini .sidebar-minimize-btn i{
   border-top:1px dashed var(--ink4);
   text-align:center;
   -webkit-flex-shrink:0;flex-shrink:0;
-  background:#0e1018;
+  background:#080a0f;
   z-index:10;
 }
 .footer-by{
@@ -317,7 +318,7 @@ body.sidebar-mini .sidebar-footer::before{
 
 /* ─── TOPBAR ─────────────────────────────────────────────── */
 .topbar{
-  background:var(--cream2);border-bottom:1.5px solid var(--ink4);
+  background:var(--cream2);border-bottom:1px solid rgba(255,255,255,0.05);
   padding:10px 20px;
   display:-webkit-flex;display:flex;
   -webkit-align-items:center;align-items:center;
@@ -371,7 +372,7 @@ body.sidebar-mini .sidebar-footer::before{
   -webkit-align-items:center;align-items:center;
   gap:6px;margin-bottom:14px;
   padding:7px 12px;border:1.5px solid var(--ink4);
-  background:var(--cream2);box-shadow:2px 2px 0 var(--ink4);
+  background:var(--cream2);box-shadow:var(--card-shadow);
   -webkit-flex-wrap:wrap;flex-wrap:wrap;
 }
 .ch-switcher-label{
@@ -398,7 +399,7 @@ body.sidebar-mini .sidebar-footer::before{
   font-size:13px;font-weight:600;margin-bottom:12px;
   display:-webkit-flex;display:flex;
   -webkit-align-items:center;align-items:center;
-  gap:8px;box-shadow:2px 2px 0 var(--ink4);
+  gap:8px;box-shadow:var(--card-shadow);
 }
 .alert i{font-size:16px;color:var(--warn);-webkit-flex-shrink:0;flex-shrink:0}
 
@@ -415,6 +416,8 @@ body.sidebar-mini .sidebar-footer::before{
 .metric{
   background:var(--cream2);border:none;
   padding:10px 12px;position:relative;
+  border-radius:8px;
+  box-shadow:var(--card-shadow);
 }
 .metric canvas.rough-card{position:absolute;top:0;left:0;pointer-events:none}
 .m-label{
@@ -442,12 +445,14 @@ body.sidebar-mini .sidebar-footer::before{
 .card{
   background:var(--cream2);border:none;
   padding:12px 14px;margin-bottom:12px;position:relative;
+  border-radius:8px;
+  box-shadow:var(--card-shadow);
 }
 .card canvas.rough-card{position:absolute;top:0;left:0;pointer-events:none;z-index:0}
 .card-title,.tbl-wrap,.tbl,.tbl td,.form-row,.form-group{position:relative;z-index:1}
 .card-title{
   font-size:17px;font-weight:700;margin-bottom:10px;padding-bottom:7px;
-  border-bottom:1.5px solid var(--ink4);
+  border-bottom:1px solid rgba(255,255,255,0.05);
   display:-webkit-flex;display:flex;
   -webkit-align-items:center;align-items:center;
   gap:7px;letter-spacing:-.2px;position:relative;z-index:200;
@@ -497,7 +502,7 @@ body.sidebar-mini .sidebar-footer::before{
   gap:8px;margin-bottom:8px;font-size:13px;
 }
 .bar-label{width:100px;color:var(--ink2);font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar-track{-webkit-flex:1;flex:1;height:13px;border:1.5px solid var(--ink4);background:var(--cream3)}
+.bar-track{-webkit-flex:1;flex:1;height:13px;border:none;background:var(--cream3)}
 .bar-fill{height:100%;background:var(--ink);position:relative}
 .bar-fill::after{
   content:'';position:absolute;inset:0;
@@ -510,7 +515,7 @@ body.sidebar-mini .sidebar-footer::before{
 .tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
 .tbl th{
   text-align:left;padding:8px 10px;font-size:13px;font-weight:700;color:var(--ink2);
-  border-bottom:1.5px solid var(--ink4);text-transform:uppercase;letter-spacing:.06em;
+  border-bottom:1px solid rgba(255,255,255,0.05);text-transform:uppercase;letter-spacing:.06em;
   white-space:nowrap;font-family:var(--f2);
   position:-webkit-sticky;position:sticky;top:0;
   background:var(--cream3);z-index:2;
@@ -581,7 +586,7 @@ body.sidebar-mini .sidebar-footer::before{
 .modal-overlay.open{display:-webkit-flex;display:flex}
 .modal{
   background:var(--cream);border:1.5px solid var(--ink4);padding:20px;
-  width:100%;max-width:380px;box-shadow:4px 4px 0 var(--ink4);
+  width:100%;max-width:380px;box-shadow:var(--card-shadow);
   position:relative;max-height:90vh;max-height:90dvh;
   overflow-y:auto;overflow-x:visible;
   -webkit-overflow-scrolling:touch;
@@ -770,7 +775,7 @@ body.sidebar-mini .sidebar-footer::before{
     /* Tidak pakai max-height fixed agar bisa scroll bebas */
     max-height:none !important;
     /* Shadow tetap ada */
-    box-shadow:4px 4px 0 var(--ink4) !important;
+    box-shadow:var(--card-shadow) !important;
     /* Margin bawah agar konten tidak tertutup keyboard */
     margin-bottom:20px;
     box-sizing:border-box;
