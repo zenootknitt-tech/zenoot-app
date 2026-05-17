@@ -509,12 +509,16 @@ function trenchOpenSub(type, e) {
         el.style.fontWeight = isAct ? '700' : '';
       });
     }
-    sub.style.left = (rect.left - sub.offsetWidth - 4) + 'px';
     sub.style.top  = rect.top + 'px';
     sub.style.display = 'block';
-    // Reposisi setelah display agar offsetWidth valid
+    // Reposisi setelah display agar offsetWidth valid — muncul ke KANAN
     requestAnimationFrame(function() {
-      sub.style.left = (rect.left - sub.offsetWidth - 4) + 'px';
+      var rightPos = rect.right + 4;
+      // Kalau keluar layar kanan, balik ke kiri
+      if (rightPos + sub.offsetWidth > window.innerWidth) {
+        rightPos = rect.left - sub.offsetWidth - 4;
+      }
+      sub.style.left = rightPos + 'px';
     });
 
   } else if (type === 'channel') {
@@ -555,11 +559,14 @@ function trenchOpenSub(type, e) {
       }).join('');
     }
 
-    sub.style.left = (rect.left - sub.offsetWidth - 4) + 'px';
     sub.style.top  = rect.top + 'px';
     sub.style.display = 'block';
     requestAnimationFrame(function() {
-      sub.style.left = (rect.left - sub.offsetWidth - 4) + 'px';
+      var rightPos = rect.right + 4;
+      if (rightPos + sub.offsetWidth > window.innerWidth) {
+        rightPos = rect.left - sub.offsetWidth - 4;
+      }
+      sub.style.left = rightPos + 'px';
     });
   }
 }
@@ -597,13 +604,17 @@ function trenchOpenKat(kat, e) {
     }).join('');
   }
 
-  // Posisi: sebelah kiri dd-channel
+  // Posisi: sebelah kanan dd-channel
   var ddCh2 = document.getElementById('trench-dd-channel');
-  var rect2  = ddCh2 ? ddCh2.getBoundingClientRect() : { left:0, top:0 };
+  var rect2  = ddCh2 ? ddCh2.getBoundingClientRect() : { left:0, right:0, top:0 };
   sub.style.top  = rect2.top + 'px';
   sub.style.display = 'block';
   requestAnimationFrame(function() {
-    sub.style.left = (rect2.left - sub.offsetWidth - 4) + 'px';
+    var rightPos = rect2.right + 4;
+    if (rightPos + sub.offsetWidth > window.innerWidth) {
+      rightPos = rect2.left - sub.offsetWidth - 4;
+    }
+    sub.style.left = rightPos + 'px';
   });
 }
 
