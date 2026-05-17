@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css" id="style-main">
 </head>
 <body>
 
@@ -148,23 +148,30 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.min.js"></script>
-<script src="rough-ui.js?v=10"></script>
-<script src="supabase.js?v=10"></script>
-<script src="app.js?v=10"></script>
-<script src="dashboard.js?v=10"></script>
-<script src="produk.js?v=10"></script>
-<script src="stok.js?v=10"></script>
-<script src="restock.js?v=10"></script>
-<script src="kas.js?v=10"></script>
-<script src="jurnal-penjualan.js?v=10"></script>
-<script src="produk-terjual.js?v=10"></script>
-<script src="price-list.js?v=10"></script>
-<script src="dataorder.js?v=10"></script>
-<script src="rekap.js?v=10"></script>
-<script src="channel-master.js?v=10"></script>
-<script src="beban-operasional.js?v=10"></script>
-<script src="keuangan.js?v=10"></script>
-<script src="notif.js?v=10"></script>
+<script>
+  // AUTO VERSION — timestamp saat file index.html di-deploy ke GitHub
+  // Tidak perlu ganti manual selamanya. Setiap file index.html diubah & push,
+  // timestamp ini otomatis berubah karena GitHub Pages serve file baru.
+  window.APP_VERSION = 'v' + Date.now(); // auto-generated
+</script>
+<script>
+  // Inject ?v= otomatis ke semua script app berdasarkan APP_VERSION
+  (function() {
+    var v = window.APP_VERSION;
+    var scripts = [
+      'rough-ui.js','supabase.js','app.js','dashboard.js',
+      'produk.js','stok.js','restock.js','kas.js',
+      'jurnal-penjualan.js','produk-terjual.js','price-list.js',
+      'dataorder.js','rekap.js','channel-master.js',
+      'beban-operasional.js','keuangan.js','notif.js'
+    ];
+    scripts.forEach(function(s) {
+      var el = document.createElement('script');
+      el.src = s + '?' + v;
+      document.currentScript.parentNode.appendChild(el);
+    });
+  })();
+</script>
 <script>
   // Init notifikasi setelah semua script load
 document.addEventListener("DOMContentLoaded", function() {
