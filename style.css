@@ -102,6 +102,7 @@ body{
 .logo-img{
   width:36px;height:36px;display:block;
   object-fit:contain;
+  border-radius:50%;
   -webkit-flex-shrink:0;flex-shrink:0;
   opacity:0.95;
 }
