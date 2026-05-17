@@ -113,14 +113,14 @@ document.getElementById('page-dashboard').innerHTML = `
   <!-- ═══ ROW 3: GRAFIK PENJUALAN + TOP SKU ════════════════════ -->
   <div class="grid2" style="margin-bottom:12px">
 
-    <div class="card">
-      <div class="card-title" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">
+    <div class="card" style="overflow:visible">
+      <div class="card-title" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;overflow:visible;z-index:9000;position:relative">
         <span style="flex-shrink:0"><i class="ti ti-chart-line"></i> Tren Penjualan</span>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <div id="trench-active-chips" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center"></div>
 
           <!-- Tombol Periode -->
-          <div style="position:relative;z-index:300" id="trench-wrap-periode">
+          <div style="position:relative;z-index:9100" id="trench-wrap-periode">
             <button class="btn btn-sm" id="trench-btn-periode" onclick="trenchTogglePeriode(event)"
               style="display:inline-flex;align-items:center;gap:5px;font-size:12px;background:var(--ink);color:var(--cream);border:2px solid var(--ink);min-height:32px">
               <i class="ti ti-clock"></i>
@@ -146,7 +146,7 @@ document.getElementById('page-dashboard').innerHTML = `
           </div>
 
           <!-- Tombol Channel -->
-          <div style="position:relative;z-index:300" id="trench-wrap-channel">
+          <div style="position:relative;z-index:9100" id="trench-wrap-channel">
             <button class="btn btn-sm" id="trench-btn-channel" onclick="trenchToggleChannel(event)"
               style="display:inline-flex;align-items:center;gap:5px;font-size:12px;background:var(--cream2);color:var(--ink);border:2px solid var(--ink);min-height:32px">
               <i class="ti ti-store"></i>
@@ -320,8 +320,8 @@ document.getElementById('page-dashboard').innerHTML = `
     .trench-ch-active{background:var(--cream2) !important;border-color:var(--ink) !important;color:var(--ink) !important;font-weight:700}
     .trench-cat-label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:5px;margin-bottom:4px}
     .trench-cat-line{flex:1;height:1px;background:var(--ink4)}
-    .trench-sub-item{padding:8px 12px;cursor:pointer;font-size:13px;font-family:var(--f);border-bottom:1px dashed var(--ink4);transition:background .1s;pointer-events:auto;user-select:none;-webkit-user-select:none}
-    .trench-sub-item:hover{background:var(--cream2)}
+    .trench-sub-item{padding:8px 12px;cursor:pointer;font-size:13px;font-family:var(--f);border-bottom:1px dashed var(--ink4);transition:background .1s;pointer-events:auto;user-select:none;-webkit-user-select:none;background:var(--cream);color:var(--ink);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+    .trench-sub-item:hover,.trench-sub-item:active{background:var(--cream2)}
     .trench-sub-item:last-child{border-bottom:none}
     .trench-kat-item:hover{background:var(--cream2)}
     .active-period{background:var(--ink) !important;color:var(--cream) !important}
@@ -439,9 +439,18 @@ function trenchRefreshPeriodeChips() {
     var rawW = c.dataset.w;
     var wVal = (!isNaN(rawW) && rawW !== '') ? Number(rawW) : rawW;
     var isAct = String(wVal) === String(_trenchPeriod);
-    c.style.background = isAct ? 'var(--ink)' : '';
-    c.style.color      = isAct ? 'var(--cream)' : '';
+    c.style.background = isAct ? 'var(--ink)' : 'var(--cream)';
+    c.style.color      = isAct ? 'var(--cream)' : 'var(--ink)';
     c.style.fontWeight = isAct ? '700' : '';
+    // Ensure touchend handler is attached (idempotent via flag)
+    if (!c._trenchTouch) {
+      c._trenchTouch = true;
+      c.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        trenchSelWaktu(c);
+      });
+    }
   });
 }
 
@@ -524,7 +533,7 @@ function trenchRenderChannelList() {
       var row = document.createElement('div');
       row.dataset.chid = ch.id;
       row.style.cssText = 'padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px dashed var(--ink4);' +
-        'background:'+(isActive?'var(--ink)':'transparent')+';' +
+        'background:'+(isActive?'var(--ink)':'var(--cream)')+';' +
         'color:'+(isActive?'var(--cream)':'inherit')+';' +
         'font-weight:'+(isActive?'700':'400')+';' +
         'user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation';
