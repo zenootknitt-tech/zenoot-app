@@ -1,9 +1,9 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
-  --ink:#e2e4ec;--ink2:#b0b6c8;--ink3:#8088a0;--ink4:#2e3347;
-  --cream:#12141a;--cream2:#1a1d26;--cream3:#22263a;--cream4:#2a2f45;
-  --paper-line:rgba(255,255,255,0.04);
+  --ink:#e2e4ec;--ink2:#b0b6c8;--ink3:#8088a0;--ink4:#252942;
+  --cream:#0d0f14;--cream2:#12141a;--cream3:#1a1d26;--cream4:#20243a;
+  --paper-line:rgba(255,255,255,0.03);
   --f:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
   --f2:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
   --warn:#e6a817;--danger:#e05252;--ok:#2ecc7a;
