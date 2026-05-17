@@ -141,6 +141,10 @@ document.getElementById('page-dashboard').innerHTML = `
                 <div class="trench-sub-item trench-chip-w" data-w="14"      onclick="trenchSelWaktu(this)">14 Hari Terakhir</div>
                 <div class="trench-sub-item trench-chip-w" data-w="30"      onclick="trenchSelWaktu(this)">30 Hari Terakhir (default)</div>
               </div>
+              <div style="margin-top:8px;display:flex;gap:6px">
+                <button class="btn btn-sm" onclick="trenchResetPeriode()" style="flex:1;font-size:12px"><i class="ti ti-x"></i> Reset</button>
+                <button class="btn btn-sm btn-primary" onclick="trenchApply()" style="flex:1;font-size:12px;font-weight:700"><i class="ti ti-check"></i> Terapkan</button>
+              </div>
             </div>
           </div>
 
@@ -155,18 +159,13 @@ document.getElementById('page-dashboard').innerHTML = `
             <div id="trench-dd-channel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:99999;
               min-width:190px;background:var(--cream);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink4);pointer-events:auto"
               onclick="event.stopPropagation()">
-              <div style="padding:6px 10px;font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px dashed var(--ink4)">
-                <i class="ti ti-store" style="font-size:11px"></i> Pilih Channel
-              </div>
               <div id="trench-channel-list" style="max-height:220px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch"></div>
+              <div style="padding:6px 10px;display:flex;gap:6px;border-top:1px dashed var(--ink4)">
+                <button class="btn btn-sm" onclick="trenchResetChannel()" style="flex:1;font-size:12px"><i class="ti ti-x"></i> Reset</button>
+                <button class="btn btn-sm btn-primary" onclick="trenchApply()" style="flex:1;font-size:12px;font-weight:700"><i class="ti ti-check"></i> Terapkan</button>
+              </div>
             </div>
           </div>
-
-          <!-- Tombol Reset Filter tren — muncul otomatis kalau ada filter aktif -->
-          <button class="btn btn-sm" id="trench-reset-btn" onclick="trenchReset()"
-            style="display:none;font-size:12px;border-color:var(--danger);color:var(--danger)">
-            <i class="ti ti-x"></i> Reset
-          </button>
         </div>
       </div>
       <!-- id="trench-ch-wrap" dipertahankan kosong (tidak dipakai lagi tapi referensi JS lama aman) -->
@@ -459,11 +458,6 @@ function trenchSelWaktu(el) {
     btn.style.color = 'var(--cream)';
     btn.style.borderColor = 'var(--ink)';
   }
-  // Auto-apply: tutup panel dan langsung load
-  var dd = document.getElementById('trench-dd-periode');
-  if (dd) dd.style.display = 'none';
-  trenchApply();
-  trenchUpdateResetBtn();
 }
 
 function trenchResetPeriode() {
@@ -566,10 +560,6 @@ function trenchToggleCh(el) {
   if (btn) { btn.style.background = _trenchChannels.length ? 'var(--ink)' : ''; btn.style.color = _trenchChannels.length ? 'var(--cream)' : ''; }
   var lbl = document.getElementById('trench-lbl-channel');
   if (lbl) lbl.textContent = _trenchChannels.length ? 'Channel ('+_trenchChannels.length+')' : 'Channel';
-  // Auto-apply: langsung render chart
-  _trenchRenderChart();
-  trenchUpdateBadge();
-  trenchUpdateResetBtn();
 }
 
 function trenchResetChannel() {
@@ -597,13 +587,6 @@ document.addEventListener('click', function(e) {
 });
 
 function trenchBuildChannelList() { /* deprecated */ }
-function trenchUpdateResetBtn() {
-  var btn = document.getElementById('trench-reset-btn');
-  if (!btn) return;
-  var hasFilter = (_trenchPeriod !== 30) || (_trenchChannels.length > 0);
-  btn.style.display = hasFilter ? 'inline-flex' : 'none';
-}
-
 function trenchReset() {
   _trenchPeriod   = 30;
   _trenchChannels = [];
@@ -614,7 +597,6 @@ function trenchReset() {
   trenchResetChannel();
   _trenchRenderChart();
   trenchUpdateBadge();
-  trenchUpdateResetBtn();
 }
 
 async function trenchApply() {

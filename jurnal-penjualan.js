@@ -253,12 +253,6 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
           <span id="jp-channel-badge" style="display:none;background:var(--accent);color:#fff;font-size:9px;padding:1px 4px;border-radius:8px;font-weight:700">●</span>
           <span style="font-size:10px">&#9662;</span>
         </button>
-
-        <!-- TOMBOL RESET FILTER — muncul otomatis kalau ada filter aktif -->
-        <button class="btn btn-sm" id="jp-reset-filter-btn" onclick="jpResetFilter()"
-          style="display:none;font-size:12px;border-color:var(--danger);color:var(--danger)">
-          <i class="ti ti-x"></i> Reset Filter
-        </button>
       </div>
 
       <!-- Kanan: tombol Produk Terjual -->
@@ -612,7 +606,7 @@ async function loadJurnalPenjualan() {
 
 
 // ─── FILTER WAKTU BERGAYA SHOPEE ─────────────────────────────
-var _jpWaktuMode = 'bulan'; // default: bulan ini
+var _jpWaktuMode = 'hari-ini'; // default
 
 function jpSetWaktu(mode) {
   _jpWaktuMode = mode;
@@ -664,12 +658,12 @@ function jpClosePeriodeOutside(e) {
   }
 }
 function jpResetPeriode() {
-  _jpWaktuMode = 'bulan';
+  _jpWaktuMode = 'hari-ini';
   var radios = document.querySelectorAll('input[name="jp-waktu"]');
-  radios.forEach(function(r) { r.checked = r.value === 'bulan'; });
+  radios.forEach(function(r) { r.checked = r.value === 'hari-ini'; });
   var bulanWrap  = document.getElementById('jp-bulan-wrap');
   var customWrap = document.getElementById('jp-custom-wrap');
-  if (bulanWrap)  bulanWrap.style.display  = 'block';
+  if (bulanWrap)  bulanWrap.style.display  = 'none';
   if (customWrap) customWrap.style.display = 'none';
   jpUpdateBadge();
   jpUpdatePeriodeLabel();
@@ -709,13 +703,6 @@ function jpResetChannel() {
   var panel = document.getElementById('jp-channel-panel');
   if (panel) panel.style.display = 'none';
 }
-function jpPilihChannel() {
-  filterJP();
-  jpUpdateBadge();
-  jpUpdateChannelLabel();
-  var panel = document.getElementById('jp-channel-panel');
-  if (panel) panel.style.display = 'none';
-}
 
 // ─── UPDATE LABEL TOMBOL ─────────────────────────────────────
 function jpUpdatePeriodeLabel() {
@@ -728,7 +715,7 @@ function jpUpdatePeriodeLabel() {
     'custom':   'Custom'
   };
   var el = document.getElementById('jp-periode-label');
-  if (el) el.textContent = map[_jpWaktuMode] || 'Per Bulan';
+  if (el) el.textContent = map[_jpWaktuMode] || 'Hari Ini';
 }
 function jpUpdateChannelLabel() {
   var sel = document.getElementById('jp-filter-channel');
@@ -742,18 +729,12 @@ function jpToggleFilter() {} // legacy stub — sudah diganti 2 panel
 function jpUpdateBadge() {
   var mode    = _jpWaktuMode || 'hari-ini';
   var channel = (document.getElementById('jp-filter-channel') || {}).value || '';
-  // Badge Periode — aktif kalau bukan default (bulan)
+  // Badge Periode
   var pBadge = document.getElementById('jp-periode-badge');
-  if (pBadge) pBadge.style.display = mode !== 'bulan' ? 'inline' : 'none';
+  if (pBadge) pBadge.style.display = mode !== 'hari-ini' ? 'inline' : 'none';
   // Badge Channel
   var cBadge = document.getElementById('jp-channel-badge');
   if (cBadge) cBadge.style.display = channel ? 'inline' : 'none';
-  // Tombol Reset Filter — muncul kalau ada filter aktif (non-default)
-  var resetBtn = document.getElementById('jp-reset-filter-btn');
-  if (resetBtn) {
-    var hasFilter = (mode !== 'bulan') || (channel !== '');
-    resetBtn.style.display = hasFilter ? 'inline-flex' : 'none';
-  }
   // Update label
   jpUpdatePeriodeLabel();
   jpUpdateChannelLabel();
@@ -1035,13 +1016,13 @@ async function exportJurnalPenjualan() {
       + 'box-shadow:3px 4px 0 rgba(0,0,0,0.13)';
     pp.innerHTML = '<div style="padding:10px 12px">'
       + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:7px;letter-spacing:.5px">Pilih Periode</div>'
-      + '<div id="jp-waktu-opts" style="display:flex;flex-direction:column;gap:3px;max-height:198px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch">'
-      + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="hari-ini" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Hari Ini (24 jam)</label>'
+      + '<div id="jp-waktu-opts" style="display:flex;flex-direction:column;gap:3px">'
+      + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="hari-ini" checked onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Hari Ini (24 jam)</label>'
       + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="kemarin" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Kemarin</label>'
       + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="7hari" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> 7 Hari Terakhir</label>'
       + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="30hari" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> 30 Hari Terakhir</label>'
-      + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="bulan" checked onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Per Bulan</label>'
-      + '<div id="jp-bulan-wrap" style="padding-left:20px;margin-top:2px">'
+      + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="bulan" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Per Bulan</label>'
+      + '<div id="jp-bulan-wrap" style="display:none;padding-left:20px;margin-top:2px">'
       + '<input type="month" id="jp-filter-bulan" style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box" oninput="loadJurnalPenjualan();jpUpdateBadge()">'
       + '</div>'
       + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="custom" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Custom</label>'
@@ -1052,6 +1033,7 @@ async function exportJurnalPenjualan() {
       + '<input type="date" id="jp-sampai" style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box" onchange="loadJurnalPenjualan();jpUpdateBadge()">'
       + '</div>'
       + '</div>'
+      + '<button class="btn btn-sm" style="width:100%;margin-top:8px" onclick="jpResetPeriode()"><i class="ti ti-x"></i> Reset</button>'
       + '</div>';
     document.body.appendChild(pp);
   }
@@ -1065,9 +1047,10 @@ async function exportJurnalPenjualan() {
       + 'box-shadow:3px 4px 0 rgba(0,0,0,0.13)';
     cp.innerHTML = '<div style="padding:10px 12px">'
       + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:7px;letter-spacing:.5px">Pilih Channel</div>'
-      + '<select id="jp-filter-channel" style="font-family:var(--f);font-size:13px;padding:5px 8px;border:1.5px solid var(--ink3);background:var(--cream);width:100%" onchange="jpPilihChannel()">'
+      + '<select id="jp-filter-channel" style="font-family:var(--f);font-size:13px;padding:5px 8px;border:1.5px solid var(--ink3);background:var(--cream);width:100%" onchange="filterJP();jpUpdateBadge();jpUpdateChannelLabel()">'
       + '<option value="">Semua Channel</option>'
       + '</select>'
+      + '<button class="btn btn-sm" style="width:100%;margin-top:8px" onclick="jpResetChannel()"><i class="ti ti-x"></i> Reset</button>'
       + '</div>';
     document.body.appendChild(cp);
   }
@@ -1084,14 +1067,6 @@ async function exportJurnalPenjualan() {
 
 // ─── INIT ────────────────────────────────────────────────────
 document.getElementById('jp-filter-bulan').value = new Date().toISOString().slice(0,7);
-// Default mode bulan: tampilkan bulan-wrap langsung
-(function() {
-  var bw = document.getElementById('jp-bulan-wrap');
-  if (bw) bw.style.display = 'block';
-  // Update label tombol periode ke "Per Bulan"
-  var lbl = document.getElementById('jp-periode-label');
-  if (lbl) lbl.textContent = 'Per Bulan';
-})();
 Promise.all([
   loadChannelDropdownJP(),
   loadProdukListJP()
