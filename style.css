@@ -67,8 +67,8 @@ body{
 /* ─── SIDEBAR ────────────────────────────────────────────── */
 .sidebar{
   width:var(--sidebar-w);min-width:var(--sidebar-w);
-  background:var(--cream2);
-  border-right:2px solid var(--ink4);
+  background:#0d0f14;
+  border-right:1.5px solid var(--ink4);
   display:-webkit-flex;display:flex;
   -webkit-flex-direction:column;flex-direction:column;
   position:relative;overflow:hidden;
@@ -95,7 +95,7 @@ body{
   -webkit-flex-direction:row;flex-direction:row;
   -webkit-align-items:center;align-items:center;
   gap:8px;
-  background:var(--cream2);
+  background:#0d0f14;
   z-index:10;
 }
 .logo-img{
@@ -128,7 +128,7 @@ body{
   display:none;
   position:absolute;top:10px;right:-14px;
   width:26px;height:26px;
-  background:var(--cream2);border:1.5px solid var(--ink4);
+  background:#0d0f14;border:1.5px solid var(--ink4);
   cursor:pointer;z-index:300;
   -webkit-align-items:center;align-items:center;
   -webkit-justify-content:center;justify-content:center;
@@ -184,7 +184,7 @@ body.sidebar-mini .sidebar-minimize-btn i{
   border-top:1px dashed var(--ink4);
   text-align:center;
   -webkit-flex-shrink:0;flex-shrink:0;
-  background:var(--cream2);
+  background:#0d0f14;
   z-index:10;
 }
 .footer-by{
@@ -276,13 +276,13 @@ body.sidebar-mini .sidebar-footer::before{
   transition:background .15s ease;
   overflow:hidden;
 }
-.nav-item:hover{background:var(--cream3);}
+.nav-item:hover{background:rgba(255,255,255,0.04);}
 .nav-item.active{
-  background:var(--ink);
+  background:var(--cream4);
   border-radius:4px;
 }
-.nav-item.active .ni-label{color:var(--cream);font-weight:700;}
-.nav-item.active .ni-icon i{color:var(--cream);}
+.nav-item.active .ni-label{color:var(--ink2);font-weight:700;}
+.nav-item.active .ni-icon i{color:var(--ink2);}
 
 /* ─── CHANNEL SIDEBAR ────────────────────────────────────── */
 .ch-sidebar-section{padding:2px 6px 6px}
