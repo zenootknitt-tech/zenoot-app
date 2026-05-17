@@ -709,8 +709,7 @@ function _renderAlerts(stokData, saldo) {
   const alerts = [];
   const habis      = stokData.filter(r => r.sisa <= 0);
   const kritis     = stokData.filter(r => r.sisa > 0 && r.sisa <= 3);
-  if (habis.length)  alerts.push({ cls:'danger', icon:'ti-circle-off',    msg: habis.length + ' SKU HABIS stok: ' + habis.slice(0,3).map(r=>r.sku_variasi).join(', ') + (habis.length>3?' ...':'') + ' — restock segera!' });
-  if (kritis.length) alerts.push({ cls:'warn',   icon:'ti-alert-triangle', msg: kritis.length + ' SKU hampir habis: ' + kritis.slice(0,3).map(r=>r.sku_variasi).join(', ') + (kritis.length>3?' ...':'') });
+  // Alert stok dipindah ke halaman Re-Stock
   if (saldo < 0)     alerts.push({ cls:'danger', icon:'ti-coin-off',       msg: 'Saldo kas negatif ' + _fmtRp(Math.abs(saldo)) + ' — cek jurnal kas!' });
   wrap.innerHTML = alerts.map(a =>
     '<div class="dash-alert-item ' + a.cls + '"><i class="ti ' + a.icon + '" style="color:var(--' + (a.cls==='danger'?'danger':'warn') + ')"></i><span>' + a.msg + '</span></div>'
