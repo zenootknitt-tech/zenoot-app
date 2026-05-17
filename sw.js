@@ -1,31 +1,30 @@
-// ─── SERVICE WORKER — zenOt PWA v6 ───────────────────────────
-// Cache lengkap: semua file JS + font + icons
-// v6: notif HP saat ada update aplikasi
+// ─── SERVICE WORKER — zenOt PWA v10 ──────────────────────────
+// v10: force cache bust semua file
 
-var CACHE = 'zenot-auto';
+var CACHE = 'zenot-v10';
 
 var ASSETS = [
   './',
   './index.html',
-  './style.css',
-  './app.js',
-  './supabase.js',
-  './rough-ui.js',
+  './style.css?v=10',
+  './app.js?v=10',
+  './supabase.js?v=10',
+  './rough-ui.js?v=10',
   './channels.js',
   './hpp.js',
-  './dashboard.js',
-  './produk.js',
-  './stok.js',
-  './restock.js',
-  './kas.js',
-  './jurnal-penjualan.js',
-  './price-list.js',
-  './dataorder.js',
-  './rekap.js',
-  './channel-master.js',
-  './beban-operasional.js',
-  './keuangan.js',
-  './notif.js',
+  './dashboard.js?v=10',
+  './produk.js?v=10',
+  './stok.js?v=10',
+  './restock.js?v=10',
+  './kas.js?v=10',
+  './jurnal-penjualan.js?v=10',
+  './price-list.js?v=10',
+  './dataorder.js?v=10',
+  './rekap.js?v=10',
+  './channel-master.js?v=10',
+  './beban-operasional.js?v=10',
+  './keuangan.js?v=10',
+  './notif.js?v=10',
   'https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css',
   './logo.png',
@@ -43,11 +42,9 @@ self.addEventListener('message', function(e) {
 
 
 self.addEventListener('install', function(e) {
-  CACHE = 'zenot-' + Date.now();
   self.skipWaiting(); // langsung aktif tanpa tunggu tab ditutup
   e.waitUntil(
     caches.open(CACHE).then(function(c) {
-      // addAll satu-satu agar satu file gagal tidak blokir semua
       return Promise.all(
         ASSETS.map(function(url) {
           return c.add(url).catch(function(err) {
