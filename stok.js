@@ -164,8 +164,10 @@ document.getElementById('page-stok').innerHTML = `
     <div class="tbl-wrap" id="stok-tbl-wrap" style="max-height:65vh;overflow-y:auto"><table class="tbl">
       <thead><tr>
         <th>SKU Variasi</th><th>Katalog</th><th>Boss</th>
-        <th>Sisa</th><th>Masuk</th><th>Keluar</th>
-        <th>HPP</th><th>Nilai Stok</th><th>Status</th><th>Kategori</th><th>Aksi</th>
+        <th onclick="stokToggleSort('sisa')" style="cursor:pointer;user-select:none;white-space:nowrap">Sisa <span id="sort-icon-sisa">⇅</span></th>
+        <th onclick="stokToggleSort('sales')" style="cursor:pointer;user-select:none;white-space:nowrap">Sales <span id="sort-icon-sales">⇅</span></th>
+        <th>HPP</th><th onclick="stokToggleSort('nilai')" style="cursor:pointer;user-select:none;white-space:nowrap">Nilai Stok <span id="sort-icon-nilai">⇅</span></th>
+        <th>Status</th><th>Kategori</th><th>Aksi</th>
       </tr></thead>
       <tbody id="stok-tbody">
         <tr><td colspan="10" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
@@ -306,8 +308,7 @@ function renderStok(data) {
       <td>${row.katalog || '—'}</td>
       <td>${row.boss || '—'}</td>
       <td style="text-align:center"><b>${row.sisa}</b></td>
-      <td style="text-align:center">${row.stok_masuk}</td>
-      <td style="text-align:center;color:var(--danger)">${row.stok_keluar}</td>
+      <td style="text-align:center;color:var(--ok)">${row.stok_keluar}</td>
       <td>${hpp}</td>
       <td style="color:var(--ok);font-weight:700">${nilai}</td>
       <td>${statusBadge(row.sisa)}</td>
@@ -339,6 +340,20 @@ function filterStok() {
     }
     return true;
   });
+
+  // Apply sort
+  if (_stokSort.col) {
+    filtered.sort(function(a, b) {
+      var va = _stokSort.col === 'sisa'  ? (a.sisa || 0)
+             : _stokSort.col === 'sales' ? (a.stok_keluar || 0)
+             : (a.nilai_stok || 0);
+      var vb = _stokSort.col === 'sisa'  ? (b.sisa || 0)
+             : _stokSort.col === 'sales' ? (b.stok_keluar || 0)
+             : (b.nilai_stok || 0);
+      return _stokSort.dir === 'desc' ? vb - va : va - vb;
+    });
+  }
+
   renderStok(filtered);
 }
 
@@ -539,6 +554,31 @@ async function simpanPasteStok() {
 // exportStok dihapus (tombol Export CSV diringkas)
 
 // ─── FILTER STATE ─────────────────────────────────────────────
+// ─── SORT STATE ───────────────────────────────────────────────
+var _stokSort = { col: null, dir: 'desc' };
+
+function stokToggleSort(col) {
+  if (_stokSort.col === col) {
+    _stokSort.dir = _stokSort.dir === 'desc' ? 'asc' : 'desc';
+  } else {
+    _stokSort.col = col;
+    _stokSort.dir = 'desc';
+  }
+  // Update icons
+  ['sisa','sales','nilai'].forEach(function(c) {
+    var el = document.getElementById('sort-icon-' + c);
+    if (!el) return;
+    if (c === col) {
+      el.textContent = _stokSort.dir === 'desc' ? '▼' : '▲';
+      el.style.color = 'var(--ok)';
+    } else {
+      el.textContent = '⇅';
+      el.style.color = 'var(--ink3)';
+    }
+  });
+  filterStok();
+}
+
 let _filterBoss           = null;
 let _filterKatalog        = null;
 let _filterStatus         = null;
