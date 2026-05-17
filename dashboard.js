@@ -117,19 +117,7 @@ document.getElementById('page-dashboard').innerHTML = `
       <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
         <div style="display:flex;align-items:center;gap:10px">
           <span><i class="ti ti-chart-line"></i> Tren Penjualan</span>
-          <div style="position:relative">
-            <button class="btn btn-sm" id="dash-period-btn" onclick="dashTogglePeriodMenu()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px">
-              <span id="dash-period-label">Hari Ini</span>
-              <span style="font-size:10px">&#9662;</span>
-            </button>
-            <div id="dash-period-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:#1c1a14;color:#f0ece0;min-width:160px;box-shadow:3px 4px 0 rgba(0,0,0,0.25);border-radius:2px">
-              <div data-period="1" data-label="Hari Ini"   class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">Hari Ini</div>
-              <div data-period="kemarin" data-label="Kemarin" class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">Kemarin</div>
-              <div data-period="7" data-label="7 Hari"     class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">7 Hari</div>
-              <div data-period="14" data-label="14 Hari"   class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">14 Hari</div>
-              <div data-period="30" data-label="30 Hari"   class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;">30 Hari</div>
-            </div>
-          </div>
+
         </div>
       </div>
       <div style="position:relative;height:170px;width:100%">
@@ -273,8 +261,6 @@ document.getElementById('page-dashboard').innerHTML = `
     .dash-alert-item.danger{border-color:var(--danger)}
     .dash-alert-item.warn{border-color:var(--warn)}
     .dash-alert-item i{font-size:15px;flex-shrink:0}
-    .dash-period-btn{padding:2px 8px !important;min-height:28px !important;font-size:12px !important}
-    .active-period{background:var(--ink) !important;color:var(--cream) !important}
     .dash-top-sku-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed var(--ink4)}
     .dash-top-sku-row:last-child{border-bottom:none;margin-bottom:0}
     .dash-rank{font-size:13px;width:20px;flex-shrink:0;text-align:center}
@@ -295,7 +281,6 @@ document.getElementById('page-dashboard').innerHTML = `
 
 
 // ─── STATE ────────────────────────────────────────────────────
-let _dashPeriod     = 1; // default Hari Ini  (bisa juga string 'kemarin')
 let _dashJPData     = [];
 let _dashStokData   = [];
 let _dashChannelMap = {};
@@ -366,48 +351,9 @@ function openTargetModal() {
 }
 
 // ─── PERIOD TOGGLE ────────────────────────────────────────────
-function dashTogglePeriodMenu() {
-  var menu = document.getElementById('dash-period-menu');
-  if (!menu) return;
-  if (menu.style.display === 'block') {
-    menu.style.display = 'none';
-    return;
-  }
   menu.style.display = 'block';
 }
 
-// Permanent listener — persis pola stok.js
-document.addEventListener('click', function(e) {
-  var menu = document.getElementById('dash-period-menu');
-  var btn  = document.getElementById('dash-period-btn');
-  if (!menu || menu.style.display !== 'block') return;
-
-  // Klik di item menu — jalankan setDashPeriod
-  var item = e.target.closest('.dash-period-item');
-  if (item) {
-    var p = item.getAttribute('data-period');
-    var l = item.getAttribute('data-label');
-    setDashPeriod(isNaN(p) ? p : Number(p), l);
-    menu.style.display = 'none';
-    return;
-  }
-
-  // Klik di luar menu & bukan tombol — tutup
-  if (!menu.contains(e.target) && btn && !btn.contains(e.target)) {
-    menu.style.display = 'none';
-  }
-});
-
-function setDashPeriod(days, label) {
-  _dashPeriod = days;
-  var lbl = document.getElementById('dash-period-label');
-  if (lbl) lbl.textContent = label || (days + ' Hari');
-  var menu = document.getElementById('dash-period-menu');
-  if (menu) menu.style.display = 'none';
-  // Pastikan data sudah tersedia sebelum render
-  if (_dashJPData && _dashJPData.length >= 0) {
-    _renderChartPenjualan(_dashJPData);
-  }
 }
 
 // ─── ALERTS ──────────────────────────────────────────────────
@@ -606,146 +552,7 @@ function _renderChartPenjualan(jpData) {
   const tooltip = document.getElementById('dash-chart-tooltip');
   if (!canvas) return;
 
-  // Mode Hari Ini: tampil per jam 00-23
-  if (_dashPeriod === 1) {
-    _renderChartHariIni(jpData, canvas, tooltip);
-    return;
-  }
-
-  // Mode Kemarin: tampil per jam 00-23, date = kemarin
-  if (_dashPeriod === 'kemarin') {
-    _renderChartKemarin(jpData, canvas, tooltip);
-    return;
-  }
-
-  const today = new Date();
-  const labels = [], totals = [], dates = [];
-  for (let i = _dashPeriod - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const key = _localDateStr(d); // FIX: pakai lokal WIB bukan UTC
-    dates.push(key);
-    labels.push(String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'));
-    const dayTotal = jpData
-      .filter(r => r.tanggal && String(r.tanggal).slice(0,10) === key)
-      .reduce((s,r) => s + (Number(r.total)||0), 0);
-    totals.push(dayTotal);
-  }
-
-  // FIX: retry canvas DULU sebelum lanjut (canvas bisa belum punya ukuran saat pertama load)
-  if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
-    setTimeout(() => _renderChartPenjualan(jpData), 80);
-    return;
-  }
-
-  const maxVal  = Math.max(...totals, 1);
-  const hasData = totals.some(v => v > 0);
-  const emptyEl = document.getElementById('dash-chart-empty');
-  if (emptyEl) { emptyEl.style.display = hasData ? 'none' : 'flex'; }
-  if (!hasData) return;
-
-  const dpr = window.devicePixelRatio || 1;
-  const W   = canvas.offsetWidth;
-  const H   = canvas.offsetHeight || 160;
-  canvas.width  = W * dpr;
-  canvas.height = H * dpr;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-
-  const padL=44, padR=36, padT=14, padB=34;
-  const cW=W-padL-padR, cH=H-padT-padB;
-  const colLine='#2a6e3a', colFill='rgba(42,110,58,0.1)', colGrid='rgba(28,26,20,0.08)', colLabel='#6b6354';
-
-  for (let i=0; i<=4; i++) {
-    const y = padT + cH - cH*i/4;
-    ctx.strokeStyle=colGrid; ctx.lineWidth=0.7;
-    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+cW,y); ctx.stroke();
-    ctx.fillStyle=colLabel; ctx.font='10px sans-serif'; ctx.textAlign='right';
-    ctx.fillText(_fmtRpShort(maxVal*i/4), padL-4, y+3);
-  }
-
-  const step = cW / Math.max(labels.length-1, 1);
-
-  ctx.fillStyle='rgba(200,160,0,0.12)';
-  ctx.fillRect(padL+cW-step*0.6, padT, step*0.6+padR, cH);
-
-  ctx.beginPath();
-  ctx.moveTo(padL, padT+cH);
-  totals.forEach((v,i) => { const x=padL+i*step, y=padT+cH-(v/maxVal)*cH; i===0?ctx.lineTo(x,y):ctx.lineTo(x,y); });
-  ctx.lineTo(padL+(totals.length-1)*step, padT+cH);
-  ctx.closePath(); ctx.fillStyle=colFill; ctx.fill();
-
-  ctx.beginPath(); ctx.strokeStyle=colLine; ctx.lineWidth=2; ctx.lineJoin='round';
-  totals.forEach((v,i) => { const x=padL+i*step, y=padT+cH-(v/maxVal)*cH; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.stroke();
-
-  // Simpan koordinat titik untuk tooltip
-  _dashChartPoints = [];
-  const skip = Math.ceil(labels.length/7);
-  totals.forEach((v,i) => {
-    const x=padL+i*step, y=padT+cH-(v/maxVal)*cH;
-    _dashChartPoints.push({ x, y, label: labels[i], date: dates[i], val: v });
-    ctx.beginPath(); ctx.arc(x,y,3.5,0,Math.PI*2);
-    ctx.fillStyle=v>0?colLine:colGrid; ctx.fill();
-    ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
-    if (i%skip===0 || i===labels.length-1) {
-      ctx.fillStyle=colLabel; ctx.font='10px sans-serif'; ctx.textAlign='center';
-      ctx.fillText(labels[i], x, H-padB+14);
-    }
-    if (i===totals.length-1 && v>0) {
-      ctx.fillStyle='#2a6e3a'; ctx.font='bold 10px sans-serif';
-      // Kalau titik terakhir dekat tepi kanan, geser label ke dalam
-      const labelW = ctx.measureText(_fmtRpShort(v)).width;
-      if (x + labelW/2 > W - padR) {
-        ctx.textAlign='right';
-        ctx.fillText(_fmtRpShort(v), Math.min(x, W-padR-2), y-9);
-      } else {
-        ctx.textAlign='center';
-        ctx.fillText(_fmtRpShort(v), x, y-9);
-      }
-    }
-  });
-
-  // Tooltip hover
-  if (tooltip) {
-    canvas.onmousemove = function(e) {
-      const rect = canvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      let closest = null, minDist = 30;
-      _dashChartPoints.forEach(pt => {
-        const dist = Math.abs(mx - pt.x);
-        if (dist < minDist) { minDist = dist; closest = pt; }
-      });
-      if (closest) {
-        const txn = jpData.filter(r => r.tanggal && String(r.tanggal).slice(0,10) === closest.date);
-        const qty = txn.reduce((s,r)=>s+(Number(r.qty)||0),0);
-        tooltip.innerHTML = '<b>' + closest.label + '</b>  ' + _fmtRp(closest.val) + '  ·  ' + qty + ' pcs  ·  ' + txn.length + ' trx';
-        const tooltipX = Math.min(closest.x + 10, W - 170);
-        const tooltipY = Math.max(closest.y - 36, 0);
-        tooltip.style.left  = tooltipX + 'px';
-        tooltip.style.top   = tooltipY + 'px';
-        tooltip.style.display = 'block';
-      } else {
-        tooltip.style.display = 'none';
-      }
-    };
-    canvas.onmouseleave = function() { tooltip.style.display = 'none'; };
-  }
-
-  const leg = document.getElementById('dash-chart-legend');
-  if (leg) {
-    const total = totals.reduce((a,b)=>a+b,0);
-    const half  = Math.floor(totals.length/2);
-    const prev  = totals.slice(0,half).reduce((a,b)=>a+b,0);
-    const curr  = totals.slice(half).reduce((a,b)=>a+b,0);
-    const delta = prev>0 ? ((curr-prev)/prev*100).toFixed(0) : null;
-    const dStr  = delta!==null ? (delta>=0?'▲ +':'▼ ') + delta + '% vs paruh pertama' : '';
-    const dCol  = delta>=0?'var(--ok)':'var(--danger)';
-    leg.innerHTML =
-      '<span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:3px;background:'+colLine+';display:inline-block;border-radius:2px"></span>'+(document.getElementById('dash-period-label')?document.getElementById('dash-period-label').textContent:_dashPeriod+' hari')+': '+_fmtRp(total)+'</span>' +
-      (dStr ? '<span style="color:'+dCol+';font-weight:700">'+dStr+'</span>' : '');
-  }
+  _renderChartHariIni(jpData, canvas, tooltip);
 }
 
 // ─── TOP SKU ─────────────────────────────────────────────────
