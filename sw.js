@@ -13,7 +13,7 @@ var ASSETS = [
   './rough-ui.js',
   './channels.js',
   './hpp.js',
-  './dashboard.js',
+  './dashboard.js?v=5',
   './produk.js',
   './stok.js',
   './restock.js',
