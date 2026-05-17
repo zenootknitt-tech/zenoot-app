@@ -1,7 +1,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
-  --ink:#e8eaf2;--ink2:#a0a8c0;--ink3:#5c6480;--ink4:#1e2235;
+  --ink:#e8eaf2;--ink2:#a0a8c0;--ink3:#5a6080;--ink4:#1e2235;
   --cream:#080a0f;--cream2:#111318;--cream3:#181b24;--cream4:#1e2230;
   --paper-line:rgba(255,255,255,0.02);
   --card-shadow:0 4px 6px rgba(0,0,0,0.4),0 8px 24px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04);
