@@ -125,34 +125,44 @@ document.getElementById('page-dashboard').innerHTML = `
         </div>
       </div>
 
-      <!-- ═══ FILTER PANEL TREN — absolute overlay, tidak mendorong canvas ═══ -->
-      <div style="position:relative">
-        <div id="trench-panel" style="display:none;position:absolute;top:2px;right:0;z-index:400;min-width:280px;max-width:340px;border:1.5px solid var(--ink3);background:var(--cream);padding:10px 12px;box-shadow:4px 4px 0 rgba(0,0,0,0.12)">
+      <!-- ═══ FILTER PANEL TREN — 3-baris inline (Periode | Channel | Aksi) ═══ -->
+      <div id="trench-panel" style="display:none;border:1.5px solid var(--ink3);background:var(--cream2);padding:10px 14px;margin-bottom:10px;box-shadow:3px 3px 0 rgba(0,0,0,0.08)">
 
-        <!-- Baris waktu -->
-        <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
-          <i class="ti ti-clock" style="font-size:11px"></i> Periode
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px" id="trench-waktu-chips">
-          <span class="trench-chip trench-chip-w" data-w="1"       onclick="trenchSelWaktu(this)">Hari Ini</span>
-          <span class="trench-chip trench-chip-w" data-w="kemarin" onclick="trenchSelWaktu(this)">Kemarin</span>
-          <span class="trench-chip trench-chip-w" data-w="7"       onclick="trenchSelWaktu(this)">7 Hari</span>
-          <span class="trench-chip trench-chip-w" data-w="14"      onclick="trenchSelWaktu(this)">14 Hari</span>
-          <span class="trench-chip trench-chip-w" data-w="30"      onclick="trenchSelWaktu(this)">30 Hari</span>
+        <!-- BARIS 1: Label Periode & Label Channel -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;display:flex;align-items:center;gap:4px">
+            <i class="ti ti-clock" style="font-size:11px"></i> Periode
+          </div>
+          <div style="width:1px;height:14px;background:var(--ink4)"></div>
+          <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;display:flex;align-items:center;gap:4px">
+            <i class="ti ti-store" style="font-size:11px"></i> Channel
+          </div>
         </div>
 
-        <!-- Divider -->
-        <div style="height:1px;background:var(--ink4);margin-bottom:8px"></div>
+        <!-- BARIS 2: Chips Periode | Divider | Chips Channel per kategori -->
+        <div style="display:flex;gap:0;align-items:flex-start">
 
-        <!-- Channel per kategori -->
-        <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
-          <i class="ti ti-store" style="font-size:11px"></i> Channel
-        </div>
-        <div id="trench-ch-wrap" style="display:flex;flex-direction:column;gap:8px">
-          <div style="color:var(--ink3);font-size:12px;font-style:italic">Memuat channel...</div>
+          <!-- Kolom Periode — lebar cukup untuk 5 chip -->
+          <div style="flex-shrink:0;padding-right:12px;border-right:1.5px solid var(--ink4)">
+            <div style="display:flex;flex-wrap:wrap;gap:4px" id="trench-waktu-chips">
+              <span class="trench-chip trench-chip-w" data-w="1"       onclick="trenchSelWaktu(this)">Hari Ini</span>
+              <span class="trench-chip trench-chip-w" data-w="kemarin" onclick="trenchSelWaktu(this)">Kemarin</span>
+              <span class="trench-chip trench-chip-w" data-w="7"       onclick="trenchSelWaktu(this)">7 Hari</span>
+              <span class="trench-chip trench-chip-w" data-w="14"      onclick="trenchSelWaktu(this)">14 Hari</span>
+              <span class="trench-chip trench-chip-w" data-w="30"      onclick="trenchSelWaktu(this)">30 Hari</span>
+            </div>
+          </div>
+
+          <!-- Kolom Channel — flex baris per kategori -->
+          <div style="flex:1;padding-left:12px;overflow-x:auto">
+            <div id="trench-ch-wrap" style="display:flex;flex-direction:row;flex-wrap:wrap;gap:8px 14px;align-items:flex-start">
+              <div style="color:var(--ink3);font-size:12px;font-style:italic">Memuat channel...</div>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Action row -->
+        <!-- BARIS 3: Tombol Reset & Terapkan -->
         <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:10px;padding-top:8px;border-top:1px dashed var(--ink4)">
           <button class="btn btn-sm" onclick="trenchReset()" style="font-size:12px">
             <i class="ti ti-x"></i> Reset
@@ -161,8 +171,8 @@ document.getElementById('page-dashboard').innerHTML = `
             <i class="ti ti-check"></i> Terapkan
           </button>
         </div>
-      </div>
-      </div><!-- /trench relative wrapper -->
+
+      </div><!-- /trench-panel -->
       <div style="position:relative;height:170px;width:100%">
         <canvas id="dash-chart-penjualan" style="width:100%;height:100%;display:block"></canvas>
         <div id="dash-chart-empty" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:var(--ink3);font-style:italic;font-size:13px">
@@ -419,15 +429,7 @@ function trenchTogglePanel() {
   if (!open) trenchBuildChannelList();
 }
 
-// Tutup panel kalau klik di luar
-document.addEventListener('click', function(e) {
-  var panel = document.getElementById('trench-panel');
-  var btn   = document.getElementById('trench-filter-btn');
-  if (!panel || panel.style.display === 'none') return;
-  if (!panel.contains(e.target) && btn && !btn.contains(e.target)) {
-    panel.style.display = 'none';
-  }
-});
+// Panel inline — tidak perlu tutup saat klik di luar
 
 // Build daftar channel per kategori dari _dashChannelMap
 function trenchBuildChannelList() {
@@ -447,6 +449,9 @@ function trenchBuildChannelList() {
     offline:    { label: 'Offline',  icon: 'offline'  },
   };
 
+  // Urutan kategori yang diinginkan
+  var katOrder = ['toko_utama','reseller','tiktok','lazada','offline'];
+
   var grouped = {};
   channels.forEach(function(ch) {
     var k = ch.kategori || 'lainnya';
@@ -454,13 +459,21 @@ function trenchBuildChannelList() {
     grouped[k].push(ch);
   });
 
+  // Susun per kategori — tiap kategori = 1 blok inline (label + chips sejajar)
   var html = '';
-  Object.entries(grouped).forEach(function([kat, items]) {
+  var orderedKeys = katOrder.filter(function(k){ return grouped[k]; });
+  Object.keys(grouped).forEach(function(k){ if (!orderedKeys.includes(k)) orderedKeys.push(k); });
+
+  orderedKeys.forEach(function(kat) {
+    var items = grouped[kat];
+    if (!items || !items.length) return;
     var cfg   = katCfg[kat] || { label: kat, icon: 'default' };
     var iconH = '<span style="font-size:13px;opacity:.7">' + chIcon({ nama: items[0].nama, kategori: kat }) + '</span>';
-    html += '<div>';
-    html += '<div class="trench-cat-label">' + iconH + cfg.label + '<span class="trench-cat-line"></span></div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:5px">';
+
+    // Blok per kategori: label kecil di atas, chips di bawah — semua dalam kotak kecil
+    html += '<div style="display:flex;flex-direction:column;gap:4px;min-width:80px">';
+    html += '<div class="trench-cat-label" style="margin-bottom:0">' + iconH + cfg.label + '</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
     items.forEach(function(ch) {
       var isActive = _trenchChannels.includes(String(ch.id));
       html += '<span class="trench-chip' + (isActive ? ' trench-ch-active' : '') + '"'
