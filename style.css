@@ -1,12 +1,12 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
-  --ink:#1c1a14;--ink2:#3d3a2e;--ink3:#6b6354;--ink4:#a89f8a;
-  --cream:#f5f0e8;--cream2:#ede7d9;--cream3:#e4dccb;--cream4:#d9d0bc;
-  --paper-line:rgba(160,145,110,0.18);
-  --f:'Patrick Hand',cursive;
-  --f2:'Kalam',cursive;
-  --warn:#c8a000;--danger:#b03020;--ok:#2a6e3a;
+  --ink:#e8eaf0;--ink2:#c4c8d4;--ink3:#8b90a0;--ink4:#555b6e;
+  --cream:#0f1117;--cream2:#181b24;--cream3:#1e2230;--cream4:#252a3a;
+  --paper-line:rgba(255,255,255,0.05);
+  --f:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  --f2:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  --warn:#f0b429;--danger:#e05252;--ok:#3cb97a;
   --sidebar-w:200px;
 }
 
@@ -44,7 +44,7 @@ body{
 
 .sidebar-overlay{
   display:none;position:fixed;inset:0;
-  background:rgba(28,26,20,.4);z-index:150;
+  background:rgba(0,0,0,.6);z-index:150;
   -webkit-tap-highlight-color:transparent;
 }
 
@@ -564,7 +564,7 @@ body.sidebar-mini .sidebar-footer::before{
   min-height:44px;
 }
 .form-group select{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%231c1a14' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23e8eaf0' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 10px center;
   padding-right:30px;
 }
@@ -573,7 +573,7 @@ body.sidebar-mini .sidebar-footer::before{
 /* ─── MODAL ──────────────────────────────────────────────── */
 .modal-overlay{
   display:none;position:fixed;inset:0;
-  background:rgba(28,26,20,.55);
+  background:rgba(0,0,0,.7);
   z-index:300;
   -webkit-align-items:center;align-items:center;
   -webkit-justify-content:center;justify-content:center;
@@ -598,8 +598,8 @@ body.sidebar-mini .sidebar-footer::before{
 
 /* ─── STICKY NOTE ────────────────────────────────────────── */
 .sticky{
-  background:#f7e97e;border:1.5px solid #c8b832;padding:8px 10px;
-  font-size:12px;font-weight:600;color:#5a4f10;
+  background:#2a2610;border:1.5px solid #f0b429;padding:8px 10px;
+  font-size:12px;font-weight:600;color:#f0d070;
   -webkit-transform:rotate(1.5deg);transform:rotate(1.5deg);
   box-shadow:2px 3px 6px rgba(0,0,0,0.12);line-height:1.4;
   margin:8px 10px 4px;font-family:var(--f2);
@@ -626,10 +626,10 @@ body.sidebar-mini .sidebar-footer::before{
   display:inline-block;padding:2px 7px;border-radius:20px;
   font-size:11px;font-weight:600;border:1.5px solid currentColor;white-space:nowrap;
 }
-.badge-tunai   {color:#2d7a2d;background:#e6f4e6}
-.badge-transfer{color:#1a5fa8;background:#e3eef9}
-.badge-cod     {color:#7a4f1a;background:#fdf0e0}
-.badge-kredit  {color:#7a1a4f;background:#f9e3ef}
+.badge-tunai   {color:#3cb97a;background:#0d2e1c}
+.badge-transfer{color:#5b9cf6;background:#0d1e3a}
+.badge-cod     {color:#f0b429;background:#2a1e06}
+.badge-kredit  {color:#e07ab0;background:#2a0d1e}
 .badge-lainnya {color:var(--ink2);background:var(--cream2)}
 
 @media (min-width:901px){
@@ -990,7 +990,7 @@ input[type="date"] {
 input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0.6;
   cursor: pointer;
-  filter: invert(0.3);
+  filter: invert(1);
 }
 input[type="month"] {
   -webkit-appearance: none;
@@ -1001,7 +1001,7 @@ input[type="month"] {
 input[type="month"]::-webkit-calendar-picker-indicator {
   opacity: 0.6;
   cursor: pointer;
-  filter: invert(0.3);
+  filter: invert(1);
 }
 
 /* Fix: th dengan onclick tidak terhalang canvas rough */

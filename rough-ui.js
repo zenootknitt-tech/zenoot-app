@@ -3,8 +3,8 @@
 //      guard duplikasi ketat, konten HTML selalu tampil di atas canvas.
 
 (function() {
-  const INK   = '#1c1a14';
-  const CREAM = '#f5f0e8';
+  const INK   = '#e8eaf0';
+  const CREAM = '#0f1117';
   const BASE  = { roughness:2.1, bowing:1.6, strokeWidth:1.7, stroke:INK };
 
   // ── Helper: hapus canvas lama, buat baru, INSERT SEBAGAI FIRST CHILD
