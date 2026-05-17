@@ -123,11 +123,11 @@ document.getElementById('page-dashboard').innerHTML = `
               <span style="font-size:10px">&#9662;</span>
             </button>
             <div id="dash-period-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:#1c1a14;color:#f0ece0;min-width:160px;box-shadow:3px 4px 0 rgba(0,0,0,0.25);border-radius:2px">
-              <div onclick="setDashPeriod(1,'Hari Ini')"   style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">Hari Ini</div>
-              <div onclick="setDashPeriod('kemarin','Kemarin')" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">Kemarin</div>
-              <div onclick="setDashPeriod(7,'7 Hari')"     style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">7 Hari</div>
-              <div onclick="setDashPeriod(14,'14 Hari')"   style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">14 Hari</div>
-              <div onclick="setDashPeriod(30,'30 Hari')"   style="padding:9px 14px;cursor:pointer;font-size:13px;" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background=''">30 Hari</div>
+              <div data-period="1" data-label="Hari Ini"   class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">Hari Ini</div>
+              <div data-period="kemarin" data-label="Kemarin" class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">Kemarin</div>
+              <div data-period="7" data-label="7 Hari"     class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">7 Hari</div>
+              <div data-period="14" data-label="14 Hari"   class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)">14 Hari</div>
+              <div data-period="30" data-label="30 Hari"   class="dash-period-item" style="padding:9px 14px;cursor:pointer;font-size:13px;">30 Hari</div>
             </div>
           </div>
         </div>
@@ -370,25 +370,37 @@ function dashTogglePeriodMenu() {
   var menu = document.getElementById('dash-period-menu');
   if (!menu) return;
   var isOpen = menu.style.display !== 'none';
-  menu.style.display = isOpen ? 'none' : 'block';
-  if (!isOpen) {
-    setTimeout(function() {
-      document.addEventListener('click', function closeDashMenu(e) {
-        var btn  = document.getElementById('dash-period-btn');
-        var menu = document.getElementById('dash-period-menu');
-        // Klik di dalam menu — biarkan onclick item (setDashPeriod) jalan duluan
-        if (menu && menu.contains(e.target)) {
-          document.removeEventListener('click', closeDashMenu);
-          return;
-        }
-        // Klik di luar menu & bukan tombol — tutup menu
-        if (menu && btn && !btn.contains(e.target)) {
-          menu.style.display = 'none';
-        }
-        document.removeEventListener('click', closeDashMenu);
-      });
-    }, 50);
+  if (isOpen) {
+    menu.style.display = 'none';
+    return;
   }
+  menu.style.display = 'block';
+
+  // Event delegation — satu listener di menu untuk semua item
+  menu.querySelectorAll('.dash-period-item').forEach(function(item) {
+    item.onmouseenter = function() { this.style.background = 'rgba(255,255,255,0.1)'; };
+    item.onmouseleave = function() { this.style.background = ''; };
+    item.onclick = function(e) {
+      e.stopPropagation();
+      var p = this.getAttribute('data-period');
+      var l = this.getAttribute('data-label');
+      setDashPeriod(isNaN(p) ? p : Number(p), l);
+    };
+  });
+
+  // Tutup menu saat klik di luar — pakai mousedown agar tidak conflict dengan onclick item
+  setTimeout(function() {
+    function outsideClose(e) {
+      var btn  = document.getElementById('dash-period-btn');
+      var menu = document.getElementById('dash-period-menu');
+      if (!menu) { document.removeEventListener('mousedown', outsideClose); return; }
+      if (!menu.contains(e.target) && btn && !btn.contains(e.target)) {
+        menu.style.display = 'none';
+        document.removeEventListener('mousedown', outsideClose);
+      }
+    }
+    document.addEventListener('mousedown', outsideClose);
+  }, 50);
 }
 
 function setDashPeriod(days, label) {
