@@ -437,14 +437,15 @@ function _renderChartHariIni(jpData, canvas, tooltip) {
     if (leg) leg.innerHTML = '';
     return;
   }
-  canvas.style.display = 'block';
-  if (emptyEl) emptyEl.style.display = 'none';
 
-  // FIX: retry jika canvas belum punya ukuran (belum visible)
+  // FIX: retry canvas DULU sebelum lanjut render (canvas bisa belum punya ukuran)
   if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
     setTimeout(() => _renderChartHariIni(jpData, canvas, tooltip), 80);
     return;
   }
+
+  canvas.style.display = 'block';
+  if (emptyEl) emptyEl.style.display = 'none';
 
   const dpr = window.devicePixelRatio || 1;
   const W   = canvas.offsetWidth;
@@ -523,17 +524,17 @@ function _renderChartPenjualan(jpData) {
     totals.push(dayTotal);
   }
 
+  // FIX: retry canvas DULU sebelum lanjut (canvas bisa belum punya ukuran saat pertama load)
+  if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
+    setTimeout(() => _renderChartPenjualan(jpData), 80);
+    return;
+  }
+
   const maxVal  = Math.max(...totals, 1);
   const hasData = totals.some(v => v > 0);
   const emptyEl = document.getElementById('dash-chart-empty');
   if (emptyEl) { emptyEl.style.display = hasData ? 'none' : 'flex'; }
   if (!hasData) return;
-
-  // FIX: retry jika canvas belum punya ukuran (belum visible)
-  if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
-    setTimeout(() => _renderChartPenjualan(jpData), 80);
-    return;
-  }
 
   const dpr = window.devicePixelRatio || 1;
   const W   = canvas.offsetWidth;
