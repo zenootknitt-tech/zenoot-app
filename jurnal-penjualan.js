@@ -253,6 +253,12 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
           <span id="jp-channel-badge" style="display:none;background:var(--accent);color:#fff;font-size:9px;padding:1px 4px;border-radius:8px;font-weight:700">●</span>
           <span style="font-size:10px">&#9662;</span>
         </button>
+
+        <!-- TOMBOL RESET FILTER — muncul otomatis kalau ada filter aktif -->
+        <button class="btn btn-sm" id="jp-reset-filter-btn" onclick="jpResetFilter()"
+          style="display:none;font-size:12px;border-color:var(--danger);color:var(--danger)">
+          <i class="ti ti-x"></i> Reset Filter
+        </button>
       </div>
 
       <!-- Kanan: tombol Produk Terjual -->
@@ -735,6 +741,12 @@ function jpUpdateBadge() {
   // Badge Channel
   var cBadge = document.getElementById('jp-channel-badge');
   if (cBadge) cBadge.style.display = channel ? 'inline' : 'none';
+  // Tombol Reset Filter — muncul otomatis kalau ada filter aktif
+  var resetBtn = document.getElementById('jp-reset-filter-btn');
+  if (resetBtn) {
+    var hasFilter = (mode !== 'hari-ini') || (channel !== '');
+    resetBtn.style.display = hasFilter ? 'inline-flex' : 'none';
+  }
   // Update label
   jpUpdatePeriodeLabel();
   jpUpdateChannelLabel();
@@ -1033,7 +1045,6 @@ async function exportJurnalPenjualan() {
       + '<input type="date" id="jp-sampai" style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box" onchange="loadJurnalPenjualan();jpUpdateBadge()">'
       + '</div>'
       + '</div>'
-      + '<button class="btn btn-sm" style="width:100%;margin-top:8px" onclick="jpResetPeriode()"><i class="ti ti-x"></i> Reset</button>'
       + '</div>';
     document.body.appendChild(pp);
   }
@@ -1050,7 +1061,6 @@ async function exportJurnalPenjualan() {
       + '<select id="jp-filter-channel" style="font-family:var(--f);font-size:13px;padding:5px 8px;border:1.5px solid var(--ink3);background:var(--cream);width:100%" onchange="filterJP();jpUpdateBadge();jpUpdateChannelLabel()">'
       + '<option value="">Semua Channel</option>'
       + '</select>'
-      + '<button class="btn btn-sm" style="width:100%;margin-top:8px" onclick="jpResetChannel()"><i class="ti ti-x"></i> Reset</button>'
       + '</div>';
     document.body.appendChild(cp);
   }
