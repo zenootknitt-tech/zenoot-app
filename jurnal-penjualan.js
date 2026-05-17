@@ -606,7 +606,7 @@ async function loadJurnalPenjualan() {
 
 
 // ─── FILTER WAKTU BERGAYA SHOPEE ─────────────────────────────
-var _jpWaktuMode = 'hari-ini'; // default
+var _jpWaktuMode = 'bulan'; // default: bulan ini
 
 function jpSetWaktu(mode) {
   _jpWaktuMode = mode;
@@ -640,14 +640,16 @@ function jpTogglePeriode() {
   var panel = document.getElementById('jp-periode-panel');
   var chPanel = document.getElementById('jp-channel-panel');
   if (!panel) return;
-  if (chPanel) chPanel.style.display = 'none';
+  if (chPanel) { chPanel.style.display = 'none'; document.removeEventListener('click', jpCloseChannelOutside); }
   var isOpen = panel.style.display !== 'none';
   if (!isOpen) _jpPositionPanel('jp-periode-btn', 'jp-periode-panel');
   panel.style.display = isOpen ? 'none' : 'block';
   if (!isOpen) {
     setTimeout(function() {
-      document.addEventListener('click', jpClosePeriodeOutside, { once: true });
+      document.addEventListener('click', jpClosePeriodeOutside);
     }, 50);
+  } else {
+    document.removeEventListener('click', jpClosePeriodeOutside);
   }
 }
 function jpClosePeriodeOutside(e) {
@@ -655,15 +657,16 @@ function jpClosePeriodeOutside(e) {
   var btn   = document.getElementById('jp-periode-btn');
   if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
     panel.style.display = 'none';
+    document.removeEventListener('click', jpClosePeriodeOutside);
   }
 }
 function jpResetPeriode() {
-  _jpWaktuMode = 'hari-ini';
+  _jpWaktuMode = 'bulan';
   var radios = document.querySelectorAll('input[name="jp-waktu"]');
-  radios.forEach(function(r) { r.checked = r.value === 'hari-ini'; });
+  radios.forEach(function(r) { r.checked = r.value === 'bulan'; });
   var bulanWrap  = document.getElementById('jp-bulan-wrap');
   var customWrap = document.getElementById('jp-custom-wrap');
-  if (bulanWrap)  bulanWrap.style.display  = 'none';
+  if (bulanWrap)  bulanWrap.style.display  = 'block';
   if (customWrap) customWrap.style.display = 'none';
   jpUpdateBadge();
   jpUpdatePeriodeLabel();
@@ -683,8 +686,10 @@ function jpToggleChannel() {
   panel.style.display = isOpen ? 'none' : 'block';
   if (!isOpen) {
     setTimeout(function() {
-      document.addEventListener('click', jpCloseChannelOutside, { once: true });
+      document.addEventListener('click', jpCloseChannelOutside);
     }, 50);
+  } else {
+    document.removeEventListener('click', jpCloseChannelOutside);
   }
 }
 function jpCloseChannelOutside(e) {
@@ -692,7 +697,13 @@ function jpCloseChannelOutside(e) {
   var btn   = document.getElementById('jp-channel-btn');
   if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
     panel.style.display = 'none';
+    document.removeEventListener('click', jpCloseChannelOutside);
   }
+}
+function jpCloseChannelPanel() {
+  var panel = document.getElementById('jp-channel-panel');
+  if (panel) panel.style.display = 'none';
+  document.removeEventListener('click', jpCloseChannelOutside);
 }
 function jpResetChannel() {
   var ch = document.getElementById('jp-filter-channel');
@@ -731,7 +742,7 @@ function jpUpdateBadge() {
   var channel = (document.getElementById('jp-filter-channel') || {}).value || '';
   // Badge Periode
   var pBadge = document.getElementById('jp-periode-badge');
-  if (pBadge) pBadge.style.display = mode !== 'hari-ini' ? 'inline' : 'none';
+  if (pBadge) pBadge.style.display = mode !== 'bulan' ? 'inline' : 'none';
   // Badge Channel
   var cBadge = document.getElementById('jp-channel-badge');
   if (cBadge) cBadge.style.display = channel ? 'inline' : 'none';
@@ -1017,12 +1028,12 @@ async function exportJurnalPenjualan() {
     pp.innerHTML = '<div style="padding:10px 12px">'
       + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:7px;letter-spacing:.5px">Pilih Periode</div>'
       + '<div id="jp-waktu-opts" style="display:flex;flex-direction:column;gap:3px">'
-      + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="hari-ini" checked onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Hari Ini (24 jam)</label>'
+      + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="hari-ini" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Hari Ini (24 jam)</label>'
       + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="kemarin" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Kemarin</label>'
       + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="7hari" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> 7 Hari Terakhir</label>'
       + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="30hari" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> 30 Hari Terakhir</label>'
-      + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="bulan" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Per Bulan</label>'
-      + '<div id="jp-bulan-wrap" style="display:none;padding-left:20px;margin-top:2px">'
+      + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="bulan" checked onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Per Bulan</label>'
+      + '<div id="jp-bulan-wrap" style="display:block;padding-left:20px;margin-top:2px">'
       + '<input type="month" id="jp-filter-bulan" style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box" oninput="loadJurnalPenjualan();jpUpdateBadge()">'
       + '</div>'
       + '<label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:3px 0"><input type="radio" name="jp-waktu" value="custom" onchange="jpSetWaktu(this.value)" style="cursor:pointer"> Custom</label>'
@@ -1033,7 +1044,6 @@ async function exportJurnalPenjualan() {
       + '<input type="date" id="jp-sampai" style="font-family:var(--f);font-size:12px;padding:3px 6px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;box-sizing:border-box" onchange="loadJurnalPenjualan();jpUpdateBadge()">'
       + '</div>'
       + '</div>'
-      + '<button class="btn btn-sm" style="width:100%;margin-top:8px" onclick="jpResetPeriode()"><i class="ti ti-x"></i> Reset</button>'
       + '</div>';
     document.body.appendChild(pp);
   }
@@ -1047,10 +1057,9 @@ async function exportJurnalPenjualan() {
       + 'box-shadow:3px 4px 0 rgba(0,0,0,0.13)';
     cp.innerHTML = '<div style="padding:10px 12px">'
       + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:7px;letter-spacing:.5px">Pilih Channel</div>'
-      + '<select id="jp-filter-channel" style="font-family:var(--f);font-size:13px;padding:5px 8px;border:1.5px solid var(--ink3);background:var(--cream);width:100%" onchange="filterJP();jpUpdateBadge();jpUpdateChannelLabel()">'
+      + '<select id="jp-filter-channel" size="8" style="font-family:var(--f);font-size:13px;padding:2px 4px;border:1.5px solid var(--ink3);background:var(--cream);width:100%;max-height:220px;overflow-y:auto;display:block" onchange="filterJP();jpUpdateBadge();jpUpdateChannelLabel();jpCloseChannelPanel()">'
       + '<option value="">Semua Channel</option>'
       + '</select>'
-      + '<button class="btn btn-sm" style="width:100%;margin-top:8px" onclick="jpResetChannel()"><i class="ti ti-x"></i> Reset</button>'
       + '</div>';
     document.body.appendChild(cp);
   }
@@ -1066,6 +1075,8 @@ async function exportJurnalPenjualan() {
 })();
 
 // ─── INIT ────────────────────────────────────────────────────
+// Default periode: bulan ini
+_jpWaktuMode = 'bulan';
 document.getElementById('jp-filter-bulan').value = new Date().toISOString().slice(0,7);
 Promise.all([
   loadChannelDropdownJP(),
