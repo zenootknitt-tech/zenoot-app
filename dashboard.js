@@ -119,49 +119,53 @@ document.getElementById('page-dashboard').innerHTML = `
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <div id="trench-active-chips" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center"></div>
 
-          <!-- Tombol Filter utama — nested dropdown seperti Stok Produk -->
-          <div style="position:relative" id="trench-filter-wrap">
-            <button class="btn btn-sm" id="trench-filter-btn" onclick="trenchToggleMain(event)"
-              style="display:inline-flex;align-items:center;gap:5px;font-size:12px;padding-right:22px;position:relative">
-              <i class="ti ti-adjustments-horizontal"></i>
-              <span id="trench-filter-lbl">Filter</span>
-              <i class="ti ti-chevron-down" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px"></i>
+          <!-- Tombol Periode -->
+          <div style="position:relative" id="trench-wrap-periode">
+            <button class="btn btn-sm" id="trench-btn-periode" onclick="trenchTogglePeriode(event)"
+              style="display:inline-flex;align-items:center;gap:5px;font-size:12px">
+              <i class="ti ti-clock"></i>
+              <span id="trench-lbl-periode">Periode</span>
+              <i class="ti ti-chevron-down" style="font-size:10px"></i>
             </button>
-
-            <!-- DROPDOWN UTAMA: Periode + Channel -->
-            <div id="trench-dd-main" style="display:none;position:absolute;top:calc(100% + 2px);left:0;z-index:1000;
-              background:var(--cream);border:2px solid var(--ink);min-width:160px;box-shadow:4px 4px 0 var(--ink4)" onclick="event.stopPropagation()">
-
-              <!-- Menu: Periode -->
-              <div id="trench-mi-periode" onclick="trenchOpenSub('periode',event)"
-                style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4)">
-                <span><i class="ti ti-clock" style="font-size:12px;margin-right:6px"></i>Periode
-                  <span id="trench-badge-periode" style="font-size:10px;color:var(--ink3)"></span>
-                </span>
-                <i class="ti ti-chevron-right" style="font-size:11px"></i>
+            <div id="trench-dd-periode" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:9999;
+              min-width:175px;background:var(--cream);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink4);padding:8px 10px"
+              onclick="event.stopPropagation()">
+              <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
+                <i class="ti ti-clock" style="font-size:11px"></i> Pilih Periode
               </div>
-
-              <!-- Menu: Channel -->
-              <div id="trench-mi-channel" onclick="trenchOpenSub('channel',event)"
-                style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4)">
-                <span><i class="ti ti-store" style="font-size:12px;margin-right:6px"></i>Channel
-                  <span id="trench-badge-channel" style="font-size:10px;color:var(--ink3)"></span>
-                </span>
-                <i class="ti ti-chevron-right" style="font-size:11px"></i>
+              <div style="display:flex;flex-direction:column;gap:2px" id="trench-waktu-chips">
+                <div class="trench-sub-item trench-chip-w" data-w="bulan"   onclick="trenchSelWaktu(this)">📅 Bulan Ini (default)</div>
+                <div class="trench-sub-item trench-chip-w" data-w="1"       onclick="trenchSelWaktu(this)">Hari Ini</div>
+                <div class="trench-sub-item trench-chip-w" data-w="kemarin" onclick="trenchSelWaktu(this)">Kemarin</div>
+                <div class="trench-sub-item trench-chip-w" data-w="7"       onclick="trenchSelWaktu(this)">7 Hari Terakhir</div>
+                <div class="trench-sub-item trench-chip-w" data-w="14"      onclick="trenchSelWaktu(this)">14 Hari Terakhir</div>
+                <div class="trench-sub-item trench-chip-w" data-w="30"      onclick="trenchSelWaktu(this)">30 Hari Terakhir</div>
               </div>
-
-              <!-- Action: Terapkan -->
-              <div style="padding:6px 10px;display:flex;gap:6px">
-                <button class="btn btn-sm" onclick="trenchReset()" style="flex:1;font-size:12px">
-                  <i class="ti ti-x"></i> Reset
-                </button>
-                <button class="btn btn-sm btn-primary" onclick="trenchApply()" style="flex:1;font-size:12px;font-weight:700">
-                  <i class="ti ti-check"></i> Terapkan
-                </button>
+              <div style="margin-top:8px;display:flex;gap:6px">
+                <button class="btn btn-sm" onclick="trenchResetPeriode()" style="flex:1;font-size:12px"><i class="ti ti-x"></i> Reset</button>
+                <button class="btn btn-sm btn-primary" onclick="trenchApply()" style="flex:1;font-size:12px;font-weight:700"><i class="ti ti-check"></i> Terapkan</button>
               </div>
             </div>
+          </div>
 
-          </div><!-- /trench-filter-wrap -->
+          <!-- Tombol Channel -->
+          <div style="position:relative" id="trench-wrap-channel">
+            <button class="btn btn-sm" id="trench-btn-channel" onclick="trenchToggleChannel(event)"
+              style="display:inline-flex;align-items:center;gap:5px;font-size:12px">
+              <i class="ti ti-store"></i>
+              <span id="trench-lbl-channel">Channel</span>
+              <i class="ti ti-chevron-down" style="font-size:10px"></i>
+            </button>
+            <div id="trench-dd-channel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:9999;
+              min-width:175px;background:var(--cream);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink4)"
+              onclick="event.stopPropagation()">
+              <div id="trench-channel-list" style="max-height:240px;overflow-y:auto"></div>
+              <div style="padding:6px 10px;display:flex;gap:6px;border-top:1px dashed var(--ink4)">
+                <button class="btn btn-sm" onclick="trenchResetChannel()" style="flex:1;font-size:12px"><i class="ti ti-x"></i> Reset</button>
+                <button class="btn btn-sm btn-primary" onclick="trenchApply()" style="flex:1;font-size:12px;font-weight:700"><i class="ti ti-check"></i> Terapkan</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <!-- id="trench-ch-wrap" dipertahankan kosong (tidak dipakai lagi tapi referensi JS lama aman) -->
@@ -412,197 +416,109 @@ function openTargetModal() {
   setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('modal-target')); }, 50);
 }
 
-// ─── TREN FILTER — nested dropdown (Periode → Channel → Toko) ────────
-// State
+// ─── TREN FILTER — 2 tombol terpisah: Periode & Channel ────────────
 var _trenchPeriod   = 'bulan';
 var _trenchChannels = [];
-var _trenchKatActive = null;
-var _trenchCloseTimer = null;
 
-// ── Inject submenu ke body saat pertama kali (supaya z-index tidak kena canvas) ──
-function _trenchEnsureSubmenus() {
-  if (document.getElementById('trench-dd-periode')) return;
-  var styleBase = 'display:none;position:fixed;font-family:var(--f);';
-  var styleBox  = 'background:var(--cream);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink4);';
-
-  var elP = document.createElement('div');
-  elP.id = 'trench-dd-periode';
-  elP.setAttribute('style', styleBase + styleBox + 'z-index:9999;min-width:180px;padding:8px 10px;');
-  elP.innerHTML =
-    '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px">' +
-    '<i class="ti ti-clock" style="font-size:11px"></i> Pilih Periode</div>' +
-    '<div style="display:flex;flex-direction:column;gap:3px" id="trench-waktu-chips">' +
-    '<div class="trench-sub-item trench-chip-w" data-w="bulan" onclick="trenchSelWaktu(this)">\u{1F4C5} Bulan Ini (default)</div>' +
-    '<div class="trench-sub-item trench-chip-w" data-w="1" onclick="trenchSelWaktu(this)">Hari Ini</div>' +
-    '<div class="trench-sub-item trench-chip-w" data-w="kemarin" onclick="trenchSelWaktu(this)">Kemarin</div>' +
-    '<div class="trench-sub-item trench-chip-w" data-w="7" onclick="trenchSelWaktu(this)">7 Hari Terakhir</div>' +
-    '<div class="trench-sub-item trench-chip-w" data-w="14" onclick="trenchSelWaktu(this)">14 Hari Terakhir</div>' +
-    '<div class="trench-sub-item trench-chip-w" data-w="30" onclick="trenchSelWaktu(this)">30 Hari Terakhir</div>' +
-    '</div>';
-  elP.addEventListener('mouseenter', function() { clearTimeout(_trenchCloseTimer); });
-  elP.addEventListener('mouseleave', function() { _trenchCloseTimer = setTimeout(_trenchCloseSubs, 250); });
-  elP.addEventListener('click', function(e) { e.stopPropagation(); });
-  document.body.appendChild(elP);
-
-  var elC = document.createElement('div');
-  elC.id = 'trench-dd-channel';
-  elC.setAttribute('style', styleBase + styleBox + 'z-index:9999;min-width:180px;');
-  elC.addEventListener('mouseenter', function() { clearTimeout(_trenchCloseTimer); });
-  elC.addEventListener('mouseleave', function() { _trenchCloseTimer = setTimeout(_trenchCloseSubs, 250); });
-  elC.addEventListener('click', function(e) { e.stopPropagation(); });
-  document.body.appendChild(elC);
-
-  var elT = document.createElement('div');
-  elT.id = 'trench-dd-toko';
-  elT.setAttribute('style', styleBase + styleBox + 'z-index:9999;min-width:180px;max-height:260px;overflow-y:auto;');
-  elT.addEventListener('mouseenter', function() { clearTimeout(_trenchCloseTimer); });
-  elT.addEventListener('mouseleave', function() { _trenchCloseTimer = setTimeout(_trenchCloseSubs, 250); });
-  elT.addEventListener('click', function(e) { e.stopPropagation(); });
-  document.body.appendChild(elT);
-}
-
-function _trenchCloseSubs() {
-  ['trench-dd-periode','trench-dd-channel','trench-dd-toko'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
-  ['trench-mi-periode','trench-mi-channel'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) { el.style.background = ''; el.style.color = ''; }
-  });
-}
-
-function trenchToggleMain(e) {
+// Periode dropdown
+function trenchTogglePeriode(e) {
   if (e) e.stopPropagation();
-  _trenchEnsureSubmenus();
-  var dd = document.getElementById('trench-dd-main');
+  var dd = document.getElementById('trench-dd-periode');
+  var ddC = document.getElementById('trench-dd-channel');
+  if (ddC) ddC.style.display = 'none';
   if (!dd) return;
-  var isOpen = dd.style.display === 'block';
-  trenchCloseAll();
-  if (!isOpen) dd.style.display = 'block';
+  var open = dd.style.display === 'block';
+  dd.style.display = open ? 'none' : 'block';
+  if (!open) trenchRefreshPeriodeChips();
 }
 
-function trenchCloseAll() {
-  clearTimeout(_trenchCloseTimer);
-  var dd = document.getElementById('trench-dd-main');
-  if (dd) dd.style.display = 'none';
-  _trenchCloseSubs();
-}
-
-function _trenchPosRight(sub, rect, topPx) {
-  sub.style.top  = topPx + 'px';
-  sub.style.left = '-9999px';
-  sub.style.display = 'block';
-  requestAnimationFrame(function() {
-    var rp = rect.right + 4;
-    if (rp + sub.offsetWidth > window.innerWidth - 4) rp = rect.left - sub.offsetWidth - 4;
-    sub.style.left = rp + 'px';
+function trenchRefreshPeriodeChips() {
+  var wrap = document.getElementById('trench-waktu-chips');
+  if (!wrap) return;
+  Array.from(wrap.children).forEach(function(c) {
+    var wVal = isNaN(c.dataset.w) ? c.dataset.w : Number(c.dataset.w);
+    var isAct = String(wVal) === String(_trenchPeriod);
+    c.style.background = isAct ? 'var(--ink)' : '';
+    c.style.color      = isAct ? 'var(--cream)' : '';
+    c.style.fontWeight = isAct ? '700' : '';
   });
 }
 
-function trenchOpenSub(type, e) {
+function trenchSelWaktu(el) {
+  var w = el.dataset.w;
+  _trenchPeriod = isNaN(w) ? w : Number(w);
+  trenchRefreshPeriodeChips();
+  var wm = {bulan:'Bulan Ini', 1:'Hari Ini', kemarin:'Kemarin', 7:'7 Hari', 14:'14 Hari', 30:'30 Hari'};
+  var lbl = document.getElementById('trench-lbl-periode');
+  if (lbl) lbl.textContent = _trenchPeriod === 'bulan' ? 'Periode' : (wm[_trenchPeriod] || 'Periode');
+  var btn = document.getElementById('trench-btn-periode');
+  if (btn) { btn.style.background = _trenchPeriod !== 'bulan' ? 'var(--ink)' : ''; btn.style.color = _trenchPeriod !== 'bulan' ? 'var(--cream)' : ''; }
+}
+
+function trenchResetPeriode() {
+  _trenchPeriod = 'bulan';
+  trenchRefreshPeriodeChips();
+  var lbl = document.getElementById('trench-lbl-periode');
+  if (lbl) lbl.textContent = 'Periode';
+  var btn = document.getElementById('trench-btn-periode');
+  if (btn) { btn.style.background = ''; btn.style.color = ''; }
+  document.getElementById('trench-dd-periode').style.display = 'none';
+}
+
+// Channel dropdown
+function trenchToggleChannel(e) {
   if (e) e.stopPropagation();
-  clearTimeout(_trenchCloseTimer);
-  _trenchEnsureSubmenus();
-
-  ['trench-mi-periode','trench-mi-channel'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) { el.style.background = ''; el.style.color = ''; }
-  });
-  var mi = document.getElementById('trench-mi-' + type);
-  if (mi) { mi.style.background = 'var(--ink)'; mi.style.color = 'var(--cream)'; }
-
-  ['trench-dd-periode','trench-dd-channel','trench-dd-toko'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
-
-  var sub = document.getElementById('trench-dd-' + type);
-  if (!sub) return;
-  var ddMain = document.getElementById('trench-dd-main');
-  var rect   = ddMain ? ddMain.getBoundingClientRect() : { left:0, right:160, top:40 };
-
-  if (type === 'periode') {
-    var wrap = sub.querySelector('#trench-waktu-chips');
-    if (wrap) {
-      Array.from(wrap.children).forEach(function(el) {
-        var wVal = isNaN(el.dataset.w) ? el.dataset.w : Number(el.dataset.w);
-        var isAct = String(wVal) === String(_trenchPeriod);
-        el.style.background = isAct ? 'var(--ink)' : '';
-        el.style.color      = isAct ? 'var(--cream)' : '';
-        el.style.fontWeight = isAct ? '700' : '';
-      });
-    }
-    _trenchPosRight(sub, rect, rect.top);
-
-  } else if (type === 'channel') {
-    var katCfg = {
-      toko_utama:{label:'Shopee',icon:'\uD83D\uDECD\uFE0F'},
-      reseller:{label:'Reseller',icon:'\uD83D\uDC65'},
-      tiktok:{label:'TikTok',icon:'\uD83C\uDFB5'},
-      lazada:{label:'Lazada',icon:'\uD83D\uDCE6'},
-      offline:{label:'Offline',icon:'\uD83C\uDFEA'}
-    };
-    var katOrder = ['toko_utama','reseller','tiktok','lazada','offline'];
-    var grouped = {};
-    Object.values(_dashChannelMap).forEach(function(ch) {
-      var k = ch.kategori || 'lainnya';
-      if (!grouped[k]) grouped[k] = [];
-      grouped[k].push(ch);
-    });
-    if (!Object.keys(grouped).length) {
-      sub.innerHTML = '<div style="padding:10px 14px;font-size:12px;color:var(--ink3);font-style:italic">Belum ada channel</div>';
-    } else {
-      var orderedKeys = katOrder.filter(function(k){ return grouped[k]; });
-      Object.keys(grouped).forEach(function(k){ if (!orderedKeys.includes(k)) orderedKeys.push(k); });
-      sub.innerHTML = orderedKeys.map(function(kat) {
-        var items = grouped[kat]; if (!items||!items.length) return '';
-        var cfg = katCfg[kat]||{label:kat,icon:'\uD83D\uDCC1'};
-        var hasActive = items.some(function(ch){ return _trenchChannels.includes(String(ch.id)); });
-        return '<div class="trench-kat-item" data-kat="'+kat+'" onclick="trenchOpenKat(this.dataset.kat,event)"'+
-          ' style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4);'+
-          (hasActive?'background:var(--cream2);font-weight:700;':'')+'">' +
-          '<span>'+cfg.icon+' '+cfg.label+(hasActive?' <span style="color:var(--ok);font-size:11px">✓</span>':'')+
-          '</span><i class="ti ti-chevron-right" style="font-size:11px"></i></div>';
-      }).join('');
-    }
-    _trenchPosRight(sub, rect, rect.top);
-  }
+  var dd = document.getElementById('trench-dd-channel');
+  var ddP = document.getElementById('trench-dd-periode');
+  if (ddP) ddP.style.display = 'none';
+  if (!dd) return;
+  var open = dd.style.display === 'block';
+  dd.style.display = open ? 'none' : 'block';
+  if (!open) trenchRenderChannelList();
 }
 
-function trenchOpenKat(kat, e) {
-  if (e) e.stopPropagation();
-  clearTimeout(_trenchCloseTimer);
-  _trenchKatActive = kat;
-  var ddCh = document.getElementById('trench-dd-channel');
-  if (ddCh) {
-    Array.from(ddCh.querySelectorAll('.trench-kat-item')).forEach(function(el) {
-      var isThis = el.dataset.kat === kat;
-      el.style.background = isThis ? 'var(--ink)' : (el.style.background.includes('cream2') ? 'var(--cream2)' : '');
-      el.style.color = isThis ? 'var(--cream)' : '';
-    });
+function trenchRenderChannelList() {
+  var wrap = document.getElementById('trench-channel-list');
+  if (!wrap) return;
+  var katCfg = {
+    toko_utama:{label:'Shopee',icon:'🛍️'},
+    reseller:{label:'Reseller',icon:'👥'},
+    tiktok:{label:'TikTok',icon:'🎵'},
+    lazada:{label:'Lazada',icon:'📦'},
+    offline:{label:'Offline',icon:'🏪'}
+  };
+  var katOrder = ['toko_utama','reseller','tiktok','lazada','offline'];
+  var grouped = {};
+  Object.values(_dashChannelMap).forEach(function(ch) {
+    var k = ch.kategori || 'lainnya';
+    if (!grouped[k]) grouped[k] = [];
+    grouped[k].push(ch);
+  });
+  if (!Object.keys(grouped).length) {
+    wrap.innerHTML = '<div style="padding:10px 14px;font-size:12px;color:var(--ink3);font-style:italic">Belum ada channel</div>';
+    return;
   }
-  var sub = document.getElementById('trench-dd-toko');
-  if (!sub) return;
-  var channels = Object.values(_dashChannelMap).filter(function(ch){ return ch.kategori === kat; });
-  if (!channels.length) {
-    sub.innerHTML = '<div style="padding:10px 14px;font-size:12px;color:var(--ink3);font-style:italic">Tidak ada toko</div>';
-  } else {
-    sub.innerHTML = channels.map(function(ch) {
+  var orderedKeys = katOrder.filter(function(k){ return grouped[k]; });
+  Object.keys(grouped).forEach(function(k){ if (!orderedKeys.includes(k)) orderedKeys.push(k); });
+  var html = '';
+  orderedKeys.forEach(function(kat) {
+    var items = grouped[kat]; if (!items||!items.length) return;
+    var cfg = katCfg[kat]||{label:kat,icon:'📁'};
+    html += '<div style="padding:5px 12px 2px;font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.3px">' + cfg.icon + ' ' + cfg.label + '</div>';
+    items.forEach(function(ch) {
       var isActive = _trenchChannels.includes(String(ch.id));
-      return '<div data-chid="'+ch.id+'" onclick="trenchToggleToko(this,event)"'+
-        ' style="padding:8px 14px;cursor:pointer;font-size:13px;border-bottom:1px dashed var(--ink4);'+
+      html += '<div data-chid="'+ch.id+'" onclick="trenchToggleCh(this)"'+
+        ' style="padding:6px 14px;cursor:pointer;font-size:13px;border-bottom:1px dashed var(--ink4);'+
         'background:'+(isActive?'var(--ink)':'transparent')+';'+
         'color:'+(isActive?'var(--cream)':'inherit')+';'+
-        'font-weight:'+(isActive?'700':'normal')+'">'+(isActive?'\u2713 ':'')+ch.nama+'</div>';
-    }).join('');
-  }
-  var rect2 = ddCh ? ddCh.getBoundingClientRect() : {left:0,right:180,top:40};
-  _trenchPosRight(sub, rect2, rect2.top);
+        'font-weight:'+(isActive?'700':'normal')+'">'+
+        (isActive?'✓ ':'')+ch.nama+'</div>';
+    });
+  });
+  wrap.innerHTML = html;
 }
 
-function trenchToggleToko(el, e) {
-  if (e) e.stopPropagation();
+function trenchToggleCh(el) {
   var id = String(el.dataset.chid);
   var idx = _trenchChannels.indexOf(id);
   if (idx > -1) {
@@ -614,50 +530,38 @@ function trenchToggleToko(el, e) {
     el.style.background = 'var(--ink)'; el.style.color = 'var(--cream)'; el.style.fontWeight = '700';
     el.textContent = '✓ ' + el.textContent;
   }
-  if (_trenchKatActive) {
-    var ddCh = document.getElementById('trench-dd-channel');
-    if (ddCh) {
-      var katItem = ddCh.querySelector('[data-kat="'+_trenchKatActive+'"]');
-      if (katItem) {
-        var g2 = Object.values(_dashChannelMap).filter(function(ch){ return ch.kategori === _trenchKatActive; });
-        var hasAny = g2.some(function(ch){ return _trenchChannels.includes(String(ch.id)); });
-        katItem.innerHTML = katItem.innerHTML.replace(' <span style="color:var(--ok);font-size:11px">✓</span>','');
-        if (hasAny) katItem.innerHTML += ' <span style="color:var(--ok);font-size:11px">✓</span>';
-      }
-    }
-  }
+  var btn = document.getElementById('trench-btn-channel');
+  if (btn) { btn.style.background = _trenchChannels.length ? 'var(--ink)' : ''; btn.style.color = _trenchChannels.length ? 'var(--cream)' : ''; }
+  var lbl = document.getElementById('trench-lbl-channel');
+  if (lbl) lbl.textContent = _trenchChannels.length ? 'Channel ('+_trenchChannels.length+')' : 'Channel';
 }
 
-function trenchSelWaktu(el) {
-  var w = el.dataset.w;
-  _trenchPeriod = isNaN(w) ? w : Number(w);
-  var wrap = document.getElementById('trench-waktu-chips');
-  if (wrap) {
-    Array.from(wrap.children).forEach(function(c) {
-      var cwVal = isNaN(c.dataset.w) ? c.dataset.w : Number(c.dataset.w);
-      var isAct = String(cwVal) === String(_trenchPeriod);
-      c.style.background = isAct ? 'var(--ink)' : '';
-      c.style.color      = isAct ? 'var(--cream)' : '';
-      c.style.fontWeight = isAct ? '700' : '';
-    });
-  }
-  var wm = {bulan:'Bulan Ini',1:'Hari Ini',kemarin:'Kemarin',7:'7 Hari',14:'14 Hari',30:'30 Hari'};
-  var bdg = document.getElementById('trench-badge-periode');
-  if (bdg) bdg.textContent = _trenchPeriod === 'bulan' ? '' : '· ' + (wm[_trenchPeriod] || _trenchPeriod);
+function trenchResetChannel() {
+  _trenchChannels = [];
+  document.getElementById('trench-dd-channel').style.display = 'none';
+  var btn = document.getElementById('trench-btn-channel');
+  if (btn) { btn.style.background = ''; btn.style.color = ''; }
+  var lbl = document.getElementById('trench-lbl-channel');
+  if (lbl) lbl.textContent = 'Channel';
+}
+
+function trenchCloseAll() {
+  var ddP = document.getElementById('trench-dd-periode');
+  var ddC = document.getElementById('trench-dd-channel');
+  if (ddP) ddP.style.display = 'none';
+  if (ddC) ddC.style.display = 'none';
 }
 
 // Tutup saat klik di luar
 document.addEventListener('click', function(e) {
-  var wrap = document.getElementById('trench-filter-wrap');
-  if (!wrap) return;
-  var fixedSubs = ['trench-dd-periode','trench-dd-channel','trench-dd-toko'];
-  var insideSub = fixedSubs.some(function(id) {
-    var el = document.getElementById(id); return el && el.contains(e.target);
-  });
-  if (!wrap.contains(e.target) && !insideSub) trenchCloseAll();
+  var wP = document.getElementById('trench-wrap-periode');
+  var wC = document.getElementById('trench-wrap-channel');
+  if (wP && !wP.contains(e.target)) { var d=document.getElementById('trench-dd-periode'); if(d) d.style.display='none'; }
+  if (wC && !wC.contains(e.target)) { var d=document.getElementById('trench-dd-channel'); if(d) d.style.display='none'; }
 });
 
 function trenchBuildChannelList() { /* deprecated */ }
+function trenchReset() { trenchResetPeriode(); trenchResetChannel(); }
 
 async function trenchApply() {
   trenchCloseAll();
