@@ -762,7 +762,7 @@ document.addEventListener('click', function(e) {
   });
   if (inSub) return; // jangan tutup kalau klik di submenu
   // Cek apakah klik di dalam main menu items (mi-boss, mi-katalog, mi-status)
-  var inMenuItem = ['mi-boss','mi-katalog','mi-status'].some(function(id) {
+  var inMenuItem = ['mi-boss','mi-katalog','mi-status','mi-kategori-produk'].some(function(id) {
     var m = document.getElementById(id);
     return m && m.contains(e.target);
   });
