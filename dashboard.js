@@ -549,7 +549,7 @@ function trenchOpenSub(type, e) {
         var cfg = katCfg[kat] || { label: kat, icon: '📁' };
         // Cek apakah ada channel dari kategori ini yang aktif
         var hasActive = items.some(function(ch){ return _trenchChannels.includes(String(ch.id)); });
-        return '<div class="trench-kat-item" data-kat="' + kat + '" onclick="trenchOpenKat('' + kat + '',event)"' +
+        return '<div class="trench-kat-item" data-kat="' + kat + '" onclick="trenchOpenKat(this.dataset.kat,event)"' +
           ' style="padding:8px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--ink4);' +
           (hasActive ? 'background:var(--cream2);font-weight:700;' : '') + '">' +
           '<span>' + cfg.icon + ' ' + cfg.label + (hasActive ? ' <span style="color:var(--ok);font-size:11px">✓</span>' : '') + '</span>' +
