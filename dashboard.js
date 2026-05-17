@@ -752,6 +752,8 @@ function _renderChartHariIni(jpData, canvas, tooltip) {
   if (emptyEl) emptyEl.style.display = 'none';
 
   if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
+    // Guard: jangan retry kalau page sedang hidden (display:none) → cegah infinite loop & CPU panas
+    if (canvas.offsetParent === null) return;
     setTimeout(() => _renderChartHariIni(jpData, canvas, tooltip), 80);
     return;
   }
@@ -844,6 +846,7 @@ function _renderChartKemarin(jpData, canvas, tooltip) {
   if (emptyEl) emptyEl.style.display = 'none';
 
   if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
+    if (canvas.offsetParent === null) return;
     setTimeout(() => _renderChartKemarin(jpData, canvas, tooltip), 80);
     return;
   }
@@ -957,6 +960,7 @@ function _renderChartPenjualan(jpData) {
   if (emptyEl) emptyEl.style.display = 'none';
 
   if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
+    if (canvas.offsetParent === null) return;
     setTimeout(() => _renderChartPenjualan(jpData), 80);
     return;
   }

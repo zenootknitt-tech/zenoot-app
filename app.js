@@ -13,7 +13,7 @@ function toggleMinimize() {
 // Di MOBILE: tidak pernah pakai sidebar-mini (sidebar jadi full overlay)
 // Di DESKTOP: baca localStorage, default full/terbuka
 try {
-  var isMobile = window.innerWidth <= 768;
+  var isMobile = window.innerWidth <= 900;
   if (!isMobile) {
     var savedMini = localStorage.getItem('zenoot_mini');
     if (savedMini === '1') {
@@ -22,10 +22,26 @@ try {
   }
 } catch(e) {}
 
+// FIX: Paksa tutup sidebar saat pertama load di touch device / layar kecil
+// Mencegah sidebar muncul otomatis saat buka app di HP
+try {
+  var _isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  var _isNarrow = window.innerWidth <= 900;
+  if (_isTouchDevice || _isNarrow) {
+    // Jalankan setelah DOM siap agar element sidebar sudah ada
+    document.addEventListener('DOMContentLoaded', function() {
+      var sb = document.getElementById('sidebar');
+      var ov = document.getElementById('sidebar-overlay');
+      if (sb) sb.classList.remove('open');
+      if (ov) ov.classList.remove('open');
+    });
+  }
+} catch(e) {}
+
 // Juga handle resize: kalau user rotate HP jadi landscape/desktop, re-check
 window.addEventListener('resize', function() {
   try {
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 900) {
       // Mobile: paksa hapus sidebar-mini
       document.body.classList.remove('sidebar-mini');
     } else {

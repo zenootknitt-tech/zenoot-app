@@ -632,10 +632,10 @@ body.sidebar-mini .sidebar-footer::before{
 .badge-kredit  {color:#7a1a4f;background:#f9e3ef}
 .badge-lainnya {color:var(--ink2);background:var(--cream2)}
 
-@media (min-width:769px){
+@media (min-width:901px){
   .sidebar-minimize-btn{display:-webkit-flex;display:flex}
 }
-@media (max-width:768px){
+@media (max-width:900px){
   .hamburger{display:-webkit-flex;display:flex}
   .spiral{display:none}
   .sidebar{
@@ -682,7 +682,7 @@ body.sidebar-mini .sidebar-footer::before{
 /* ─── LANDSCAPE MOBILE ───────────────────────────────────── */
 /* Fix: max-width:768px tidak cukup — iPhone/Android landscape bisa > 768px */
 /* Pakai hover:none + pointer:coarse untuk deteksi touch device yang reliable */
-@media (max-width:768px) and (orientation:landscape){
+@media (max-width:900px) and (orientation:landscape){
   .hamburger{bottom:14px;right:14px;width:46px;height:46px}
   .content{padding-bottom:70px}
 }
@@ -713,7 +713,7 @@ body.sidebar-mini .sidebar-footer::before{
 /* ─── JURNAL PENJUALAN MODAL — layout override ───────────── */
 /* Baris 1 (Tgl+Waktu+Channel), Baris 2 (SKU Var+SKU Induk), */
 /* Baris 3 (Total+Harga+QTY): tetap row di semua ukuran       */
-@media (max-width:768px){
+@media (max-width:900px){
   .jp-row-1,.jp-row-2,.jp-row-3{
     -webkit-flex-direction:row !important;
     flex-direction:row !important;
@@ -749,7 +749,7 @@ body.sidebar-mini .sidebar-footer::before{
 /* Masalah: keyboard virtual Android menyusutkan viewport sehingga
    modal (position:fixed + align-items:center) terpotong di bawah.
    Fix: di mobile, modal overlay rata ke atas + bisa di-scroll.      */
-@media (max-width:768px){
+@media (max-width:900px){
   #modal-jp{
     -webkit-align-items:flex-start;
     align-items:flex-start;
