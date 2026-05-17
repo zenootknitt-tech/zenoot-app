@@ -47,12 +47,7 @@ document.getElementById('page-stok').innerHTML = `
           <i class="ti ti-chevron-right" style="font-size:11px"></i>
         </div>
 
-        <!-- Reset -->
-        <div style="padding:6px 10px">
-          <button class="btn btn-sm" onclick="stokResetAllFilter()" style="width:100%;font-size:12px">
-            <i class="ti ti-x"></i> Reset Filter
-          </button>
-        </div>
+        <!-- Reset dipindah ke luar dropdown -->
       </div>
 
       <!-- Submenu — di luar dd-filter-all, sejajar dengannya -->
@@ -69,6 +64,12 @@ document.getElementById('page-stok').innerHTML = `
         background:var(--cream);border:2px solid var(--ink);min-width:180px;
         box-shadow:4px 4px 0 var(--ink4)"></div>
     </div>
+
+    <!-- RESET FILTER — sejajar tombol Filter -->
+    <button class="btn btn-sm" id="btn-stok-reset" onclick="stokResetAllFilter()"
+      style="display:none;font-size:12px;border-color:var(--danger);color:var(--danger)">
+      <i class="ti ti-x"></i> Reset Filter
+    </button>
 
     <!-- KANAN: Paste Massal + Tambah -->
     <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
@@ -656,6 +657,9 @@ function _stokUpdateFilterLabel() {
     btn.style.background = parts.length ? 'var(--ink)' : '';
     btn.style.color      = parts.length ? 'var(--cream)' : '';
   }
+  // Tampilkan/sembunyikan tombol Reset luar
+  var resetBtn = document.getElementById('btn-stok-reset');
+  if (resetBtn) resetBtn.style.display = parts.length ? 'inline-flex' : 'none';
 }
 
 function stokSetFilter(type, val) {

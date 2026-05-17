@@ -503,7 +503,8 @@ function trenchToggleCh(el) {
 // Terapkan filter → fetch ulang jika perlu, lalu re-render chart lokal
 async function trenchApply() {
   document.getElementById('trench-panel').style.display = 'none';
-  _dashPeriod   = _trenchPeriod;
+  // Sinkronkan _dashPeriod agar _renderChartPenjualan tahu mode yang aktif
+  _dashPeriod = _trenchPeriod;
 
   // Kalau periode bukan bulan-ini, fetch ke _trenchJPData (TIDAK sentuh _dashJPData)
   if (_trenchPeriod !== 'bulan') {
@@ -798,9 +799,21 @@ function _renderChartPenjualan(jpData) {
     return;
   }
 
+  // Hitung jumlah hari yang akan ditampilkan
+  let periodDays;
+  if (_dashPeriod === 'bulan') {
+    // Bulan ini: dari tanggal 1 sampai hari ini
+    const today0 = new Date();
+    periodDays = today0.getDate(); // hari ke-N bulan ini
+  } else if (typeof _dashPeriod === 'number') {
+    periodDays = _dashPeriod;
+  } else {
+    periodDays = 30; // fallback aman
+  }
+
   const today = new Date();
   const labels = [], totals = [], dates = [];
-  for (let i = _dashPeriod - 1; i >= 0; i--) {
+  for (let i = periodDays - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     const key = _localDateStr(d); // FIX: pakai lokal WIB bukan UTC
@@ -821,8 +834,18 @@ function _renderChartPenjualan(jpData) {
   const maxVal  = Math.max(...totals, 1);
   const hasData = totals.some(v => v > 0);
   const emptyEl = document.getElementById('dash-chart-empty');
-  if (emptyEl) { emptyEl.style.display = hasData ? 'none' : 'flex'; }
-  if (!hasData) return;
+  if (emptyEl) {
+    if (!hasData) {
+      const wm = { 1:'Hari Ini', kemarin:'Kemarin', 7:'7 Hari', 14:'14 Hari', 30:'30 Hari', bulan:'Bulan Ini' };
+      const lbl = wm[_dashPeriod] || (_dashPeriod + ' Hari');
+      emptyEl.textContent = 'Belum ada data penjualan (' + lbl + ')';
+      emptyEl.style.display = 'flex';
+    } else {
+      emptyEl.style.display = 'none';
+    }
+  }
+  if (!hasData) { canvas.style.display = 'none'; return; }
+  canvas.style.display = 'block';
 
   const dpr = window.devicePixelRatio || 1;
   const W   = canvas.offsetWidth;
