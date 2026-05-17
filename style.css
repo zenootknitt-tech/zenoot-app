@@ -1,10 +1,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
-  --ink:#e8eaf2;--ink2:#a0a8c0;--ink3:#5a6080;--ink4:#1e2235;
-  --cream:#080a0f;--cream2:#111318;--cream3:#181b24;--cream4:#1e2230;
-  --paper-line:rgba(255,255,255,0.02);
-  --card-shadow:0 4px 6px rgba(0,0,0,0.4),0 8px 24px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04);
+  --ink:#f0f0f0;--ink2:#a0a0a0;--ink3:#505060;--ink4:#1a1a1a;
+  --cream:#050505;--cream2:#0d0d0d;--cream3:#141414;--cream4:#1c1c1c;
+  --paper-line:rgba(255,255,255,0.01);
+  --card-shadow:0 2px 4px rgba(0,0,0,0.6),0 8px 28px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.025);
   --f:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
   --f2:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
   --warn:#e6a817;--danger:#e05252;--ok:#2ecc7a;
@@ -68,7 +68,7 @@ body{
 /* ─── SIDEBAR ────────────────────────────────────────────── */
 .sidebar{
   width:var(--sidebar-w);min-width:var(--sidebar-w);
-  background:#080a0f;
+  background:#060606;
   border-right:1px solid rgba(255,255,255,0.05);
   display:-webkit-flex;display:flex;
   -webkit-flex-direction:column;flex-direction:column;
@@ -96,7 +96,7 @@ body{
   -webkit-flex-direction:row;flex-direction:row;
   -webkit-align-items:center;align-items:center;
   gap:8px;
-  background:#080a0f;
+  background:#060606;
   z-index:10;
 }
 .logo-img{
@@ -129,7 +129,7 @@ body{
   display:none;
   position:absolute;top:10px;right:-14px;
   width:26px;height:26px;
-  background:#080a0f;border:1px solid rgba(255,255,255,0.06);
+  background:#060606;border:1px solid rgba(255,255,255,0.06);
   cursor:pointer;z-index:300;
   -webkit-align-items:center;align-items:center;
   -webkit-justify-content:center;justify-content:center;
@@ -185,7 +185,7 @@ body.sidebar-mini .sidebar-minimize-btn i{
   border-top:1px solid rgba(255,255,255,0.04);
   text-align:center;
   -webkit-flex-shrink:0;flex-shrink:0;
-  background:#080a0f;
+  background:#060606;
   z-index:10;
 }
 .footer-by{

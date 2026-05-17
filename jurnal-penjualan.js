@@ -358,8 +358,39 @@ async function loadChannelDropdownJP() {
     });
 
     document.getElementById('jp-channel').innerHTML        = fHtml;
+    // Custom div dropdown channel (bukan select) untuk hover effect
     var fcEl = document.getElementById('jp-filter-channel');
-    if (fcEl) fcEl.innerHTML = filtHtml;
+    if (fcEl) fcEl.value = ''; // reset hidden input
+    var listEl = document.getElementById('jp-channel-list');
+    if (listEl) {
+      var listHtml = '';
+      // "Semua Channel" item
+      listHtml += _jpChItem('', 'Semua Channel', null, '');
+      // Per group
+      Object.entries(grouped).forEach(function([kat, items]) {
+        var cfg = katConfig[kat] || { label: kat, icon: 'default' };
+        listHtml += '<div style="font-size:10px;font-weight:700;color:var(--ink3);padding:6px 10px 2px;letter-spacing:.5px">── ' + cfg.label + ' ──</div>';
+        items.forEach(function(ch) {
+          listHtml += _jpChItem(ch.id, ch.nama, null, '');
+        });
+      });
+      listEl.innerHTML = listHtml;
+      // Attach click events
+      listEl.querySelectorAll('[data-ch-id]').forEach(function(el) {
+        el.addEventListener('click', function() {
+          var val = el.getAttribute('data-ch-id');
+          var fcEl2 = document.getElementById('jp-filter-channel');
+          if (fcEl2) fcEl2.value = val;
+          // Update active state semua item
+          listEl.querySelectorAll('[data-ch-id]').forEach(function(e2) {
+            var isActive = e2.getAttribute('data-ch-id') === val;
+            e2.style.background = isActive ? 'var(--ink)' : '';
+            e2.style.color      = isActive ? 'var(--cream)' : '';
+          });
+          filterJP(); jpUpdateBadge(); jpUpdateChannelLabel(); jpCloseChannelPanel();
+        });
+      });
+    }
 
   } catch(e) {
     console.warn('channel dropdown error:', e.message);
@@ -735,11 +766,13 @@ function jpUpdatePeriodeLabel() {
   if (el) el.textContent = map[_jpWaktuMode] || 'Hari Ini';
 }
 function jpUpdateChannelLabel() {
-  var sel = document.getElementById('jp-filter-channel');
+  var inp = document.getElementById('jp-filter-channel');
   var el  = document.getElementById('jp-channel-label');
-  if (!sel || !el) return;
-  var opt = sel.options[sel.selectedIndex];
-  el.textContent = (opt && opt.value) ? opt.textContent : 'Semua Channel';
+  if (!inp || !el) return;
+  var val = inp.value;
+  if (!val) { el.textContent = 'Semua Channel'; return; }
+  var ch = _jpChannelMap[val];
+  el.textContent = ch ? ch.nama : 'Semua Channel';
 }
 
 function jpToggleFilter() {} // legacy stub — sudah diganti 2 panel
@@ -824,6 +857,18 @@ async function jpLoadTargetHarian() {
     }
     wrap.style.display = 'block';
   } catch(e) { /* silent fail */ }
+}
+
+// Helper: buat item channel custom dropdown
+function _jpChItem(id, label, _unused, _unused2) {
+  var curVal = (document.getElementById('jp-filter-channel') || {}).value || '';
+  var active = String(id) === String(curVal) || (id === '' && curVal === '');
+  return '<div data-ch-id="' + id + '" style="padding:8px 12px;cursor:pointer;font-size:13px;font-weight:' + (active?'700':'500') + ';border-radius:6px;margin:1px 4px;'
+    + 'background:' + (active ? 'var(--ink)' : 'transparent') + ';'
+    + 'color:' + (active ? 'var(--cream)' : 'var(--ink)') + ';transition:background .1s,color .1s"'
+    + ' onmouseover="if(this.getAttribute(\'data-active\')!==\'1\'){this.style.background=\'var(--cream3)\';this.style.color=\'var(--ink)\'}"'
+    + ' onmouseout="if(this.getAttribute(\'data-active\')!==\'1\'){this.style.background=\'transparent\'}">'
+    + label + '</div>';
 }
 
 function filterJP() {
@@ -1063,13 +1108,12 @@ async function exportJurnalPenjualan() {
     var cp = document.createElement('div');
     cp.id = 'jp-channel-panel';
     cp.style.cssText = 'display:none;position:fixed;top:0;left:0;z-index:99999;'
-      + 'background:var(--cream);border:2px solid var(--ink);min-width:200px;'
-      + 'box-shadow:3px 4px 0 rgba(0,0,0,0.13)';
-    cp.innerHTML = '<div style="padding:10px 12px">'
-      + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:7px;letter-spacing:.5px">Pilih Channel</div>'
-      + '<select id="jp-filter-channel" size="8" style="font-family:var(--f);font-size:13px;padding:2px 4px;border:1.5px solid var(--ink3);background:var(--cream3);color:var(--ink);width:100%;max-height:220px;overflow-y:auto;display:block;border-radius:6px" onchange="filterJP();jpUpdateBadge();jpUpdateChannelLabel();jpCloseChannelPanel()">'
-      + '<option value="">Semua Channel</option>'
-      + '</select>'
+      + 'background:var(--cream2);border:none;min-width:200px;border-radius:10px;'
+      + 'box-shadow:0 8px 32px rgba(0,0,0,0.6),0 2px 8px rgba(0,0,0,0.4)';
+    cp.innerHTML = '<div style="padding:8px 6px">'
+      + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;letter-spacing:.5px;padding:0 8px">Pilih Channel</div>'
+      + '<div id="jp-channel-list" style="max-height:260px;overflow-y:auto"></div>'
+      + '<input type="hidden" id="jp-filter-channel" value="">'
       + '</div>';
     document.body.appendChild(cp);
   }

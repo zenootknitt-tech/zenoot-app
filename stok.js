@@ -550,7 +550,7 @@ function stokOpenSub(type, e) {
   if (!el) return;
 
   // Tutup semua submenu lain, reset highlight
-  ['boss','katalog','status'].forEach(function(t) {
+  ['boss','katalog','status','kategori_produk'].forEach(function(t) {
     if (t !== type) {
       var s = document.getElementById('dd-filter-' + t);
       if (s) s.style.display = 'none';
@@ -611,7 +611,8 @@ function stokOpenSub(type, e) {
       ' style="padding:8px 14px;cursor:pointer;font-size:13px;' +
       'background:' + (active ? 'var(--ink)' : 'transparent') + ';' +
       'color:' + (active ? 'var(--cream)' : 'inherit') + ';' +
-      'border-bottom:1px dashed var(--ink4)">' + o.label + '</div>';
+      'border-bottom:1px solid rgba(255,255,255,0.04);border-radius:4px;margin:1px 4px;transition:background .12s"' +
+      ' onmouseover="this.style.background=\'var(--cream3)\'" onmouseout="this.style.background=\'' + (active ? 'var(--ink)' : 'transparent') + '\'">' + o.label + '</div>';
   }).join('');
   sub.style.display = 'block';
 
