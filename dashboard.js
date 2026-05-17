@@ -376,7 +376,13 @@ function dashTogglePeriodMenu() {
       document.addEventListener('click', function closeDashMenu(e) {
         var btn  = document.getElementById('dash-period-btn');
         var menu = document.getElementById('dash-period-menu');
-        if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+        // Klik di dalam menu — biarkan onclick item (setDashPeriod) jalan duluan
+        if (menu && menu.contains(e.target)) {
+          document.removeEventListener('click', closeDashMenu);
+          return;
+        }
+        // Klik di luar menu & bukan tombol — tutup menu
+        if (menu && btn && !btn.contains(e.target)) {
           menu.style.display = 'none';
         }
         document.removeEventListener('click', closeDashMenu);
