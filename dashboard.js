@@ -120,9 +120,9 @@ document.getElementById('page-dashboard').innerHTML = `
           <div id="trench-active-chips" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center"></div>
 
           <!-- Tombol Periode -->
-          <div style="position:relative" id="trench-wrap-periode">
+          <div style="position:relative;z-index:300" id="trench-wrap-periode">
             <button class="btn btn-sm" id="trench-btn-periode" onclick="trenchTogglePeriode(event)"
-              style="display:inline-flex;align-items:center;gap:5px;font-size:12px;background:var(--ink);color:var(--cream);border:2px solid var(--ink)">
+              style="display:inline-flex;align-items:center;gap:5px;font-size:12px;background:var(--ink);color:var(--cream);border:2px solid var(--ink);min-height:32px">
               <i class="ti ti-clock"></i>
               <span id="trench-lbl-periode">30 Hari</span>
               <i class="ti ti-chevron-down" style="font-size:10px"></i>
@@ -149,17 +149,17 @@ document.getElementById('page-dashboard').innerHTML = `
           </div>
 
           <!-- Tombol Channel -->
-          <div style="position:relative" id="trench-wrap-channel">
+          <div style="position:relative;z-index:300" id="trench-wrap-channel">
             <button class="btn btn-sm" id="trench-btn-channel" onclick="trenchToggleChannel(event)"
-              style="display:inline-flex;align-items:center;gap:5px;font-size:12px;background:var(--cream2);color:var(--ink);border:2px solid var(--ink)">
+              style="display:inline-flex;align-items:center;gap:5px;font-size:12px;background:var(--cream2);color:var(--ink);border:2px solid var(--ink);min-height:32px">
               <i class="ti ti-store"></i>
               <span id="trench-lbl-channel">Channel</span>
               <i class="ti ti-chevron-down" style="font-size:10px"></i>
             </button>
             <div id="trench-dd-channel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:99999;
-              min-width:175px;background:var(--cream);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink4);pointer-events:auto"
+              min-width:190px;background:var(--cream);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink4);pointer-events:auto"
               onclick="event.stopPropagation()">
-              <div id="trench-channel-list" style="max-height:240px;overflow-y:auto"></div>
+              <div id="trench-channel-list" style="max-height:220px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch"></div>
               <div style="padding:6px 10px;display:flex;gap:6px;border-top:1px dashed var(--ink4)">
                 <button class="btn btn-sm" onclick="trenchResetChannel()" style="flex:1;font-size:12px"><i class="ti ti-x"></i> Reset</button>
                 <button class="btn btn-sm btn-primary" onclick="trenchApply()" style="flex:1;font-size:12px;font-weight:700"><i class="ti ti-check"></i> Terapkan</button>
@@ -505,22 +505,43 @@ function trenchRenderChannelList() {
   }
   var orderedKeys = katOrder.filter(function(k){ return grouped[k]; });
   Object.keys(grouped).forEach(function(k){ if (!orderedKeys.includes(k)) orderedKeys.push(k); });
-  var html = '';
+
+  // Clear & rebuild pakai DOM (bukan innerHTML) agar event listener tidak hilang
+  wrap.innerHTML = '';
   orderedKeys.forEach(function(kat) {
     var items = grouped[kat]; if (!items||!items.length) return;
     var cfg = katCfg[kat]||{label:kat,icon:'📁'};
-    html += '<div style="padding:5px 12px 2px;font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.3px">' + cfg.icon + ' ' + cfg.label + '</div>';
+    var header = document.createElement('div');
+    header.style.cssText = 'padding:5px 12px 2px;font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.3px;pointer-events:none';
+    header.textContent = cfg.icon + ' ' + cfg.label;
+    wrap.appendChild(header);
     items.forEach(function(ch) {
       var isActive = _trenchChannels.includes(String(ch.id));
-      html += '<div data-chid="'+ch.id+'" onclick="trenchToggleCh(this)"'+
-        ' style="padding:6px 14px;cursor:pointer;font-size:13px;border-bottom:1px dashed var(--ink4);'+
-        'background:'+(isActive?'var(--ink)':'transparent')+';'+
-        'color:'+(isActive?'var(--cream)':'inherit')+';'+
-        'font-weight:'+(isActive?'700':'normal')+'">'+
-        (isActive?'✓ ':'')+ch.nama+'</div>';
+      var row = document.createElement('div');
+      row.dataset.chid = ch.id;
+      row.style.cssText = 'padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px dashed var(--ink4);' +
+        'background:'+(isActive?'var(--ink)':'transparent')+';' +
+        'color:'+(isActive?'var(--cream)':'inherit')+';' +
+        'font-weight:'+(isActive?'700':'normal')+';' +
+        'user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation';
+      row.textContent = (isActive?'✓ ':'')+ch.nama;
+      // Pakai addEventListener — lebih reliable daripada onclick di innerHTML
+      row.addEventListener('click', function(e) {
+        e.stopPropagation();
+        trenchToggleCh(row);
+      });
+      row.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        trenchToggleCh(row);
+      });
+      wrap.appendChild(row);
     });
   });
-  wrap.innerHTML = html;
+
+  // Stop scroll bubbling ke halaman
+  wrap.addEventListener('wheel', function(e) { e.stopPropagation(); }, { passive: true });
+  wrap.addEventListener('touchmove', function(e) { e.stopPropagation(); }, { passive: true });
 }
 
 function trenchToggleCh(el) {
