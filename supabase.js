@@ -15,7 +15,7 @@ function _headers(extra) {
 async function dbGet(table, filter) {
   filter = filter || '';
   const res  = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?select=*' + filter, {
-    headers: _headers({ 'Range-Unit': 'items', 'Range': '0-9999' })
+    headers: _headers()
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || data.hint || 'GET ' + table + ' error ' + res.status);
@@ -47,7 +47,7 @@ async function dbUpdate(table, id, payload) {
 async function dbDelete(table, id) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + id, {
     method:  'DELETE',
-    headers: _headers({ 'Range-Unit': 'items', 'Range': '0-9999' })
+    headers: _headers()
   });
   if (!res.ok) {
     let msg = 'DELETE ' + table + ' error ' + res.status;
