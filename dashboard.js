@@ -333,6 +333,22 @@ function statusBadgeDash(sisa) {
   return '<span class="badge badge-ok">Aman</span>';
 }
 
+// ─── LOCAL DATE HELPER (WIB-safe, bukan UTC) ─────────────────
+// new Date().toISOString() selalu UTC → salah di WIB jam 00-06
+// Gunakan _localDateStr() untuk tanggal lokal yang benar
+function _localDateStr(d) {
+  const dt = d || new Date();
+  const y  = dt.getFullYear();
+  const m  = String(dt.getMonth()+1).padStart(2,'0');
+  const dd = String(dt.getDate()).padStart(2,'0');
+  return y + '-' + m + '-' + dd;
+}
+function _localDateOffset(daysBack) {
+  const d = new Date();
+  d.setDate(d.getDate() - daysBack);
+  return _localDateStr(d);
+}
+
 // ─── TARGET ──────────────────────────────────────────────────
 function _getTarget() { return parseInt(localStorage.getItem('zenoot_target_omset') || '0') || 0; }
 function simpanTarget() {
@@ -394,23 +410,21 @@ function _renderAlerts(stokData, saldo) {
 
 // ─── CHART HARI INI (per jam) ────────────────────────────────
 function _renderChartHariIni(jpData, canvas, tooltip) {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = _localDateStr(); // FIX: pakai lokal WIB bukan UTC
   const labels = [], totals = [];
 
-  for (let h = 0; h <= 24; h++) {
-    const hStr = h === 24 ? '24' : String(h).padStart(2,'0');
-    labels.push(hStr);
-    if (h === 24) { totals.push(0); }
-    else {
-      const jam = jpData
-        .filter(r => {
-          if (!r.tanggal || String(r.tanggal).slice(0,10) !== todayStr) return false;
-          const wkt = String(r.waktu || '00:00');
-          return wkt.slice(0,2) === String(h).padStart(2,'0');
-        })
-        .reduce((s,r) => s + (Number(r.total)||0), 0);
-      totals.push(jam);
-    }
+  // FIX: loop 0-23 saja (jam 24 tidak valid)
+  for (let h = 0; h <= 23; h++) {
+    const hStr = String(h).padStart(2,'0');
+    labels.push(hStr + ':00');
+    const jam = jpData
+      .filter(r => {
+        if (!r.tanggal || String(r.tanggal).slice(0,10) !== todayStr) return false;
+        const wkt = String(r.waktu || '00:00');
+        return wkt.slice(0,2) === hStr;
+      })
+      .reduce((s,r) => s + (Number(r.total)||0), 0);
+    totals.push(jam);
   }
 
   const total   = totals.reduce((s,v)=>s+v,0);
@@ -426,7 +440,7 @@ function _renderChartHariIni(jpData, canvas, tooltip) {
   canvas.style.display = 'block';
   if (emptyEl) emptyEl.style.display = 'none';
 
-  // ── FIX: retry jika canvas belum punya ukuran (belum visible) ──
+  // FIX: retry jika canvas belum punya ukuran (belum visible)
   if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
     setTimeout(() => _renderChartHariIni(jpData, canvas, tooltip), 80);
     return;
@@ -500,7 +514,7 @@ function _renderChartPenjualan(jpData) {
   for (let i = _dashPeriod - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    const key = d.toISOString().split('T')[0];
+    const key = _localDateStr(d); // FIX: pakai lokal WIB bukan UTC
     dates.push(key);
     labels.push(String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'));
     const dayTotal = jpData
@@ -515,7 +529,7 @@ function _renderChartPenjualan(jpData) {
   if (emptyEl) { emptyEl.style.display = hasData ? 'none' : 'flex'; }
   if (!hasData) return;
 
-  // ── FIX: retry jika canvas belum punya ukuran (belum visible) ──
+  // FIX: retry jika canvas belum punya ukuran (belum visible)
   if (!canvas.offsetWidth || canvas.offsetWidth < 10) {
     setTimeout(() => _renderChartPenjualan(jpData), 80);
     return;
@@ -1034,7 +1048,7 @@ function _renderAktivitas(jpData, jurnalData) {
 // ─── MAIN LOAD ────────────────────────────────────────────────
 async function loadDashboard() {
   try {
-    const today    = new Date().toISOString().split('T')[0];
+    const today    = _localDateStr(); // FIX: WIB bukan UTC
     const todayYM  = today.slice(0,7);
 
     const [produkData, stokRaw, jurnalData, jpData, jurnalAllData, channelData, bebanData] = await Promise.all([
@@ -1234,9 +1248,7 @@ async function loadDashboard() {
     const SAFETY_DAYS    = 2; // buffer hari penjualan
 
     // Hitung terjual 7 hari terakhir per SKU
-    const _today7 = new Date();
-    _today7.setDate(_today7.getDate() - 7);
-    const _batas7 = _today7.toISOString().split('T')[0];
+    const _batas7 = _localDateOffset(7); // FIX: WIB bukan UTC
     const _sold7Map = {};
     _dashJPData
       .filter(r => r.tanggal && String(r.tanggal).slice(0,10) >= _batas7)
@@ -1306,7 +1318,7 @@ async function loadDashboard() {
       _renderKatalog(_jpForRender, _dashStokData); // BARU
       _renderBeban(bebanArr, omsetBln);       // BARU
       if (typeof rerenderUI === "function") rerenderUI(document.getElementById("page-dashboard"));
-    }, 300); // dinaikkan 150→300ms agar canvas sudah punya offsetWidth
+    }, 300); // FIX: dinaikkan agar canvas punya offsetWidth saat dirender
 
     // ─ Aktivitas feed
     _renderAktivitas(_dashJPData.slice(0,6), jurnalData||[]);
