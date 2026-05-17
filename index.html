@@ -168,6 +168,7 @@
     scripts.forEach(function(s) {
       var el = document.createElement('script');
       el.src = s + '?' + v;
+      el.async = false; // jaga urutan load: supabase.js harus selesai sebelum dashboard.js dll.
       document.currentScript.parentNode.appendChild(el);
     });
   })();
