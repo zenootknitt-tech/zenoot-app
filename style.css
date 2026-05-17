@@ -128,18 +128,19 @@ body{
 /* ─── SIDEBAR MINIMIZE (DESKTOP) ────────────────────────── */
 .sidebar-minimize-btn{
   display:none;
-  position:absolute;top:10px;right:-14px;
+  position:absolute;top:12px;right:-14px;
   width:26px;height:26px;
-  background:#060606;border:1px solid rgba(255,255,255,0.06);
+  background:#1C1C1E;border:1px solid rgba(255,255,255,0.08);
   cursor:pointer;z-index:300;
   -webkit-align-items:center;align-items:center;
   -webkit-justify-content:center;justify-content:center;
-  border-radius:50%;font-size:13px;color:var(--ink2);
-  box-shadow:var(--card-shadow);
-  -webkit-transition:opacity .15s;transition:opacity .15s;
+  border-radius:6px;color:#8E8E93;
+  box-shadow:0 1px 4px rgba(0,0,0,0.4);
+  -webkit-transition:background .15s, color .15s;transition:background .15s, color .15s;
   -webkit-flex-shrink:0;flex-shrink:0;
 }
-.sidebar-minimize-btn:hover{background:var(--cream3)}
+.sidebar-minimize-btn:hover{background:#2C2C2E;color:#E5E5EA;}
+.minimize-icon{display:block;pointer-events:none;}
 
 /* minimized sidebar */
 body.sidebar-mini .sidebar{
