@@ -548,13 +548,29 @@ async function keuRenderNeraca() {
   const totalPend  = pendAkun.reduce((s,a)  => s+Math.max(0,a.saldoKredit-a.saldoDebit),0);
   const totalBeban = bebanAkun.reduce((s,a) => s+Math.max(0,a.saldoDebit-a.saldoKredit),0);
   const labaRugi   = totalPend - totalBeban;
-  let totalModal = labaRugi;
+
+  // Modal dari akun jurnal (Modal Awal, Laba Ditahan, dll)
+  let modalJurnal = 0;
   let modalHtml = '';
-  modalAkun.forEach(a => { const s=Math.max(0,a.saldoKredit-a.saldoDebit); totalModal+=s; modalHtml+=`<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right">${fmtRp(s)}</td></tr>`; });
+  modalAkun.forEach(a => { const s=Math.max(0,a.saldoKredit-a.saldoDebit); modalJurnal+=s; modalHtml+=`<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right">${fmtRp(s)}</td></tr>`; });
   modalHtml += `<tr><td style="padding-left:12px;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi>=0?'Laba':'Rugi'} Berjalan</td><td style="text-align:right;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi<0?'(':''} ${fmtRp(Math.abs(labaRugi))} ${labaRugi<0?')':''}</td></tr>`;
+
+  // Ekuitas bersih = Total Aset - Total Kewajiban (rumus neraca yang benar)
+  // Modal Penyesuaian = selisih antara ekuitas bersih dan modal dari jurnal + laba berjalan
+  const ekuitasBersih = totalAset - totalKwj;
+  const modalDariJurnal = modalJurnal + labaRugi;
+  const selisihPenyesuaian = ekuitasBersih - modalDariJurnal;
+
+  // Tampilkan penyesuaian jika ada selisih signifikan (>1 rupiah)
+  if (Math.abs(selisihPenyesuaian) > 1) {
+    const warna = selisihPenyesuaian >= 0 ? 'var(--ok)' : 'var(--danger)';
+    modalHtml += `<tr><td style="padding-left:12px;color:var(--ink3);font-style:italic">Penyesuaian Neraca</td><td style="text-align:right;color:${warna}">${selisihPenyesuaian<0?'(':''} ${fmtRp(Math.abs(selisihPenyesuaian))} ${selisihPenyesuaian<0?')':''}</td></tr>`;
+  }
+
   document.getElementById('keu-neraca-modal').innerHTML = modalHtml || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Belum ada akun modal</td></tr>`;
 
-  const totalKM = totalKwj + totalModal;
+  // Total KM = Kewajiban + Ekuitas Bersih (selalu sama dengan Total Aset)
+  const totalKM = totalKwj + ekuitasBersih;
   document.getElementById('keu-neraca-total-km').textContent = fmtRp(totalKM);
 
   const seimbang = Math.abs(totalAset - totalKM) < 1;
