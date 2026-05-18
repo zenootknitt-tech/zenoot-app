@@ -290,7 +290,7 @@ document.getElementById('page-dashboard').innerHTML = `
       <div class="modal-title"><i class="ti ti-target"></i> Set Target Omset</div>
       <div style="margin-bottom:14px">
         <label style="font-size:12px;color:var(--ink3);display:block;margin-bottom:6px">Target Omset Bulan Ini (Rp)</label>
-        <input type="number" id="inp-target-omset" placeholder="Contoh: 10000000"
+        <input type="text" inputmode="numeric" id="inp-target-omset" placeholder="Contoh: 10.000.000"
           style="font-family:var(--f);font-size:14px;padding:8px 10px;border:2px solid var(--ink);background:var(--cream);width:100%">
       </div>
       <div class="modal-actions">
@@ -404,14 +404,14 @@ function _localDateOffset(daysBack) {
 // ─── TARGET ──────────────────────────────────────────────────
 function _getTarget() { return parseInt(localStorage.getItem('zenoot_target_omset') || '0') || 0; }
 function simpanTarget() {
-  const v = parseInt(document.getElementById('inp-target-omset').value) || 0;
+  const v = idrVal('inp-target-omset');
   if (v <= 0) { alert('Target harus lebih dari 0'); return; }
   localStorage.setItem('zenoot_target_omset', String(v));
   closeModal('modal-target');
   loadDashboard();
 }
 function openTargetModal() {
-  document.getElementById('inp-target-omset').value = _getTarget() || '';
+  idrSet('inp-target-omset', _getTarget() || 0);
   document.getElementById('modal-target').classList.add('open');
   setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('modal-target')); }, 50);
 }

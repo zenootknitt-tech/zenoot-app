@@ -50,7 +50,7 @@ document.getElementById('page-hpp').innerHTML = `
     <div class="form-row" style="align-items:flex-end">
       <div class="form-group">
         <label>HPP (Rp)</label>
-        <input type="number" id="kalk-hpp" placeholder="0" oninput="hitungHargaJual()">
+        <input type="text" inputmode="numeric" id="kalk-hpp" placeholder="0" oninput="hitungHargaJual()">
       </div>
       <div class="form-group">
         <label>Target Margin (%)</label>
@@ -77,7 +77,7 @@ document.getElementById('page-hpp').innerHTML = `
         <div class="form-group"><label>SKU Induk</label><input type="text" id="hpp-sku-induk" placeholder="mis: Turtleneck"></div>
         <div class="form-group"><label>Nomor Referensi</label><input type="text" id="hpp-ref" placeholder="mis: Turtleneck_HITAM-XL"></div>
         <div class="form-group"><label>Nama Variasi</label><input type="text" id="hpp-variasi" placeholder="mis: Hitam,XL"></div>
-        <div class="form-group"><label>HPP (Rp)</label><input type="number" id="hpp-harga" placeholder="0"></div>
+        <div class="form-group"><label>HPP (Rp)</label><input type="text" inputmode="numeric" id="hpp-harga" placeholder="0"></div>
         <div class="form-group" style="flex:0;justify-content:flex-end">
           <label>&nbsp;</label>
           <button class="btn btn-primary btn-sm" onclick="simpanHpp()">Simpan</button>
@@ -105,7 +105,7 @@ document.getElementById('page-hpp').innerHTML = `
 `;
 
 function hitungHargaJual() {
-  const hpp    = parseFloat(document.getElementById('kalk-hpp').value)    || 0;
+  const hpp    = idrVal('kalk-hpp');
   const margin = parseFloat(document.getElementById('kalk-margin').value) || 0;
   const fee    = parseFloat(document.getElementById('kalk-fee').value)    || 0;
   const denom  = 1 - (margin/100) - (fee/100);
@@ -121,7 +121,7 @@ function showTambahHpp() {
   document.getElementById('hpp-sku-induk').value = '';
   document.getElementById('hpp-ref').value = '';
   document.getElementById('hpp-variasi').value = '';
-  document.getElementById('hpp-harga').value = '';
+  idrSet('hpp-harga', 0);
   document.getElementById('form-tambah-hpp').style.display = 'block';
 }
 
@@ -139,7 +139,7 @@ async function editHpp(id) {
     document.getElementById('hpp-sku-induk').value = r.sku_induk || '';
     document.getElementById('hpp-ref').value       = r.nomor_referensi || '';
     document.getElementById('hpp-variasi').value   = r.nama_variasi || '';
-    document.getElementById('hpp-harga').value     = r.harga || 0;
+    idrSet('hpp-harga', r.harga || 0);
     document.getElementById('form-tambah-hpp').style.display = 'block';
     document.getElementById('form-tambah-hpp').scrollIntoView({behavior:'smooth'});
   } catch(err) { alert('Gagal load: ' + err.message); }
@@ -151,7 +151,7 @@ async function simpanHpp() {
     sku_induk:       document.getElementById('hpp-sku-induk').value.trim(),
     nomor_referensi: document.getElementById('hpp-ref').value.trim(),
     nama_variasi:    document.getElementById('hpp-variasi').value.trim(),
-    harga:           parseInt(document.getElementById('hpp-harga').value) || 0,
+    harga:           idrVal('hpp-harga'),
   };
   if (!data.sku_induk) { alert('SKU Induk wajib diisi!'); return; }
   try {

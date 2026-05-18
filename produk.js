@@ -237,7 +237,7 @@ ${skus.slice(0,120)}...`, async () => {
 // Edit per katalog (update semua varian)
 async function editKatalog(kat, hpp, boss, katPrd) {
   document.getElementById('kat-edit-nama').textContent = kat;
-  document.getElementById('kat-hpp').value  = hpp;
+  idrSet('kat-hpp', hpp);
   document.getElementById('kat-boss').value = boss;
   document.getElementById('kat-kategori').value = katPrd || 'aktif';
   showModal('modal-edit-katalog');
@@ -245,7 +245,7 @@ async function editKatalog(kat, hpp, boss, katPrd) {
 
 async function simpanEditKatalog() {
   var kat     = document.getElementById('kat-edit-nama').textContent;
-  var hpp     = parseInt(document.getElementById('kat-hpp').value)   || 0;
+  var hpp     = idrVal('kat-hpp');
   var boss    = document.getElementById('kat-boss').value.trim().toUpperCase();
   var katPrd  = document.getElementById('kat-kategori').value || 'aktif';
   var rows    = _produkData.filter(r => (r.katalog||'—') === kat);
@@ -274,7 +274,7 @@ function showFormProduk() {
   document.getElementById('prd-id').value = '';
   document.getElementById('prd-katalog').value = '';
   document.getElementById('prd-sku').value = '';
-  document.getElementById('prd-hpp').value = '';
+  idrSet('prd-hpp', 0);
   document.getElementById('prd-boss').value = '';
   document.getElementById('prd-kategori').value = 'aktif';
   showModal('modal-produk');
@@ -293,7 +293,7 @@ async function editProduk(id) {
   document.getElementById('prd-id').value      = r.id;
   document.getElementById('prd-katalog').value = r.katalog || '';
   document.getElementById('prd-sku').value     = r.sku_variasi || '';
-  document.getElementById('prd-hpp').value     = r.hpp || 0;
+  idrSet('prd-hpp', r.hpp || 0);
   document.getElementById('prd-boss').value     = r.boss || '';
   document.getElementById('prd-kategori').value = r.kategori_produk || 'aktif';
   showModal('modal-produk');
@@ -306,7 +306,7 @@ async function simpanProduk() {
   const data = {
     katalog:     document.getElementById('prd-katalog').value.trim().toUpperCase(),
     sku_variasi: document.getElementById('prd-sku').value.trim(),
-    hpp:         parseInt(document.getElementById('prd-hpp').value) || 0,
+    hpp:         idrVal('prd-hpp'),
     boss:        document.getElementById('prd-boss').value.trim().toUpperCase(),
     kategori_produk: document.getElementById('prd-kategori').value || 'aktif',
   };
@@ -441,7 +441,7 @@ document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="mo
     </div>
     <p style="font-size:12px;color:var(--ink3);margin-bottom:12px">Perubahan akan diterapkan ke <b>semua varian</b> dalam katalog ini.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-      <div class="form-group" style="flex:1 1 120px"><label>HPP (Rp)</label><input type="number" id="kat-hpp" placeholder="0"></div>
+      <div class="form-group" style="flex:1 1 120px"><label>HPP (Rp)</label><input type="text" inputmode="numeric" id="kat-hpp" placeholder="0"></div>
       <div class="form-group" style="flex:1 1 120px"><label>Boss</label><input type="text" id="kat-boss" placeholder="mis: ALAN"></div>
     </div>
     <div class="form-group" style="margin-bottom:14px">
@@ -472,7 +472,7 @@ document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay" id="mo
       <div class="form-group" style="flex:1 1 140px"><label>SKU Variasi</label><input type="text" id="prd-sku" placeholder="mis: Turtleneck_HITAM-M"></div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-      <div class="form-group" style="flex:1 1 120px"><label>HPP (Rp)</label><input type="number" id="prd-hpp" placeholder="0"></div>
+      <div class="form-group" style="flex:1 1 120px"><label>HPP (Rp)</label><input type="text" inputmode="numeric" id="prd-hpp" placeholder="0"></div>
       <div class="form-group" style="flex:1 1 120px"><label>Boss</label><input type="text" id="prd-boss" placeholder="mis: ALAN"></div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">

@@ -199,12 +199,12 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
       <div class="jp-row-3" style="margin-bottom:16px">
         <div class="form-group fg-total">
           <label>Total (otomatis)</label>
-          <input type="number" id="jp-total" placeholder="0" readonly
+          <input type="text" inputmode="numeric" id="jp-total" placeholder="0" readonly
             style="background:var(--cream2);cursor:not-allowed;font-weight:700;color:var(--ok)">
         </div>
         <div class="form-group fg-harga">
           <label>Harga Satuan (Rp)</label>
-          <input type="number" id="jp-harga" placeholder="0" oninput="hitungTotalJP()">
+          <input type="text" inputmode="numeric" id="jp-harga" placeholder="0" oninput="hitungTotalJP()">
         </div>
         <div class="form-group fg-qty">
           <label>QTY</label>
@@ -589,8 +589,8 @@ document.addEventListener('click', function(e) {
 // ─── HITUNG TOTAL ────────────────────────────────────────────
 function hitungTotalJP() {
   const qty   = parseInt(document.getElementById('jp-qty').value)   || 0;
-  const harga = parseInt(document.getElementById('jp-harga').value) || 0;
-  document.getElementById('jp-total').value = qty * harga > 0 ? qty * harga : 0;
+  const harga = idrVal('jp-harga');
+  idrSet('jp-total', qty * harga > 0 ? qty * harga : 0);
 }
 
 // ─── LOAD DATA ───────────────────────────────────────────────
@@ -956,8 +956,8 @@ function showTambahJP() {
   document.getElementById('jp-sku-induk').value  = '';
   document.getElementById('jp-sku-variasi').innerHTML = '<option value="">— Pilih Variasi —</option>';
   document.getElementById('jp-qty').value        = '';
-  document.getElementById('jp-harga').value      = '';
-  document.getElementById('jp-total').value      = '';
+  
+  
   jpTutupDropdownSKU();
   loadProdukListJP();
   document.getElementById('modal-jp').classList.add('open');
@@ -976,8 +976,8 @@ async function editJP(id) {
     document.getElementById('jp-waktu').value   = r.waktu ? String(r.waktu).slice(0,5) : _jpNowTime();
     document.getElementById('jp-channel').value = r.channel_id || '';
     document.getElementById('jp-qty').value     = r.qty          || '';
-    document.getElementById('jp-harga').value   = r.harga_satuan || '';
-    document.getElementById('jp-total').value   = r.total        || '';
+    idrSet('jp-harga', r.harga_satuan || 0);
+    idrSet('jp-total', r.total || 0);
     jpTutupDropdownSKU();
     if (_jpProdukList.length === 0) await loadProdukListJP();
     const skuVal = r.sku || '';
@@ -1002,8 +1002,8 @@ async function editJP(id) {
 async function simpanJP() {
   const id    = document.getElementById('jp-id').value;
   const qty   = parseInt(document.getElementById('jp-qty').value)   || 0;
-  const harga = parseInt(document.getElementById('jp-harga').value) || 0;
-  const total = parseInt(document.getElementById('jp-total').value) || qty * harga;
+  const harga = idrVal('jp-harga');
+  const total = idrVal('jp-total') || qty * harga;
   const chIdRaw = document.getElementById('jp-channel').value;
   const chId    = chIdRaw ? chIdRaw : null;
   const skuV  = document.getElementById('jp-sku-variasi').value;

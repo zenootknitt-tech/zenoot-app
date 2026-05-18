@@ -78,7 +78,7 @@ document.getElementById('page-keuangan').innerHTML = `
         <select id="keu-bayar-hutang-id" style="width:100%"><option value="">— Pilih —</option></select>
       </div>
       <div class="form-group" style="flex:0 1 120px"><label>Tanggal</label><input type="date" id="keu-bayar-tgl"></div>
-      <div class="form-group" style="flex:1 1 120px"><label>Nominal (Rp)</label><input type="number" id="keu-bayar-nominal" placeholder="0"></div>
+      <div class="form-group" style="flex:1 1 120px"><label>Nominal (Rp)</label><input type="text" inputmode="numeric" id="keu-bayar-nominal" placeholder="0"></div>
       <div class="form-group" style="flex:2 1 160px"><label>Keterangan</label><input type="text" id="keu-bayar-ket" placeholder="mis: cicilan bulan Mei"></div>
       <button class="btn btn-primary btn-sm" onclick="keuSimpanPembayaran()" style="margin-bottom:2px"><i class="ti ti-check"></i> Catat</button>
     </div>
@@ -268,10 +268,10 @@ document.body.insertAdjacentHTML('beforeend', `
       </div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-      <div class="form-group" style="flex:1 1 130px"><label>Pokok Pinjaman (Rp)</label><input type="number" id="keu-htg-pokok" placeholder="0"></div>
+      <div class="form-group" style="flex:1 1 130px"><label>Pokok Pinjaman (Rp)</label><input type="text" inputmode="numeric" id="keu-htg-pokok" placeholder="0"></div>
       <div class="form-group" style="flex:1 1 120px"><label>Bunga / Tahun (%)</label><input type="number" id="keu-htg-bunga" placeholder="0" step="0.1"></div>
       <div class="form-group" style="flex:1 1 120px"><label>Tenor (bulan)</label><input type="number" id="keu-htg-tenor" placeholder="mis: 24"></div>
-      <div class="form-group" style="flex:1 1 130px"><label>Cicilan / Bulan (Rp)</label><input type="number" id="keu-htg-cicilan" placeholder="0"></div>
+      <div class="form-group" style="flex:1 1 130px"><label>Cicilan / Bulan (Rp)</label><input type="text" inputmode="numeric" id="keu-htg-cicilan" placeholder="0"></div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
       <div class="form-group" style="flex:1 1 130px"><label>Tanggal Mulai</label><input type="date" id="keu-htg-tgl-mulai"></div>
@@ -391,10 +391,10 @@ function keuShowFormHutang(data) {
   document.getElementById('keu-htg-id').value            = '';
   document.getElementById('keu-htg-kreditur').value      = data?.kreditur || '';
   document.getElementById('keu-htg-jenis').value         = data?.jenis || 'bank';
-  document.getElementById('keu-htg-pokok').value         = data?.pokok || '';
+  idrSet('keu-htg-pokok', data?.pokok || 0);
   document.getElementById('keu-htg-bunga').value         = data?.bunga || '';
   document.getElementById('keu-htg-tenor').value         = data?.tenor || '';
-  document.getElementById('keu-htg-cicilan').value       = data?.cicilan_per_bulan || '';
+  idrSet('keu-htg-cicilan', data?.cicilan_per_bulan || 0);
   document.getElementById('keu-htg-tgl-mulai').value     = data?.tgl_mulai ? data.tgl_mulai.split('T')[0] : '';
   document.getElementById('keu-htg-jatuh-tempo').value   = data?.jatuh_tempo ? data.jatuh_tempo.split('T')[0] : '';
   document.getElementById('keu-htg-ket').value           = data?.keterangan || '';
@@ -408,10 +408,10 @@ async function keuSimpanHutang() {
   const data = {
     kreditur:         document.getElementById('keu-htg-kreditur').value.trim(),
     jenis:            document.getElementById('keu-htg-jenis').value,
-    pokok:            parseFloat(document.getElementById('keu-htg-pokok').value) || 0,
+    pokok:            idrVal('keu-htg-pokok'),
     bunga:            parseFloat(document.getElementById('keu-htg-bunga').value) || 0,
     tenor:            parseInt(document.getElementById('keu-htg-tenor').value) || null,
-    cicilan_per_bulan:parseFloat(document.getElementById('keu-htg-cicilan').value) || 0,
+    cicilan_per_bulan:idrVal('keu-htg-cicilan'),
     tgl_mulai:        document.getElementById('keu-htg-tgl-mulai').value || null,
     jatuh_tempo:      document.getElementById('keu-htg-jatuh-tempo').value || null,
     keterangan:       document.getElementById('keu-htg-ket').value.trim() || null,
@@ -440,14 +440,14 @@ async function keuHapusHutang(id, nama) {
 async function keuSimpanPembayaran() {
   const hutangId = document.getElementById('keu-bayar-hutang-id').value;
   const tgl      = document.getElementById('keu-bayar-tgl').value;
-  const nominal  = parseFloat(document.getElementById('keu-bayar-nominal').value) || 0;
+  const nominal  = idrVal('keu-bayar-nominal');
   const ket      = document.getElementById('keu-bayar-ket').value.trim();
   if (!hutangId) { alert('Pilih hutang dulu!'); return; }
   if (!tgl)      { alert('Tanggal wajib diisi!'); return; }
   if (!nominal)  { alert('Nominal wajib diisi!'); return; }
   try {
     await dbInsert('hutang_bayar', { hutang_id: hutangId, tanggal: tgl, nominal, keterangan: ket || null });
-    document.getElementById('keu-bayar-nominal').value = '';
+    idrSet('keu-bayar-nominal', 0);
     document.getElementById('keu-bayar-ket').value = '';
     keuLoadHutang();
   } catch(e) { alert('Gagal simpan: ' + e.message); }

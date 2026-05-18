@@ -261,6 +261,91 @@ function fmtRpShort(v) {
   return 'Rp' + Math.round(v).toLocaleString('id-ID');
 }
 
+// ─── IDR INPUT FORMATTER ─────────────────────────────────────
+// idrInput(id) — aktifkan auto-format titik ribuan pada input[type=text]
+// idrVal(id)   — ambil nilai numerik bersih dari input yang sudah diformat
+// idrSet(id,v) — set nilai ke input dengan format titik ribuan
+//
+// Cara pakai:
+//   idrInput('kas-jrn-nominal');        // aktifkan formatter
+//   var nominal = idrVal('kas-jrn-nominal'); // baca nilai bersih
+//   idrSet('kas-jrn-nominal', 150000);  // isi nilai
+
+function idrInput(id) {
+  var el = document.getElementById(id);
+  if (!el || el.dataset.idrInit) return;
+  el.dataset.idrInit = '1';
+  el.setAttribute('type', 'text');
+  el.setAttribute('inputmode', 'numeric');
+  el.setAttribute('autocomplete', 'off');
+
+  function _fmt(el) {
+    var raw = el.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+    if (!raw) { el.value = ''; return; }
+    el.value = parseInt(raw, 10).toLocaleString('id-ID');
+  }
+
+  el.addEventListener('input', function() { _fmt(el); });
+  el.addEventListener('focus', function() {
+    // Saat fokus, pindahkan kursor ke akhir
+    var v = el.value;
+    el.value = '';
+    el.value = v;
+  });
+  el.addEventListener('blur', function() { _fmt(el); });
+}
+
+function idrVal(id) {
+  var el = document.getElementById(id);
+  if (!el) return 0;
+  var raw = el.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+  return parseInt(raw, 10) || 0;
+}
+
+function idrSet(id, v) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var num = Math.round(Number(v)) || 0;
+  el.value = num > 0 ? num.toLocaleString('id-ID') : '';
+}
+
+// idrInputAll() — aktifkan semua input IDR yang ada di DOM saat ini
+// Dipanggil setiap kali form modal dibuka
+function idrInputAll() {
+  var IDR_IDS = [
+    'kas-jrn-nominal',
+    'keu-bayar-nominal',
+    'keu-htg-pokok',
+    'keu-htg-cicilan',
+    'inp-target-omset',
+    'kalk-hpp',
+    'hpp-harga',
+    'jp-harga',
+    'jp-total',
+    'kat-hpp',
+    'prd-hpp',
+    'supplier-budget'
+  ];
+  IDR_IDS.forEach(function(id) { idrInput(id); });
+  // beban-ops dynamic inputs
+  var dynInputs = document.querySelectorAll('#beban-ops-rows input[data-field="nominal"]');
+  dynInputs.forEach(function(el) {
+    if (!el.dataset.idrInit) {
+      var fakeId = 'beban-ops-dyn-' + el.dataset.idx;
+      el.id = fakeId;
+      idrInput(fakeId);
+    }
+  });
+}
+
+// Auto-run saat DOM siap dan setiap kali ada perubahan di DOM (modal buka)
+document.addEventListener('DOMContentLoaded', function() {
+  idrInputAll();
+  // MutationObserver untuk handle input yang muncul dinamis (modal)
+  var obs = new MutationObserver(function() { idrInputAll(); });
+  obs.observe(document.body, { childList: true, subtree: true });
+});
+
 // ─── GLOBAL CHANNEL LOGO / ICON ──────────────────────────────
 // chBadge(input) — input bisa:
 //   string: nama channel saja (fallback deteksi nama)

@@ -227,7 +227,7 @@ document.getElementById('page-channel').innerHTML = `
         </div>
         <div class="form-group" style="flex:2;min-width:140px">
           <label>Budget Restock (Rp)</label>
-          <input type="number" id="supplier-budget" placeholder="0 = tidak dibatasi" min="0">
+          <input type="text" inputmode="numeric" id="supplier-budget" placeholder="0 = tidak dibatasi">
         </div>
       </div>
       <div class="form-group">
@@ -285,11 +285,11 @@ function renderBebanOpsRows() {
         'placeholder="Nama beban..." ' +
         'style="flex:1;font-family:var(--f);font-size:12px;padding:4px 6px;border:1.5px solid var(--ink3);background:var(--cream);min-width:0" ' +
         'oninput="bebanOpsChanged()"> ' +
-      '<input type="number" data-idx="'+i+'" data-field="nominal" ' +
-        'value="' + (row.nominal || '') + '" ' +
-        'placeholder="0" min="0" ' +
+      '<input type="text" inputmode="numeric" data-idx="'+i+'" data-field="nominal" ' +
+        'value="' + (row.nominal ? parseInt(row.nominal).toLocaleString('id-ID') : '') + '" ' +
+        'placeholder="0" ' +
         'style="width:100px;font-family:var(--f);font-size:12px;padding:4px 6px;border:1.5px solid var(--ink3);background:var(--cream);text-align:right" ' +
-        'oninput="bebanOpsChanged()">' +
+        'oninput="(function(el){var r=el.value.replace(/\\./g,\'\').replace(/[^0-9]/g,\'\');el.value=r?parseInt(r).toLocaleString(\'id-ID\'):\'\';bebanOpsChanged();})(this)">' +
     '</div>';
   }
   wrap.innerHTML = html;
@@ -356,7 +356,7 @@ async function simpanBebanOps() {
       var namaEl    = document.querySelector('#beban-ops-rows input[data-field="nama"][data-idx="'+i+'"]');
       var nominalEl = document.querySelector('#beban-ops-rows input[data-field="nominal"][data-idx="'+i+'"]');
       var nama    = namaEl    ? namaEl.value.trim()            : '';
-      var nominal = nominalEl ? (parseFloat(nominalEl.value)||0) : 0;
+      var nominal = nominalEl ? (parseInt((nominalEl.value||'').replace(/\./g,'').replace(/[^0-9]/g,''),10)||0) : 0;
       if (nama || nominal > 0) {
         rows.push({ nama: nama || ('Beban '+(i+1)), nominal: nominal });
       }
@@ -827,7 +827,7 @@ function showModalSupplier() {
   document.getElementById('supplier-leadtime').value = '7';
   document.getElementById('supplier-minorder').value = '';
   document.getElementById('supplier-kelipatan').value = '';
-  document.getElementById('supplier-budget').value   = '';
+  idrSet('supplier-budget', 0);
   document.getElementById('supplier-catatan').value  = '';
   showModal('modal-supplier-rop');
 }
@@ -841,7 +841,7 @@ function editSupplier(id) {
   document.getElementById('supplier-leadtime').value  = s.lead_time || 7;
   document.getElementById('supplier-minorder').value  = s.min_order || '';
   document.getElementById('supplier-kelipatan').value = s.kelipatan || s.min_order || '';
-  document.getElementById('supplier-budget').value    = s.budget || '';
+  idrSet('supplier-budget', s.budget || 0);
   document.getElementById('supplier-catatan').value   = s.catatan || '';
   showModal('modal-supplier-rop');
 }
@@ -852,7 +852,7 @@ async function simpanSupplier() {
   const lead_time = parseInt(document.getElementById('supplier-leadtime').value) || 7;
   const min_order = parseInt(document.getElementById('supplier-minorder').value) || 6;
   const kelipatan = parseInt(document.getElementById('supplier-kelipatan').value) || min_order;
-  const budget    = parseInt(document.getElementById('supplier-budget').value) || 0;
+  const budget    = idrVal('supplier-budget');
   const catatan   = (document.getElementById('supplier-catatan').value || '').trim();
 
   if (!boss) { alert('Nama boss/supplier wajib diisi!'); return; }

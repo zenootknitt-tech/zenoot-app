@@ -138,7 +138,7 @@ if (document.readyState === 'loading') {
           <option value="jurnal">📋 Jurnal Umum</option>
         </select>
       </div>
-      <div class="form-group" style="flex:1 1 130px;min-width:120px"><label>Nominal (Rp)</label><input type="number" id="kas-jrn-nominal" placeholder="0" oninput="kasHitungJurnal()"></div>
+      <div class="form-group" style="flex:1 1 130px;min-width:120px"><label>Nominal (Rp)</label><input type="text" inputmode="numeric" id="kas-jrn-nominal" placeholder="0" oninput="kasHitungJurnal()"></div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
       <div class="form-group" style="flex:1 1 160px;min-width:140px">
@@ -214,7 +214,7 @@ if (document.readyState === 'loading') {
           <option value="jurnal">📋 Jurnal Umum</option>
         </select>
       </div>
-      <div class="form-group" style="flex:1 1 130px;min-width:120px"><label>Nominal (Rp)</label><input type="number" id="kas-jrn-nominal" placeholder="0" oninput="kasHitungJurnal()"></div>
+      <div class="form-group" style="flex:1 1 130px;min-width:120px"><label>Nominal (Rp)</label><input type="text" inputmode="numeric" id="kas-jrn-nominal" placeholder="0" oninput="kasHitungJurnal()"></div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
       <div class="form-group" style="flex:1 1 160px;min-width:140px">
@@ -376,7 +376,7 @@ function kasShowForm() {
   document.getElementById('kas-jrn-id').value = '';
   document.getElementById('kas-jrn-tgl').value = new Date().toISOString().split('T')[0];
   document.getElementById('kas-jrn-tipe').value = 'masuk';
-  document.getElementById('kas-jrn-nominal').value = '';
+  idrSet('kas-jrn-nominal', 0);
   document.getElementById('kas-jrn-ket').value = '';
   document.getElementById('kas-jrn-ref').value = '';
   document.getElementById('kas-preview-entry').style.display = 'none';
@@ -397,7 +397,7 @@ function kasOnTipeChange() {
 }
 
 function kasHitungJurnal() {
-  const nominal = parseInt(document.getElementById('kas-jrn-nominal').value) || 0;
+  const nominal = idrVal('kas-jrn-nominal');
   const akunDId = document.getElementById('kas-jrn-akun-debit').value;
   const akunKId = document.getElementById('kas-jrn-akun-kredit').value;
   const akunD   = _kasAkunMap[akunDId];
@@ -413,7 +413,7 @@ function kasHitungJurnal() {
 
 async function kasSimpanJurnal() {
   const id      = document.getElementById('kas-jrn-id').value;
-  const nominal = parseInt(document.getElementById('kas-jrn-nominal').value) || 0;
+  const nominal = idrVal('kas-jrn-nominal');
   const akunDId = document.getElementById('kas-jrn-akun-debit').value;
   const akunKId = document.getElementById('kas-jrn-akun-kredit').value;
   const tgl     = document.getElementById('kas-jrn-tgl').value;
@@ -514,7 +514,7 @@ async function kasEditJurnal(id) {
   document.getElementById('kas-jrn-id').value      = r.id;
   document.getElementById('kas-jrn-tgl').value     = r.tanggal ? r.tanggal.split('T')[0] : '';
   document.getElementById('kas-jrn-tipe').value    = r.tipe || 'masuk';
-  document.getElementById('kas-jrn-nominal').value = r.nominal || r.debit || 0;
+  idrSet('kas-jrn-nominal', r.nominal || r.debit || 0);
   document.getElementById('kas-jrn-ket').value     = r.keterangan || '';
   document.getElementById('kas-jrn-ref').value     = r.referensi || '';
   kasOnTipeChange();
