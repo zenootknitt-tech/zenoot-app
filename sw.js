@@ -1,37 +1,38 @@
 // ─── SERVICE WORKER — zenOt PWA ───────────────────────────────
-// VERSI OTOMATIS — tidak perlu ganti angka manual.
-// Cache name pakai timestamp sw.js ini di-deploy.
-// Setiap kali sw.js diubah & push ke GitHub → cache otomatis bust.
+// Strategi:
+// - index.html        → SELALU network (tidak pernah cache)
+// - JS app files      → SELALU network (tidak pernah cache)
+// - CDN (font, icons) → cache-first (jarang berubah)
+// - Gambar/manifest   → cache-first
+// Dengan strategi ini, update file JS langsung terasa tanpa perlu
+// unregister SW atau hard refresh.
 
-var CACHE = 'zenot-' + self.location.search.slice(1) || 'zenot-base';
+var CACHE_VERSION = 'zenot-static-v3';
+var CACHE_CDN     = 'zenot-cdn-v1';
 
-// Fallback: jika sw.js diakses tanpa ?v=, pakai tanggal hari ini
-// supaya tetap fresh meski lupa update sw.js
-if (CACHE === 'zenot-base') {
-  CACHE = 'zenot-' + new Date().toISOString().slice(0, 10).replace(/-/g, '');
-}
-
-var ASSETS = [
-  './',
-  './index.html',
-  './style.css',
-  './manifest.json',
+// Hanya file statis yang boleh di-cache (tidak pernah berubah setelah deploy)
+var STATIC_ASSETS = [
   './logo.png',
   './icon-192.png',
   './icon-512.png',
+  './manifest.json',
+];
+
+var CDN_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css',
   'https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.min.js',
 ];
 
-// JS app files — tidak pakai ?v= di sini, browser cache bust via index.html
-var APP_SCRIPTS = [
-  './rough-ui.js', './supabase.js', './app.js', './dashboard.js',
-  './produk.js', './stok.js', './restock.js', './kas.js',
-  './jurnal-penjualan.js', './produk-terjual.js', './price-list.js',
-  './dataorder.js', './rekap.js', './channel-master.js',
-  './beban-operasional.js', './keuangan.js', './notif.js',
-  './hpp.js', './channels.js',
+// File yang TIDAK BOLEH di-cache — selalu ambil dari network
+var NO_CACHE_PATTERNS = [
+  'index.html',
+  'app.js', 'supabase.js', 'dashboard.js', 'produk.js',
+  'stok.js', 'restock.js', 'kas.js', 'jurnal-penjualan.js',
+  'produk-terjual.js', 'price-list.js', 'dataorder.js',
+  'rekap.js', 'channel-master.js', 'beban-operasional.js',
+  'keuangan.js', 'notif.js', 'hpp.js', 'channels.js',
+  'rough-ui.js', 'style.css',
 ];
 
 // ─── SKIP WAITING ────────────────────────────────────────────
@@ -43,15 +44,22 @@ self.addEventListener('message', function(e) {
 self.addEventListener('install', function(e) {
   self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE).then(function(c) {
-      return Promise.all(
-        ASSETS.map(function(url) {
+    Promise.all([
+      caches.open(CACHE_VERSION).then(function(c) {
+        return Promise.all(STATIC_ASSETS.map(function(url) {
           return c.add(url).catch(function(err) {
-            console.warn('[SW] Gagal cache:', url, err);
+            console.warn('[SW] Gagal cache static:', url, err);
           });
-        })
-      );
-    })
+        }));
+      }),
+      caches.open(CACHE_CDN).then(function(c) {
+        return Promise.all(CDN_ASSETS.map(function(url) {
+          return c.add(url).catch(function(err) {
+            console.warn('[SW] Gagal cache CDN:', url, err);
+          });
+        }));
+      })
+    ])
   );
 });
 
@@ -59,40 +67,26 @@ self.addEventListener('install', function(e) {
 self.addEventListener('activate', function(e) {
   e.waitUntil(
     caches.keys().then(function(keys) {
-      var adaCacheLama = keys.some(function(k) {
-        return k.startsWith('zenot-') && k !== CACHE;
-      });
+      var kept = [CACHE_VERSION, CACHE_CDN];
       return Promise.all(
-        keys.filter(function(k) {
-          return k.startsWith('zenot-') && k !== CACHE;
-        }).map(function(k) { return caches.delete(k); })
-      ).then(function() {
-        return self.clients.claim();
-      }).then(function() {
-        return self.clients.matchAll({ type: 'window' }).then(function(clients) {
-          clients.forEach(function(c) { c.postMessage({ type: 'SW_UPDATED' }); });
-          if (adaCacheLama && self.registration.showNotification) {
-            return self.registration.showNotification('🚀 zenOt Diperbarui!', {
-              body: 'Versi terbaru sudah siap. Ketuk untuk reload.',
-              icon: './icon-192.png',
-              badge: './icon-192.png',
-              tag: 'zenot-app-update',
-              vibrate: [100, 50, 100],
-              requireInteraction: false,
-              data: { url: './', action: 'reload' }
-            });
-          }
-        });
+        keys.filter(function(k) { return kept.indexOf(k) === -1; })
+            .map(function(k) { return caches.delete(k); })
+      );
+    }).then(function() {
+      return self.clients.claim();
+    }).then(function() {
+      return self.clients.matchAll({ type: 'window' }).then(function(clients) {
+        clients.forEach(function(c) { c.postMessage({ type: 'SW_UPDATED' }); });
       });
     })
   );
 });
 
-// ─── FETCH: network-first untuk JS app, cache-first untuk CDN ─
+// ─── FETCH ───────────────────────────────────────────────────
 self.addEventListener('fetch', function(e) {
   var url = e.request.url;
 
-  // Supabase → selalu network
+  // Supabase → selalu network, tidak cache
   if (url.indexOf('supabase.co') !== -1) {
     e.respondWith(
       fetch(e.request).catch(function() {
@@ -102,49 +96,49 @@ self.addEventListener('fetch', function(e) {
     return;
   }
 
-  // CDN (fonts, tabler, roughjs) → cache-first
+  // CDN → cache-first
   if (url.indexOf('fonts.googleapis.com') !== -1 ||
       url.indexOf('fonts.gstatic.com')    !== -1 ||
       url.indexOf('cdn.jsdelivr.net')     !== -1) {
     e.respondWith(
-      caches.match(e.request).then(function(cached) {
-        if (cached) return cached;
-        return fetch(e.request).then(function(res) {
-          var clone = res.clone();
-          caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
-          return res;
+      caches.open(CACHE_CDN).then(function(c) {
+        return c.match(e.request).then(function(cached) {
+          if (cached) return cached;
+          return fetch(e.request).then(function(res) {
+            if (res.ok) c.put(e.request, res.clone());
+            return res;
+          });
         });
       })
     );
     return;
   }
 
-  // App assets (JS, CSS, HTML) → NETWORK-FIRST, tidak cache JS app
-  // supaya perubahan file langsung terasa tanpa perlu bump versi
-  var isAppScript = APP_SCRIPTS.some(function(s) {
-    return url.indexOf(s.replace('./', '')) !== -1;
+  // File app (JS, HTML, CSS) → SELALU network, tidak pernah cache
+  var isAppFile = NO_CACHE_PATTERNS.some(function(p) {
+    return url.indexOf(p) !== -1;
   });
 
-  if (isAppScript) {
-    // JS app: selalu ambil dari network, fallback cache
+  if (isAppFile) {
     e.respondWith(
-      fetch(e.request).catch(function() {
+      fetch(e.request, { cache: 'no-store' }).catch(function() {
+        // Offline fallback: coba dari cache lama kalau ada
         return caches.match(e.request);
       })
     );
     return;
   }
 
-  // File lain (index.html, style.css, gambar dll) → network-first + update cache
+  // Static assets (gambar, icon) → cache-first
   e.respondWith(
-    fetch(e.request).then(function(res) {
-      if (res.ok) {
-        var clone = res.clone();
-        caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
-      }
-      return res;
-    }).catch(function() {
-      return caches.match(e.request);
+    caches.open(CACHE_VERSION).then(function(c) {
+      return c.match(e.request).then(function(cached) {
+        if (cached) return cached;
+        return fetch(e.request).then(function(res) {
+          if (res.ok) c.put(e.request, res.clone());
+          return res;
+        });
+      });
     })
   );
 });
