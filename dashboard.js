@@ -1482,7 +1482,7 @@ async function loadDashboard() {
     const today    = _localDateStr(); // FIX: WIB bukan UTC
     const todayYM  = today.slice(0,7);
 
-    const [produkData, stokRaw, jurnalData, jpData, jpChart30, jurnalAllData, channelData, kasJurnalAll] = await Promise.all([
+    const [produkData, stokRaw, jurnalData, jpData, jpChart30, jurnalAllData, channelData, _unused] = await Promise.all([
       dbGet('produk', '&order=katalog.asc,sku_variasi.asc'),
       dbGet('stok'),
       dbGet('jurnal', '&order=created_at.desc&limit=8'),
@@ -1490,7 +1490,7 @@ async function loadDashboard() {
       dbGet('jurnal_penjualan', '&tanggal=gte.' + _localDateOffset(30) + '&order=tanggal.desc'),
       dbGet('jurnal'),
       dbGet('channels').catch(() => []),
-      dbGet('kas_jurnal', '&order=tanggal.desc').catch(() => [])  // jurnal untuk kalkulasi beban bulan ini
+      dbGet('jurnal', '&order=tanggal.desc').catch(() => [])
     ]);
 
     const stokMasukMap = {};
@@ -1591,7 +1591,7 @@ async function loadDashboard() {
     (kasAkunArr||[]).forEach(a => { kasAkunMap[a.id] = a; });
 
     // Filter jurnal bulan ini, ambil semua debit ke akun kelompok 'beban'
-    const kasJurnalBulanIni = (kasJurnalAll||[]).filter(j => (j.tanggal||'').slice(0,7) === bulanIniStr);
+    const kasJurnalBulanIni = (jurnalAllData||[]).filter(j => (j.tanggal||'').slice(0,7) === bulanIniStr);
     let totalBebanNominal = 0;
     const bebanDetailMap = {}; // nama akun → total nominal
     kasJurnalBulanIni.forEach(j => {
