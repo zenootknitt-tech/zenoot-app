@@ -649,12 +649,12 @@ async function keuRenderNeraca() {
   // Tidak ada penyeimbang otomatis — neraca harus seimbang dari data yang benar
   document.getElementById('keu-neraca-modal').innerHTML = modalHtml || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Belum ada akun modal</td></tr>`;
 
-  const totalKM = totalKwj + totalModal;
-  document.getElementById('keu-neraca-total-km').textContent = fmtRp(totalKM);
-
-  const seimbang = Math.abs(totalAset - totalKM) < 1;
-  document.getElementById('keu-neraca-check').textContent = seimbang ? '✅ Seimbang' : `⚠ Selisih ${fmtRp(Math.abs(totalAset-totalKM))}`;
-  document.getElementById('keu-neraca-check').style.color = seimbang ? 'var(--ok)' : 'var(--danger)';
+  const netWorth = totalAset - totalKwj;
+  const nwDisplay = (netWorth < 0 ? '( ' : '') + fmtRp(Math.abs(netWorth)) + (netWorth < 0 ? ' )' : '');
+  document.getElementById('keu-neraca-total-km').textContent = nwDisplay;
+  document.getElementById('keu-neraca-total-km').style.color = netWorth >= 0 ? 'var(--ok)' : 'var(--danger)';
+  document.getElementById('keu-neraca-check').textContent = netWorth >= 0 ? '✅ Sehat' : '⚠ Hutang > Aset';
+  document.getElementById('keu-neraca-check').style.color = netWorth >= 0 ? 'var(--ok)' : 'var(--danger)';
 }
 
 // ─── RASIO & NET WORTH ────────────────────────────────────────
