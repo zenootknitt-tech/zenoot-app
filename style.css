@@ -1133,3 +1133,16 @@ input[type="month"]::-webkit-calendar-picker-indicator {
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
+
+/* ─── STOK TABLE — STICKY HEADER FIX ────────────────────────
+   Sticky bekerja relatif ke scroll container terdekat (overflow-y:auto).
+   #stok-tbl-wrap adalah scroll container vertikal.
+   .tbl-wrap di dalamnya hanya scroll horizontal.              */
+#stok-tbl-wrap .tbl th {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--cream3);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05), 0 2px 6px rgba(0,0,0,0.4);
+}

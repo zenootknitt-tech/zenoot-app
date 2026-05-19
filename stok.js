@@ -161,7 +161,8 @@ document.getElementById('page-stok').innerHTML = `
       <i class="ti ti-package"></i> Semua SKU
       <span id="stok-summary" style="font-size:12px;color:var(--ink3);font-weight:400;margin-left:auto"></span>
     </div>
-    <div class="tbl-wrap" id="stok-tbl-wrap" style="max-height:65vh;overflow-y:auto"><table class="tbl">
+    <div id="stok-tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;">
+    <div class="tbl-wrap" style="overflow-x:auto;overflow-y:visible;"><table class="tbl">
       <thead><tr>
         <th>SKU Variasi</th><th>Katalog</th><th>Boss</th>
         <th onclick="stokToggleSort('sisa')" style="cursor:pointer;user-select:none;white-space:nowrap">Sisa <span id="sort-icon-sisa">⇅</span></th>
@@ -173,6 +174,7 @@ document.getElementById('page-stok').innerHTML = `
         <tr><td colspan="10" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
       </tbody>
     </table></div>
+    </div>
   </div>
 `;
 
