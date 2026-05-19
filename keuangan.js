@@ -305,6 +305,7 @@ async function keuLoadHutang() {
       dbGet('hutang_bayar', '&order=tanggal.desc'),
     ]);
     _keuHutangAll = hutang || [];
+    window._keuBayarAll = bayar || []; // expose untuk laporan di kas.js
     keuRenderHutangTabel(_keuHutangAll, bayar || []);
     keuRenderBayarTabel(bayar || [], _keuHutangAll);
     keuUpdateHutangSummary(_keuHutangAll, bayar || []);
@@ -584,12 +585,16 @@ async function keuRenderNeraca() {
   const labaRugi   = totalPend - totalBeban;
   let totalModal = labaRugi;
   let modalHtml = '';
+  // Persediaan otomatis — tampil PERTAMA, tidak miring, sebagai informasi aset
+  if (nilaiPersediaan > 0) {
+    totalModal += nilaiPersediaan;
+    modalHtml += `<tr><td style="padding-left:12px;color:var(--ink3)">Modal dalam Persediaan <span style="font-size:10px">(otomatis dari stok)</span></td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
+  }
+  // Akun modal dari jurnal
   modalAkun.forEach(a => {
-    const s = a.saldoKredit - a.saldoDebit;  // negatif jika akun debit-normal (defisit)
+    const s = a.saldoKredit - a.saldoDebit;
     totalModal += s;
-    const display = s < 0
-      ? `( ${fmtRp(Math.abs(s))} )`
-      : fmtRp(s);
+    const display = s < 0 ? `( ${fmtRp(Math.abs(s))} )` : fmtRp(s);
     const color = s < 0 ? 'var(--danger)' : 'inherit';
     modalHtml += `<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right;color:${color}">${display}</td></tr>`;
   });
@@ -597,24 +602,19 @@ async function keuRenderNeraca() {
     <td style="padding-left:12px;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi>=0?'Laba':'Rugi'} Berjalan</td>
     <td style="text-align:right;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi<0?'( ':''} ${fmtRp(Math.abs(labaRugi))} ${labaRugi<0?')':''}</td>
   </tr>`;
-  // Persediaan otomatis: modal yang terkunci dalam bentuk barang
-  if (nilaiPersediaan > 0) {
-    totalModal += nilaiPersediaan;
-    modalHtml += `<tr><td style="padding-left:12px;color:var(--ink3);font-style:italic">Modal dalam Persediaan <span style="font-size:10px">(otomatis dari stok)</span></td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
-  }
-  // Jika totalModal masih tidak seimbang dengan aset setelah semua akun,
-  // tampilkan baris "Defisit Belum Tercatat" otomatis agar neraca selalu informatif
+  // Ekuitas Negatif — nilai real defisit = Aset - Kewajiban - Modal yg sudah dihitung
+  // Ini adalah nilai jujur: seberapa jauh hutang melampaui ekuitas pemilik
   const gapModal = totalAset - totalKwj - totalModal;
   if (Math.abs(gapModal) > 0) {
-    const isDefisit = gapModal < 0;
+    const isNegatif = gapModal < 0;
     totalModal += gapModal;
+    const ekuitasVal = totalAset - totalKwj; // nilai ekuitas sesungguhnya
     modalHtml += `<tr>
-      <td style="padding-left:12px;color:var(--ink3);font-style:italic">
-        ${isDefisit ? 'Defisit Belum Dicatat' : 'Surplus Belum Dicatat'}
-        <span style="font-size:10px">(otomatis)</span>
+      <td style="padding-left:12px;color:var(--ink3)">
+        Ekuitas Negatif <span style="font-size:10px">(otomatis)</span>
       </td>
-      <td style="text-align:right;color:${isDefisit?'var(--danger)':'var(--ok)'}">
-        ${isDefisit ? '( '+fmtRp(Math.abs(gapModal))+' )' : fmtRp(gapModal)}
+      <td style="text-align:right;color:${isNegatif?'var(--danger)':'var(--ok)'}">
+        ${isNegatif ? '( '+fmtRp(Math.abs(gapModal))+' )' : fmtRp(gapModal)}
       </td>
     </tr>`;
   }
