@@ -1405,7 +1405,7 @@ function _renderBeban(bebanData, omsetBln) {
   const el = document.getElementById('dash-beban-wrap');
   if (!el) return;
   if (!bebanData || !bebanData.length) {
-    el.innerHTML = '<div style="color:var(--ink3);font-style:italic;font-size:13px">Belum ada data beban. Isi di menu Beban Operasional.</div>';
+    el.innerHTML = '<div style="color:var(--ink3);font-style:italic;font-size:13px">Belum ada beban bulan ini. Catat via Kas &amp; Jurnal → pilih akun kelompok Beban.</div>';
     return;
   }
 
@@ -1482,7 +1482,7 @@ async function loadDashboard() {
     const today    = _localDateStr(); // FIX: WIB bukan UTC
     const todayYM  = today.slice(0,7);
 
-    const [produkData, stokRaw, jurnalData, jpData, jpChart30, jurnalAllData, channelData, bebanData] = await Promise.all([
+    const [produkData, stokRaw, jurnalData, jpData, jpChart30, jurnalAllData, channelData, kasJurnalAll] = await Promise.all([
       dbGet('produk', '&order=katalog.asc,sku_variasi.asc'),
       dbGet('stok'),
       dbGet('jurnal', '&order=created_at.desc&limit=8'),
@@ -1490,7 +1490,7 @@ async function loadDashboard() {
       dbGet('jurnal_penjualan', '&tanggal=gte.' + _localDateOffset(30) + '&order=tanggal.desc'),
       dbGet('jurnal'),
       dbGet('channels').catch(() => []),
-      dbGet('beban_operasional', '&tipe=eq.toko_utama').catch(() => [])
+      dbGet('kas_jurnal', '&order=tanggal.desc').catch(() => [])  // jurnal untuk kalkulasi beban bulan ini
     ]);
 
     const stokMasukMap = {};
@@ -1583,15 +1583,26 @@ async function loadDashboard() {
       elLabaDelta.textContent = 'marjin ' + marjin + '%';
     }
 
-    // ─ Beban & Laba Bersih — BARU
-    let totalBebanNominal = 0;
-    const bebanArr = bebanData || [];
-    bebanArr.forEach(r => { totalBebanNominal += Number(r.nominal || r.jumlah || 0); });
+    // ─ Beban & Laba Bersih — dari jurnal kas akun kelompok 'beban' bulan ini
+    // Ambil akun map dari kas_jurnal + kas_akun (sudah ada di jurnalAllData)
+    const bulanIniStr = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
+    const kasAkunArr  = await dbGet('kas_akun', '').catch(() => []);
+    const kasAkunMap  = {};
+    (kasAkunArr||[]).forEach(a => { kasAkunMap[a.id] = a; });
 
-    // Fallback kalau nominal 0: coba hitung dari persen × omset
-    if (totalBebanNominal === 0 && omsetBln > 0) {
-      bebanArr.forEach(r => { totalBebanNominal += (Number(r.beban_persen||0)/100) * omsetBln; });
-    }
+    // Filter jurnal bulan ini, ambil semua debit ke akun kelompok 'beban'
+    const kasJurnalBulanIni = (kasJurnalAll||[]).filter(j => (j.tanggal||'').slice(0,7) === bulanIniStr);
+    let totalBebanNominal = 0;
+    const bebanDetailMap = {}; // nama akun → total nominal
+    kasJurnalBulanIni.forEach(j => {
+      const akunDebit = kasAkunMap[j.akun_debit_id];
+      if (akunDebit && akunDebit.kelompok === 'beban') {
+        const nominal = Number(j.nominal || j.debit || 0);
+        totalBebanNominal += nominal;
+        const nama = akunDebit.nama || 'Beban';
+        bebanDetailMap[nama] = (bebanDetailMap[nama] || 0) + nominal;
+      }
+    });
 
     const elBeban = document.getElementById('d-beban');
     const elBebanDelta = document.getElementById('d-beban-delta');
@@ -1610,36 +1621,24 @@ async function loadDashboard() {
       elLabaBersih.style.color = labaBersih>=0 ? 'var(--ok)' : 'var(--danger)';
     }
 
-    // ─ Target Omset — hitung dari nominal beban + rasio Shopee
+    // ─ Target Omset — dari jurnal beban bulan ini ÷ rasio Shopee
+    // Sumber tunggal: total beban dari jurnal kas, bukan tabel beban_operasional
     let target = _getTarget();
-    if (bebanArr.length > 0) {
-      // Cara baru: sum kolom nominal
-      const totalNominal = bebanArr.reduce((s,r) => s + (Number(r.nominal)||0), 0);
-      if (totalNominal > 0) {
-        // Ambil rasio rata-rata channel Shopee dari channel_beban
-        try {
-          const [chData, chBeban] = await Promise.all([
-            dbGet('channels', '&kategori=eq.toko_utama').catch(()=>[]),
-            dbGet('channel_beban', '').catch(()=>[])
-          ]);
-          const bebanChMap = {};
-          (chBeban||[]).forEach(b => { bebanChMap[b.channel_id] = b; });
-          let sumR = 0, cntR = 0;
-          (chData||[]).forEach(ch => {
-            if (bebanChMap[ch.id]) { sumR += (bebanChMap[ch.id].beban_persen||0); cntR++; }
-          });
-          const rasio = cntR > 0 ? sumR / cntR : 0;
-          if (rasio > 0) target = Math.round(totalNominal / (rasio / 100));
-        } catch(e) { /* fallback ke target localStorage */ }
-      } else {
-        // Fallback cara lama: coba baca dari nama_beban
-        const bebanRow   = bebanArr.find(r => r.nama_beban && !isNaN(Number(String(r.nama_beban).replace(/[.,]/g,''))));
-        const totalRasio = bebanArr.reduce((s,r) => s + (Number(r.beban_persen)||0), 0);
-        if (bebanRow && totalRasio > 0) {
-          const nominalBeban = Number(String(bebanRow.nama_beban).replace(/[.,]/g,''));
-          target = Math.round(nominalBeban / (totalRasio / 100));
-        }
-      }
+    if (totalBebanNominal > 0) {
+      try {
+        const [chData, chBeban] = await Promise.all([
+          dbGet('channels', '').catch(()=>[]),
+          dbGet('channel_beban', '').catch(()=>[])
+        ]);
+        const bebanChMap = {};
+        (chBeban||[]).forEach(b => { bebanChMap[b.channel_id] = b; });
+        let sumR = 0, cntR = 0;
+        (chData||[]).forEach(ch => {
+          if (bebanChMap[ch.id]) { sumR += (bebanChMap[ch.id].beban_persen||0); cntR++; }
+        });
+        const rasio = cntR > 0 ? sumR / cntR : 0;
+        if (rasio > 0) target = Math.round(totalBebanNominal / (rasio / 100));
+      } catch(e) { /* fallback ke target localStorage */ }
     }
 
     const targetEl = document.getElementById('d-target');
@@ -1750,7 +1749,7 @@ async function loadDashboard() {
       _renderBoss(_jpForRender, _stokForBoss);
       _renderChannel(_jpForRender);           // BARU
       _renderKatalog(_jpForRender, _dashStokData); // BARU
-      _renderBeban(bebanArr, omsetBln);       // BARU
+      _renderBeban(Object.entries(bebanDetailMap).map(([nama,nominal])=>({nama_beban:nama,nominal})), omsetBln);
       if (typeof rerenderUI === "function") rerenderUI(document.getElementById("page-dashboard"));
     }, 300); // FIX: dinaikkan agar canvas punya offsetWidth saat dirender
 

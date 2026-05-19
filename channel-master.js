@@ -10,10 +10,7 @@ document.getElementById('page-channel').innerHTML = `
       style="padding:8px 20px;font-family:var(--f);font-size:13px;font-weight:700;border:2px solid var(--ink);border-bottom:none;background:var(--ink);color:var(--cream);cursor:pointer;margin-bottom:-2px">
       <i class="ti ti-antenna"></i> Channel
     </button>
-    <button id="ch-tab-beban" onclick="chSwitchTab('beban')"
-      style="padding:8px 20px;font-family:var(--f);font-size:13px;font-weight:700;border:2px solid var(--ink);border-bottom:none;border-left:none;background:var(--cream);color:var(--ink);cursor:pointer;margin-bottom:-2px">
-      <i class="ti ti-calculator"></i> Beban Operasional
-    </button>
+
     <button id="ch-tab-supplier" onclick="chSwitchTab('supplier')"
       style="padding:8px 20px;font-family:var(--f);font-size:13px;font-weight:700;border:2px solid var(--ink);border-bottom:none;border-left:none;background:var(--cream);color:var(--ink);cursor:pointer;margin-bottom:-2px">
       <i class="ti ti-truck"></i> Supplier &amp; ROP
@@ -117,71 +114,6 @@ document.getElementById('page-channel').innerHTML = `
 
   </div><!-- end tab channel -->
 
-  <!-- ══ TAB: BEBAN OPERASIONAL ══ -->
-  <div id="ch-tab-content-beban" style="display:none">
-
-    <div style="margin-bottom:14px;padding:10px 14px;background:var(--cream2);border:2px dashed var(--ink3);border-radius:4px;font-size:13px;color:var(--ink2);line-height:1.7">
-      <b>Beban Operasional Bulanan</b> — fixed cost bulanan (sewa, listrik, gaji, dll).<br>
-      Total beban ÷ rasio beban Shopee = <b>Target Omset Bulanan</b> → dibagi hari = <b>Target Harian</b>.
-    </div>
-
-    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
-
-      <!-- Kiri: 10 baris input -->
-      <div class="card" style="flex:1 1 320px;min-width:280px">
-        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
-          <span><i class="ti ti-list"></i> Rincian Beban</span>
-          <button class="btn btn-sm btn-primary" onclick="simpanBebanOps()" id="btn-simpan-beban">
-            <i class="ti ti-device-floppy"></i> Simpan
-          </button>
-        </div>
-        <div style="display:flex;gap:6px;padding:0 0 6px;border-bottom:1px dashed var(--ink3);margin-bottom:6px">
-          <span style="flex:1;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase">Nama Beban</span>
-          <span style="width:120px;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;text-align:right">Nominal (Rp)</span>
-        </div>
-        <div id="beban-ops-rows"></div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:2px solid var(--ink);margin-top:4px">
-          <span style="font-weight:700;font-size:13px">Total Beban</span>
-          <span id="beban-ops-total" style="font-weight:700;font-size:15px;color:var(--danger)">Rp0</span>
-        </div>
-      </div>
-
-      <!-- Kanan: Kalkulasi otomatis -->
-      <div style="flex:0 0 260px;min-width:240px">
-        <div class="card" style="position:sticky;top:16px">
-          <div class="card-title"><i class="ti ti-chart-bar"></i> Kalkulasi Target</div>
-          <div style="font-size:13px;line-height:2.2;color:var(--ink2)">
-            <div style="display:flex;justify-content:space-between;border-bottom:1px dashed var(--ink3);padding-bottom:6px;margin-bottom:6px">
-              <span>Total Beban</span>
-              <span id="ko-total" style="font-weight:700;color:var(--danger)">—</span>
-            </div>
-            <div style="display:flex;justify-content:space-between">
-              <span>Rasio Beban Shopee</span>
-              <span id="ko-rasio" style="font-weight:700;color:var(--danger)">—</span>
-            </div>
-            <div style="display:flex;justify-content:space-between">
-              <span style="font-size:11px;color:var(--ink3)">rata-rata semua channel Shopee</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-top:6px;border-top:1px dashed var(--ink3);padding-top:6px">
-              <span>Target Omset Bulanan</span>
-              <span id="ko-target-bulanan" style="font-weight:700;color:var(--ink)">—</span>
-            </div>
-            <div style="display:flex;justify-content:space-between">
-              <span style="font-size:11px;color:var(--ink3)">beban ÷ rasio%</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-top:6px;border-top:2px solid var(--ink);padding-top:6px">
-              <span><b>Target Harian</b></span>
-              <span id="ko-target-harian" style="font-weight:700;font-size:15px;color:var(--ok)">—</span>
-            </div>
-            <div style="display:flex;justify-content:space-between">
-              <span style="font-size:11px;color:var(--ink3)" id="ko-hari-label">÷ hari bulan ini</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div><!-- end tab beban -->
 
   <!-- ══ TAB: SUPPLIER & ROP ══ -->
   <div id="ch-tab-content-supplier" style="display:none">
@@ -246,7 +178,7 @@ setTimeout(() => { if (typeof rerenderUI === 'function') rerenderUI(document.get
 
 // ─── TAB SWITCH ──────────────────────────────────────────────
 function chSwitchTab(tab) {
-  var tabs    = ['channel', 'beban', 'supplier'];
+  var tabs    = ['channel', 'supplier'];
   tabs.forEach(function(t) {
     var btn     = document.getElementById('ch-tab-' + t);
     var content = document.getElementById('ch-tab-content-' + t);
@@ -257,121 +189,7 @@ function chSwitchTab(tab) {
     }
     if (content) content.style.display = active ? 'block' : 'none';
   });
-  if (tab === 'beban')    loadBebanOps();
   if (tab === 'supplier') loadSupplierROP();
-}
-
-var _bebanOpsData = [];
-
-async function loadBebanOps() {
-  try {
-    const data = await dbGet('beban_operasional', '&tipe=eq.toko_utama&order=id.asc');
-    _bebanOpsData = data || [];
-  } catch(e) { _bebanOpsData = []; }
-  renderBebanOpsRows();
-  updateBebanOpsKalkulasi();
-}
-
-function renderBebanOpsRows() {
-  var wrap = document.getElementById('beban-ops-rows');
-  if (!wrap) return;
-  var html = '';
-  for (var i = 0; i < 10; i++) {
-    var row = _bebanOpsData[i] || {};
-    var rowIdAttr = row.id ? 'data-id="'+row.id+'"' : '';
-    html += '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">' +
-      '<input type="text" ' + rowIdAttr + ' data-idx="'+i+'" data-field="nama" ' +
-        'value="' + (row.nama_beban || '').replace(/"/g,'&quot;') + '" ' +
-        'placeholder="Nama beban..." ' +
-        'style="flex:1;font-family:var(--f);font-size:12px;padding:4px 6px;border:1.5px solid var(--ink3);background:var(--cream);min-width:0" ' +
-        'oninput="bebanOpsChanged()"> ' +
-      '<input type="text" inputmode="numeric" data-idx="'+i+'" data-field="nominal" ' +
-        'value="' + (row.nominal ? parseInt(row.nominal).toLocaleString('id-ID') : '') + '" ' +
-        'placeholder="0" ' +
-        'style="width:100px;font-family:var(--f);font-size:12px;padding:4px 6px;border:1.5px solid var(--ink3);background:var(--cream);text-align:right" ' +
-        'oninput="(function(el){var r=el.value.replace(/\\./g,\'\').replace(/[^0-9]/g,\'\');el.value=r?parseInt(r).toLocaleString(\'id-ID\'):\'\';bebanOpsChanged();})(this)">' +
-    '</div>';
-  }
-  wrap.innerHTML = html;
-}
-
-function bebanOpsChanged() { updateBebanOpsKalkulasi(); }
-
-function updateBebanOpsKalkulasi() {
-  var inputs = document.querySelectorAll('#beban-ops-rows input[data-field="nominal"]');
-  var total  = 0;
-  inputs.forEach(function(inp) { total += parseFloat(inp.value) || 0; });
-
-  var fmt     = 'Rp' + Math.round(total).toLocaleString('id-ID');
-  var totalEl = document.getElementById('beban-ops-total');
-  var koTotal = document.getElementById('ko-total');
-  if (totalEl) totalEl.textContent = fmt;
-  if (koTotal) koTotal.textContent = fmt;
-
-  // Rata-rata rasio beban channel Shopee
-  var shopeeIds = [];
-  var tbody = document.getElementById('ch-tbody-toko_utama');
-  if (tbody) {
-    tbody.querySelectorAll('[data-action="setting-beban"]').forEach(function(btn) {
-      if (btn.dataset.id) shopeeIds.push(btn.dataset.id);
-    });
-  }
-  var sumRasio = 0; var cntRasio = 0;
-  shopeeIds.forEach(function(id) {
-    if (_chBebanMap[id]) { sumRasio += (_chBebanMap[id].beban_persen||0); cntRasio++; }
-  });
-  if (cntRasio === 0) {
-    Object.values(_chBebanMap).forEach(function(b) { sumRasio += (b.beban_persen||0); cntRasio++; });
-  }
-  var shopeeBeban = cntRasio > 0 ? sumRasio / cntRasio : 0;
-
-  var koRasio   = document.getElementById('ko-rasio');
-  var koTarget  = document.getElementById('ko-target-bulanan');
-  var koHarian  = document.getElementById('ko-target-harian');
-  var koHariLbl = document.getElementById('ko-hari-label');
-
-  var rasioTxt = shopeeBeban > 0 ? shopeeBeban.toFixed(1)+'%' : '—';
-  if (koRasio) koRasio.textContent = rasioTxt;
-
-  if (total > 0 && shopeeBeban > 0) {
-    var targetOmset  = Math.round(total / (shopeeBeban / 100));
-    var now          = new Date();
-    var hariDlmBulan = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-    var targetHarian = Math.round(targetOmset / hariDlmBulan);
-    if (koTarget)  koTarget.textContent  = 'Rp' + targetOmset.toLocaleString('id-ID');
-    if (koHarian)  koHarian.textContent  = 'Rp' + targetHarian.toLocaleString('id-ID');
-    if (koHariLbl) koHariLbl.textContent = '÷ ' + hariDlmBulan + ' hari (bulan ini)';
-  } else {
-    if (koTarget)  koTarget.textContent  = '—';
-    if (koHarian)  koHarian.textContent  = '—';
-  }
-}
-
-async function simpanBebanOps() {
-  var btn = document.getElementById('btn-simpan-beban');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Menyimpan...'; }
-  try {
-    var rows = [];
-    for (var i = 0; i < 10; i++) {
-      var namaEl    = document.querySelector('#beban-ops-rows input[data-field="nama"][data-idx="'+i+'"]');
-      var nominalEl = document.querySelector('#beban-ops-rows input[data-field="nominal"][data-idx="'+i+'"]');
-      var nama    = namaEl    ? namaEl.value.trim()            : '';
-      var nominal = nominalEl ? (parseInt((nominalEl.value||'').replace(/\./g,'').replace(/[^0-9]/g,''),10)||0) : 0;
-      if (nama || nominal > 0) {
-        rows.push({ nama: nama || ('Beban '+(i+1)), nominal: nominal });
-      }
-    }
-    const existing = await dbGet('beban_operasional', '&tipe=eq.toko_utama');
-    await Promise.all((existing||[]).map(function(r){ return dbDelete('beban_operasional', r.id); }));
-    await Promise.all(rows.map(function(r){
-      return dbInsert('beban_operasional', { tipe:'toko_utama', nama_beban:r.nama, nominal:r.nominal, beban_persen:0 });
-    }));
-    await loadBebanOps();
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-device-floppy"></i> Simpan'; }
-  } catch(err) {
-    alert('Gagal simpan: ' + err.message);
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-device-floppy"></i> Simpan'; }
-  }
 }
 
 // ─── CACHE BEBAN PER CHANNEL ─────────────────────────────────
@@ -646,7 +464,6 @@ async function simpanKategoriBeban() {
 
 // ─── INIT ────────────────────────────────────────────────────
 loadChannelMaster();
-loadBebanOps();
 
 // ─── MODAL CHANNEL (tambah/edit nama) ────────────────────────
 document.body.insertAdjacentHTML('beforeend', `
