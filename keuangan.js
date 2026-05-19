@@ -520,7 +520,12 @@ async function keuHitungNilaiPersediaan() {
 
 async function keuRenderNeraca() {
   await keuLoadKasData();
-  const bayar = await dbGet('hutang_bayar').catch(() => []) || [];
+  // Pastikan data hutang selalu fresh — tidak bergantung tab Hutang sudah dibuka duluan
+  const [hutangFresh, bayar] = await Promise.all([
+    dbGet('hutang', '&order=created_at.desc').catch(() => []),
+    dbGet('hutang_bayar').catch(() => []),
+  ]);
+  _keuHutangAll = hutangFresh || [];
   const akunMap = keuHitungSaldoAkun();
   const fmtRp = v => fmtRpFull(v||0);
 
@@ -540,14 +545,29 @@ async function keuRenderNeraca() {
 
   document.getElementById('keu-neraca-total-aset').textContent = fmtRp(totalAset);
 
-  // KEWAJIBAN — dari hutang sisa
-  const sisaHutang = _keuHutangAll.reduce((s,h) => s + Math.max(0,(h.pokok||0) - keuGetSudahBayar(h.id, bayar)), 0);
+  // KEWAJIBAN
+  // Sumber 1: modul Hutang — tampil per kreditur (bukan lump sum)
   const kwjAkun = Object.values(akunMap).filter(a => a.kelompok === 'kewajiban');
-  let totalKwj = sisaHutang;
-  let kwjHtml = _keuHutangAll.length
-    ? `<tr><td style="padding-left:12px">Hutang Pinjaman</td><td style="text-align:right;color:var(--danger)">${fmtRp(sisaHutang)}</td></tr>`
-    : '';
-  kwjAkun.forEach(a => { const s = Math.max(0,a.saldoKredit-a.saldoDebit); totalKwj+=s; kwjHtml+=`<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right;color:var(--danger)">${fmtRp(s)}</td></tr>`; });
+  let totalKwj = 0;
+  let kwjHtml = '';
+  // Per kreditur dari modul Hutang
+  _keuHutangAll.forEach(h => {
+    const sisa = Math.max(0, (h.pokok||0) - keuGetSudahBayar(h.id, bayar));
+    if (sisa > 0) {
+      totalKwj += sisa;
+      kwjHtml += `<tr><td style="padding-left:12px">${h.kreditur||'Hutang'}</td><td style="text-align:right;color:var(--danger)">${fmtRp(sisa)}</td></tr>`;
+    }
+  });
+  // Sumber 2: akun jurnal kelompok kewajiban (hutang usaha supplier dll)
+  // Hanya tampil jika TIDAK ada nama yang sama di modul Hutang (hindari double count)
+  const hutangNamaSet = new Set(_keuHutangAll.map(h => (h.kreditur||'').toLowerCase()));
+  kwjAkun.forEach(a => {
+    const s = Math.max(0, a.saldoKredit - a.saldoDebit);
+    if (s > 0 && !hutangNamaSet.has((a.nama||'').toLowerCase())) {
+      totalKwj += s;
+      kwjHtml += `<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right;color:var(--danger)">${fmtRp(s)}</td></tr>`;
+    }
+  });
   document.getElementById('keu-neraca-kewajiban').innerHTML = kwjHtml || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Tidak ada kewajiban</td></tr>`;
   document.getElementById('keu-neraca-total-kewajiban').textContent = fmtRp(totalKwj);
 
