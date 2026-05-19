@@ -268,6 +268,14 @@ document.body.insertAdjacentHTML('beforeend', `
       </div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="form-group" style="flex:1 1 180px"><label>Akun Kewajiban (Jurnal Kredit)</label>
+        <select id="keu-htg-akun-kwj" style="width:100%"><option value="">— pilih akun kewajiban —</option></select>
+      </div>
+      <div class="form-group" style="flex:1 1 180px"><label>Masuk ke Akun (Jurnal Debit)</label>
+        <select id="keu-htg-akun-aset" style="width:100%"><option value="">— pilih akun aset/kas —</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
       <div class="form-group" style="flex:1 1 130px"><label>Pokok Pinjaman (Rp)</label><input type="text" inputmode="numeric" id="keu-htg-pokok" placeholder="0"></div>
       <div class="form-group" style="flex:1 1 120px"><label>Bunga / Tahun (%)</label><input type="number" id="keu-htg-bunga" placeholder="0" step="0.1"></div>
       <div class="form-group" style="flex:1 1 120px"><label>Tenor (bulan)</label><input type="number" id="keu-htg-tenor" placeholder="mis: 24"></div>
@@ -392,6 +400,7 @@ function keuShowFormHutang(data) {
   document.getElementById('keu-htg-id').value            = '';
   document.getElementById('keu-htg-kreditur').value      = data?.kreditur || '';
   document.getElementById('keu-htg-jenis').value         = data?.jenis || 'bank';
+  keuPopulateAkunHutang(data?.akun_kwj_id || '', data?.akun_aset_id || '');
   idrSet('keu-htg-pokok', data?.pokok || 0);
   document.getElementById('keu-htg-bunga').value         = data?.bunga || '';
   document.getElementById('keu-htg-tenor').value         = data?.tenor || '';
@@ -406,7 +415,10 @@ function keuShowFormHutang(data) {
 function keuCancelFormHutang() { hideModal('modal-keu-hutang'); }
 
 async function keuSimpanHutang() {
-  const id = document.getElementById('keu-htg-id').value;
+  const id        = document.getElementById('keu-htg-id').value;
+  const akunKwjId = document.getElementById('keu-htg-akun-kwj').value  || null;
+  const akunAsetId= document.getElementById('keu-htg-akun-aset').value || null;
+  const tglMulai  = document.getElementById('keu-htg-tgl-mulai').value || new Date().toISOString().split('T')[0];
   const data = {
     kreditur:         document.getElementById('keu-htg-kreditur').value.trim(),
     jenis:            document.getElementById('keu-htg-jenis').value,
@@ -414,16 +426,48 @@ async function keuSimpanHutang() {
     bunga:            parseFloat(document.getElementById('keu-htg-bunga').value) || 0,
     tenor:            parseInt(document.getElementById('keu-htg-tenor').value) || null,
     cicilan_per_bulan:idrVal('keu-htg-cicilan'),
-    tgl_mulai:        document.getElementById('keu-htg-tgl-mulai').value || null,
+    tgl_mulai:        tglMulai,
     jatuh_tempo:      document.getElementById('keu-htg-jatuh-tempo').value || null,
     keterangan:       document.getElementById('keu-htg-ket').value.trim() || null,
+    akun_kwj_id:      akunKwjId,
+    akun_aset_id:     akunAsetId,
   };
   if (!data.kreditur) { alert('Nama kreditur wajib diisi!'); return; }
   if (!data.pokok)    { alert('Pokok pinjaman wajib diisi!'); return; }
   try {
-    if (id) { await dbUpdate('hutang', id, data); } else { await dbInsert('hutang', data); }
+    if (id) {
+      await dbUpdate('hutang', id, data);
+    } else {
+      // Hutang baru → generate jurnal otomatis jika akun dipilih
+      await dbInsert('hutang', data);
+      if (akunAsetId && akunKwjId && data.pokok > 0) {
+        await dbInsert('jurnal', {
+          tanggal:      tglMulai,
+          tipe:         'masuk',
+          nominal:      data.pokok,
+          akun_debit_id:  akunAsetId,
+          akun_kredit_id: akunKwjId,
+          keterangan:   'Hutang ' + data.kreditur + (data.keterangan ? ' — ' + data.keterangan : ''),
+          referensi:    null,
+        });
+      }
+    }
     keuCancelFormHutang(); keuLoadHutang();
   } catch(e) { alert('Gagal simpan: ' + e.message); }
+}
+
+// ─── POPULATE DROPDOWN AKUN DI FORM HUTANG ─────────────────
+async function keuPopulateAkunHutang(selectedKwj, selectedAset) {
+  const akuns = await dbGet('kas_akun', '&order=kode.asc').catch(() => []);
+  const selKwj  = document.getElementById('keu-htg-akun-kwj');
+  const selAset = document.getElementById('keu-htg-akun-aset');
+  if (!selKwj || !selAset) return;
+  const kwjOpts  = akuns.filter(a => a.kelompok === 'kewajiban');
+  const asetOpts = akuns.filter(a => a.kelompok === 'aset');
+  selKwj.innerHTML  = '<option value="">— pilih akun kewajiban —</option>' +
+    kwjOpts.map(a => `<option value="${a.id}" ${String(a.id)===String(selectedKwj)?'selected':''}>${a.kode} · ${a.nama}</option>`).join('');
+  selAset.innerHTML = '<option value="">— pilih akun aset/kas —</option>' +
+    asetOpts.map(a => `<option value="${a.id}" ${String(a.id)===String(selectedAset)?'selected':''}>${a.kode} · ${a.nama}</option>`).join('');
 }
 
 async function keuEditHutang(id) {
@@ -449,6 +493,19 @@ async function keuSimpanPembayaran() {
   if (!nominal)  { alert('Nominal wajib diisi!'); return; }
   try {
     await dbInsert('hutang_bayar', { hutang_id: hutangId, tanggal: tgl, nominal, keterangan: ket || null });
+    // Generate jurnal bayar hutang otomatis jika hutang punya akun terdaftar
+    const htg = _keuHutangAll.find(h => String(h.id) === String(hutangId));
+    if (htg && htg.akun_kwj_id && htg.akun_aset_id) {
+      await dbInsert('jurnal', {
+        tanggal:        tgl,
+        tipe:           'keluar',
+        nominal:        nominal,
+        akun_debit_id:  htg.akun_kwj_id,   // Debit kewajiban (kurangi hutang)
+        akun_kredit_id: htg.akun_aset_id,  // Kredit aset (kas keluar)
+        keterangan:     'Bayar hutang ' + htg.kreditur + (ket ? ' — ' + ket : ''),
+        referensi:      null,
+      });
+    }
     idrSet('keu-bayar-nominal', 0);
     document.getElementById('keu-bayar-ket').value = '';
     keuLoadHutang();
