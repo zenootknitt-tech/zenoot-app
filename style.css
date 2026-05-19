@@ -316,6 +316,7 @@ body.sidebar-mini .sidebar-footer::before{
   display:-webkit-flex;display:flex;
   -webkit-flex-direction:column;flex-direction:column;
   overflow:hidden;min-width:0;min-height:0;height:100%;
+  isolation:isolate;
 }
 
 /* ─── TOPBAR ─────────────────────────────────────────────── */
@@ -513,7 +514,15 @@ body.sidebar-mini .sidebar-footer::before{
 .bar-pct{width:30px;text-align:right;font-weight:700;font-size:12px}
 
 /* ─── TABLE ──────────────────────────────────────────────── */
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* ─── FIX STICKY HEADER TABEL ────────────────────────────
+   overflow-x:auto di tbl-wrap memutus sticky context vertikal.
+   Solusi: tbl-wrap hanya overflow-x, sticky bekerja via .content
+   sebagai scroll container vertikal.                            */
+.tbl-wrap{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  /* JANGAN tambah overflow-y — biarkan .content yang scroll vertikal */
+}
 .tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
 .tbl th{
   text-align:left;padding:8px 10px;font-size:13px;font-weight:700;color:var(--ink2);
@@ -521,7 +530,8 @@ body.sidebar-mini .sidebar-footer::before{
   white-space:nowrap;font-family:var(--f2);
   position:-webkit-sticky;position:sticky;top:0;
   background:var(--cream3);z-index:2;
-  box-shadow:none;
+  /* Shadow bawah agar header terlihat terpisah dari row */
+  box-shadow:0 1px 0 rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.3);
 }
 .tbl td{padding:7px 8px;border-bottom:1px solid var(--cream3);white-space:nowrap;font-size:14px;font-weight:500}
 .tbl tr:last-child td{border:none}
@@ -861,7 +871,7 @@ body.sidebar-mini .sidebar-footer::before{
   z-index: 1;
 }
 
-/* card-title, tbl-wrap selalu di atas canvas */
+/* card-title selalu di atas canvas */
 .card-title {
   position: relative;
   z-index: 200;
