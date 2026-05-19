@@ -109,9 +109,17 @@ function notifSetupTargetHarian() {
     localStorage.setItem('zenot_notif_target_tgl', hariIni);
   }
 
-  // Cek setiap menit
-  setInterval(cekDanKirim, 60 * 1000);
-  // Langsung cek saat load (untuk kasus HP baru dibuka jam 16.x)
+  // Cek setiap menit — pause otomatis saat tab tidak aktif (hemat baterai)
+  let _notifInterval = setInterval(cekDanKirim, 60 * 1000);
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      clearInterval(_notifInterval);
+    } else {
+      cekDanKirim(); // cek langsung saat tab aktif lagi
+      _notifInterval = setInterval(cekDanKirim, 60 * 1000);
+    }
+  });
+  // Langsung cek saat load
   cekDanKirim();
 }
 

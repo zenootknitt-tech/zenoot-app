@@ -96,18 +96,11 @@
     });
   }
 
-  // ── rerenderUI: dipanggil modul lain setelah inject HTML dinamis
+  // rerenderUI — dikosongkan untuk performa (canvas rough tidak digunakan)
+  // Semua sketch functions sudah no-op; querySelector loop dihapus agar tidak boros CPU/GPU
   function rerenderUI(root) {
-    if (typeof rough === 'undefined') return;
-    const scope = root || document;
-    scope.querySelectorAll('.btn:not(.ch-mini-btn)').forEach(el => sketchBtn(el));
-    scope.querySelectorAll('.card, .metric').forEach(el => sketchCard(el));
-    scope.querySelectorAll('.nav-item').forEach(el => {
-      migrateNavItem(el);
-      sketchNavItem(el);
-    });
-    const dp = document.getElementById('topbar-date');
-    if (dp) sketchPill(dp);
+    // Hanya migrate nav-item agar label sidebar tetap benar (ringan, satu kali)
+    if (root) root.querySelectorAll('.nav-item').forEach(el => migrateNavItem(el));
   }
 
   window.rerenderUI = rerenderUI;

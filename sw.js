@@ -24,9 +24,9 @@ var CDN_ASSETS = [
   'https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.min.js',
 ];
 
-// File yang TIDAK BOLEH di-cache — selalu ambil dari network
-var NO_CACHE_PATTERNS = [
-  'index.html',
+// File JS — pakai stale-while-revalidate:
+// Load dari cache dulu (cepat, hemat baterai), update cache di background
+var JS_APP_FILES = [
   'app.js', 'supabase.js', 'dashboard.js', 'produk.js',
   'stok.js', 'restock.js', 'kas.js', 'jurnal-penjualan.js',
   'produk-terjual.js', 'price-list.js', 'dataorder.js',
@@ -34,6 +34,9 @@ var NO_CACHE_PATTERNS = [
   'keuangan.js', 'notif.js', 'hpp.js', 'channels.js',
   'rough-ui.js', 'style.css',
 ];
+// index.html selalu dari network agar versi SW terbaru langsung aktif
+var NO_CACHE_PATTERNS = ['index.html'];
+var JS_CACHE = 'zenot-js-v1';
 
 // ─── SKIP WAITING ────────────────────────────────────────────
 self.addEventListener('message', function(e) {
@@ -114,16 +117,27 @@ self.addEventListener('fetch', function(e) {
     return;
   }
 
-  // File app (JS, HTML, CSS) → SELALU network, tidak pernah cache
-  var isAppFile = NO_CACHE_PATTERNS.some(function(p) {
-    return url.indexOf(p) !== -1;
-  });
+  // index.html → selalu network
+  var isNoCache = NO_CACHE_PATTERNS.some(function(p) { return url.indexOf(p) !== -1; });
+  if (isNoCache) {
+    e.respondWith(fetch(e.request, { cache: 'no-store' }).catch(function() { return caches.match(e.request); }));
+    return;
+  }
 
-  if (isAppFile) {
+  // File JS/CSS app → stale-while-revalidate (load cache dulu, update di background)
+  var isJsFile = JS_APP_FILES.some(function(p) { return url.indexOf(p) !== -1; });
+  if (isJsFile) {
     e.respondWith(
-      fetch(e.request, { cache: 'no-store' }).catch(function() {
-        // Offline fallback: coba dari cache lama kalau ada
-        return caches.match(e.request);
+      caches.open(JS_CACHE).then(function(c) {
+        return c.match(e.request).then(function(cached) {
+          var fetchPromise = fetch(e.request).then(function(res) {
+            if (res.ok) c.put(e.request, res.clone());
+            return res;
+          });
+          // Kalau ada cache → serve sekarang, update di background
+          // Kalau tidak ada cache → tunggu network
+          return cached || fetchPromise;
+        });
       })
     );
     return;
