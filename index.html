@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>zenOt — Trax Operasional</title>
+<title>zenOt</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -19,6 +19,15 @@
 <link rel="stylesheet" href="style.css" id="style-main">
 </head>
 <body>
+
+<!-- ─── SPLASH SCREEN ─────────────────────────────────────── -->
+<div id="zenot-splash">
+  <img src="logo.png" alt="zenOt" id="splash-logo">
+  <div id="splash-text">
+    <span id="splash-name">zenOt</span>
+    <span id="splash-tag">APP OPERASIONAL</span>
+  </div>
+</div>
 
 <button class="hamburger" id="btn-hamburger" onclick="toggleSidebar()" aria-label="Menu">
   <i class="ti ti-menu-2"></i>
@@ -265,5 +274,26 @@ function showUpdateBanner() {
   <button onclick="_dismissUpdate()" style="background:transparent;border:1px solid #444;color:#aaa;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer">Nanti</button>
   <button onclick="_doUpdate()" style="background:#4caf50;border:none;color:#fff;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">Update</button>
 </div>
+<!-- ─── SPLASH SCREEN JS ──────────────────────────────────── -->
+<script>
+(function() {
+  var splash = document.getElementById('zenot-splash');
+  var logo   = document.getElementById('splash-logo');
+  var text   = document.getElementById('splash-text');
+  if (!splash) return;
+
+  // Mulai animasi masuk
+  setTimeout(function() { logo.classList.add('splash-in'); }, 100);
+  setTimeout(function() { text.classList.add('splash-in'); }, 300);
+
+  // Fade out & remove setelah 2 detik
+  setTimeout(function() {
+    splash.classList.add('splash-hide');
+    setTimeout(function() {
+      splash.style.display = 'none';
+    }, 500);
+  }, 2000);
+})();
+</script>
 </body>
 </html>
