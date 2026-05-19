@@ -115,7 +115,7 @@ document.getElementById('page-keuangan').innerHTML = `
       <div class="card-title" style="color:var(--ink);margin-top:14px"><i class="ti ti-user"></i> MODAL</div>
       <table class="tbl"><tbody id="keu-neraca-modal"></tbody></table>
       <div style="margin-top:8px;padding-top:8px;border-top:2px solid var(--ink);display:flex;justify-content:space-between;font-weight:700">
-        <span>Kewajiban + Modal</span><span id="keu-neraca-total-km" style="color:var(--ink)">—</span>
+        <span>Net Worth (Aset − Kewajiban)</span><span id="keu-neraca-total-km" style="color:var(--ink)">—</span>
       </div>
     </div>
   </div>
@@ -633,12 +633,7 @@ async function keuRenderNeraca() {
   const labaRugi   = totalPend - totalBeban;
   let totalModal = labaRugi;
   let modalHtml = '';
-  // Persediaan masuk ke Modal sebagai pasangan double-entry
-  // Aset: Persediaan Barang (debit) ↔ Modal: Modal dalam Persediaan (kredit)
-  if (nilaiPersediaan > 0) {
-    totalModal += nilaiPersediaan;
-    modalHtml += `<tr><td style="padding-left:12px">Modal dalam Persediaan</td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
-  }
+  // Persediaan TIDAK masuk ke Modal — sudah tercatat di sisi Aset
   // Akun modal dari jurnal
   modalAkun.forEach(a => {
     const s = a.saldoKredit - a.saldoDebit;
