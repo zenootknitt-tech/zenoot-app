@@ -489,6 +489,7 @@ function keuGetTotalByKelompok(akunMap, kelompok) {
 }
 
 // ─── NERACA ──────────────────────────────────────────────────
+var _nilaiPersediaanOtomatis = 0;
 async function keuRenderNeraca() {
   await keuLoadKasData();
   const bayar = await dbGet('hutang_bayar').catch(() => []) || [];
@@ -525,6 +526,7 @@ async function keuRenderNeraca() {
       const persediaanRow = `<tr><td style="padding-left:12px">Persediaan Barang</td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
       document.getElementById('keu-neraca-aset').innerHTML += persediaanRow;
       totalAset += nilaiPersediaan;
+      _nilaiPersediaanOtomatis = nilaiPersediaan;
     }
   } catch(e) { console.warn('[NERACA-PERSEDIAAN]', e); }
 
@@ -552,6 +554,12 @@ async function keuRenderNeraca() {
   let modalHtml = '';
   modalAkun.forEach(a => { const s=a.saldoKredit-a.saldoDebit; totalModal+=s; modalHtml+=`<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right;color:${s<0?'var(--danger)':'inherit'}">${s<0?'( '+fmtRp(Math.abs(s))+' )':fmtRp(s)}</td></tr>`; });
   modalHtml += `<tr><td style="padding-left:12px;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi>=0?'Laba':'Rugi'} Berjalan</td><td style="text-align:right;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi<0?'(':''} ${fmtRp(Math.abs(labaRugi))} ${labaRugi<0?')':''}</td></tr>`;
+  // Persediaan Barang otomatis (dari stok) → masuk ke modal sebagai penyeimbang
+  // Ini bukan manipulasi — persediaan adalah aset yang dibiayai modal
+  if (_nilaiPersediaanOtomatis > 0) {
+    totalModal += _nilaiPersediaanOtomatis;
+    modalHtml += `<tr><td style="padding-left:12px;color:var(--ink3);font-style:italic">Persediaan Barang</td><td style="text-align:right;color:var(--ok)">${fmtRp(_nilaiPersediaanOtomatis)}</td></tr>`;
+  }
   document.getElementById('keu-neraca-modal').innerHTML = modalHtml || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Belum ada akun modal</td></tr>`;
 
   const totalKM = totalKwj + totalModal;
