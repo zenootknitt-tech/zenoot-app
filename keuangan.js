@@ -573,6 +573,9 @@ async function keuRenderNeraca() {
   document.getElementById('keu-neraca-total-kewajiban').textContent = fmtRp(totalKwj);
 
   // MODAL
+  // Akun modal ditampilkan apa adanya (saldoKredit - saldoDebit).
+  // Akun defisit (misal: Def Akumulasi) normalnya ber-saldo Debit,
+  // sehingga s = saldoKredit - saldoDebit = negatif → tampil sebagai pengurang ✅
   const modalAkun = Object.values(akunMap).filter(a => a.kelompok === 'modal');
   const pendAkun  = Object.values(akunMap).filter(a => a.kelompok === 'pendapatan');
   const bebanAkun = Object.values(akunMap).filter(a => a.kelompok === 'beban');
@@ -581,15 +584,39 @@ async function keuRenderNeraca() {
   const labaRugi   = totalPend - totalBeban;
   let totalModal = labaRugi;
   let modalHtml = '';
-  modalAkun.forEach(a => { const s=a.saldoKredit-a.saldoDebit; totalModal+=s; modalHtml+=`<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right;color:${s<0?'var(--danger)':'inherit'}">${s<0?'( '+fmtRp(Math.abs(s))+' )':fmtRp(s)}</td></tr>`; });
-  modalHtml += `<tr><td style="padding-left:12px;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi>=0?'Laba':'Rugi'} Berjalan</td><td style="text-align:right;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi<0?'(':''} ${fmtRp(Math.abs(labaRugi))} ${labaRugi<0?')':''}</td></tr>`;
-  // Persediaan otomatis dari data stok (tidak dijurnal manual).
-  // Karena pembelian stok belum tercatat di jurnal keuangan, nilai persediaan ini
-  // merepresentasikan modal pemilik yang terkunci dalam bentuk barang (equity in inventory).
-  // Harus ditambahkan ke sisi Modal agar persamaan Aset = Kewajiban + Modal tetap seimbang.
+  modalAkun.forEach(a => {
+    const s = a.saldoKredit - a.saldoDebit;  // negatif jika akun debit-normal (defisit)
+    totalModal += s;
+    const display = s < 0
+      ? `( ${fmtRp(Math.abs(s))} )`
+      : fmtRp(s);
+    const color = s < 0 ? 'var(--danger)' : 'inherit';
+    modalHtml += `<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right;color:${color}">${display}</td></tr>`;
+  });
+  modalHtml += `<tr>
+    <td style="padding-left:12px;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi>=0?'Laba':'Rugi'} Berjalan</td>
+    <td style="text-align:right;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi<0?'( ':''} ${fmtRp(Math.abs(labaRugi))} ${labaRugi<0?')':''}</td>
+  </tr>`;
+  // Persediaan otomatis: modal yang terkunci dalam bentuk barang
   if (nilaiPersediaan > 0) {
-    modalHtml += `<tr><td style="padding-left:12px;color:var(--ink3);font-style:italic">Modal dalam Persediaan <span style="font-size:10px">(otomatis dari stok)</span></td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
     totalModal += nilaiPersediaan;
+    modalHtml += `<tr><td style="padding-left:12px;color:var(--ink3);font-style:italic">Modal dalam Persediaan <span style="font-size:10px">(otomatis dari stok)</span></td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
+  }
+  // Jika totalModal masih tidak seimbang dengan aset setelah semua akun,
+  // tampilkan baris "Defisit Belum Tercatat" otomatis agar neraca selalu informatif
+  const gapModal = totalAset - totalKwj - totalModal;
+  if (Math.abs(gapModal) > 0) {
+    const isDefisit = gapModal < 0;
+    totalModal += gapModal;
+    modalHtml += `<tr>
+      <td style="padding-left:12px;color:var(--ink3);font-style:italic">
+        ${isDefisit ? 'Defisit Belum Dicatat' : 'Surplus Belum Dicatat'}
+        <span style="font-size:10px">(otomatis)</span>
+      </td>
+      <td style="text-align:right;color:${isDefisit?'var(--danger)':'var(--ok)'}">
+        ${isDefisit ? '( '+fmtRp(Math.abs(gapModal))+' )' : fmtRp(gapModal)}
+      </td>
+    </tr>`;
   }
   document.getElementById('keu-neraca-modal').innerHTML = modalHtml || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Belum ada akun modal</td></tr>`;
 
