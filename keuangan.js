@@ -633,7 +633,12 @@ async function keuRenderNeraca() {
   const labaRugi   = totalPend - totalBeban;
   let totalModal = labaRugi;
   let modalHtml = '';
-  // Persediaan TIDAK masuk ke Modal — sudah tercatat di sisi Aset
+  // Persediaan masuk ke Modal sebagai pasangan double-entry
+  // Aset: Persediaan Barang (debit) ↔ Modal: Modal dalam Persediaan (kredit)
+  if (nilaiPersediaan > 0) {
+    totalModal += nilaiPersediaan;
+    modalHtml += `<tr><td style="padding-left:12px">Modal dalam Persediaan</td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
+  }
   // Akun modal dari jurnal
   modalAkun.forEach(a => {
     const s = a.saldoKredit - a.saldoDebit;
