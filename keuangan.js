@@ -490,6 +490,34 @@ function keuGetTotalByKelompok(akunMap, kelompok) {
 
 // ─── NERACA ──────────────────────────────────────────────────
 var _nilaiPersediaanOtomatis = 0;
+
+// Helper: hitung nilai persediaan dari tabel produk + stok + penjualan
+// Dipanggil oleh Neraca dan Rasio agar hasilnya konsisten
+async function keuHitungNilaiPersediaan() {
+  try {
+    const [produkArr, stokArr, jualArr] = await Promise.all([
+      dbGet('produk', '').catch(()=>[]),
+      dbGet('stok',   '').catch(()=>[]),
+      dbGet('jurnal_penjualan', '&select=sku,qty').catch(()=>[])
+    ]);
+    const stokMap   = {};
+    (stokArr||[]).forEach(s => { stokMap[(s.sku_variasi||'').toUpperCase()] = s.stok_masuk||0; });
+    const keluarMap = {};
+    (jualArr||[]).forEach(j => { const k=(j.sku||'').toUpperCase(); keluarMap[k]=(keluarMap[k]||0)+(j.qty||0); });
+    let nilai = 0;
+    (produkArr||[]).forEach(p => {
+      const key  = (p.sku_variasi||'').toUpperCase();
+      const sisa = (stokMap[key]||0) - (keluarMap[key]||0);
+      if (sisa > 0) nilai += sisa * (p.hpp||0);
+    });
+    _nilaiPersediaanOtomatis = nilai;
+    return nilai;
+  } catch(e) {
+    console.warn('[PERSEDIAAN]', e);
+    return _nilaiPersediaanOtomatis || 0;
+  }
+}
+
 async function keuRenderNeraca() {
   await keuLoadKasData();
   const bayar = await dbGet('hutang_bayar').catch(() => []) || [];
@@ -503,32 +531,12 @@ async function keuRenderNeraca() {
     const saldo = Math.max(0, a.saldoDebit - a.saldoKredit); totalAset += saldo;
     return `<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right;color:var(--ok)">${fmtRp(saldo)}</td></tr>`;
   }).join('') || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Belum ada akun aset</td></tr>`;
-  // Tambah Persediaan Barang (dari stok produk — semua kategori tetap aset)
-  try {
-    const [produkArr, stokArr, jualArr] = await Promise.all([
-      dbGet('produk', '').catch(()=>[]),
-      dbGet('stok',   '').catch(()=>[]),
-      dbGet('jurnal_penjualan', '&select=sku,qty').catch(()=>[])
-    ]);
-    const stokMap  = {};
-    (stokArr||[]).forEach(s => { stokMap[(s.sku_variasi||'').toUpperCase()] = s.stok_masuk||0; });
-    const keluarMap = {};
-    (jualArr||[]).forEach(j => { const k=(j.sku||'').toUpperCase(); keluarMap[k]=(keluarMap[k]||0)+(j.qty||0); });
-    let nilaiPersediaan = 0;
-    (produkArr||[]).forEach(p => {
-      const key   = (p.sku_variasi||'').toUpperCase();
-      const masuk = stokMap[key] || 0;
-      const keluar= keluarMap[key] || 0;
-      const sisa  = masuk - keluar;
-      if (sisa > 0) nilaiPersediaan += sisa * (p.hpp||0);
-    });
-    if (nilaiPersediaan > 0) {
-      const persediaanRow = `<tr><td style="padding-left:12px">Persediaan Barang</td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
-      document.getElementById('keu-neraca-aset').innerHTML += persediaanRow;
-      totalAset += nilaiPersediaan;
-      _nilaiPersediaanOtomatis = nilaiPersediaan;
-    }
-  } catch(e) { console.warn('[NERACA-PERSEDIAAN]', e); }
+  // Tambah Persediaan Barang — pakai helper agar konsisten dengan tab Rasio
+  const nilaiPersediaan = await keuHitungNilaiPersediaan();
+  if (nilaiPersediaan > 0) {
+    document.getElementById('keu-neraca-aset').innerHTML += `<tr><td style="padding-left:12px">Persediaan Barang</td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
+    totalAset += nilaiPersediaan;
+  }
 
   document.getElementById('keu-neraca-total-aset').textContent = fmtRp(totalAset);
 
@@ -554,12 +562,7 @@ async function keuRenderNeraca() {
   let modalHtml = '';
   modalAkun.forEach(a => { const s=a.saldoKredit-a.saldoDebit; totalModal+=s; modalHtml+=`<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right;color:${s<0?'var(--danger)':'inherit'}">${s<0?'( '+fmtRp(Math.abs(s))+' )':fmtRp(s)}</td></tr>`; });
   modalHtml += `<tr><td style="padding-left:12px;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi>=0?'Laba':'Rugi'} Berjalan</td><td style="text-align:right;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi<0?'(':''} ${fmtRp(Math.abs(labaRugi))} ${labaRugi<0?')':''}</td></tr>`;
-  // Persediaan Barang otomatis (dari stok) → masuk ke modal sebagai penyeimbang
-  // Ini bukan manipulasi — persediaan adalah aset yang dibiayai modal
-  if (_nilaiPersediaanOtomatis > 0) {
-    totalModal += _nilaiPersediaanOtomatis;
-    modalHtml += `<tr><td style="padding-left:12px;color:var(--ink3);font-style:italic">Persediaan Barang</td><td style="text-align:right;color:var(--ok)">${fmtRp(_nilaiPersediaanOtomatis)}</td></tr>`;
-  }
+  // Persediaan TIDAK dimasukkan ke Modal — sudah tercatat di sisi Aset via jurnal
   document.getElementById('keu-neraca-modal').innerHTML = modalHtml || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Belum ada akun modal</td></tr>`;
 
   const totalKM = totalKwj + totalModal;
@@ -577,35 +580,51 @@ async function keuRenderRasio() {
   const akunMap = keuHitungSaldoAkun();
   const fmtRp = v => fmtRpFull(Math.abs(v));
 
-  const totalAset    = keuGetTotalByKelompok(akunMap, 'aset');
-  const totalHutang  = _keuHutangAll.reduce((s,h) => s+Math.max(0,(h.pokok||0)-keuGetSudahBayar(h.id,bayar)), 0);
-  const totalModal   = keuGetTotalByKelompok(akunMap, 'modal');
-  const netWorth     = totalAset - totalHutang;
+  // Sumber data konsisten dengan keuRenderNeraca():
+  // Total Aset = akun aset dari jurnal + persediaan otomatis (stok)
+  const totalAsetJurnal = keuGetTotalByKelompok(akunMap, 'aset');
+  const persediaan      = await keuHitungNilaiPersediaan();
+  const totalAset       = totalAsetJurnal + persediaan;
+
+  // Total Kewajiban = sisa hutang pinjaman + akun kewajiban dari jurnal
+  const sisaHutangPinjaman = _keuHutangAll.reduce((s,h) => s+Math.max(0,(h.pokok||0)-keuGetSudahBayar(h.id,bayar)), 0);
+  const totalKwjAkun       = keuGetTotalByKelompok(akunMap, 'kewajiban');
+  const totalHutang        = sisaHutangPinjaman + totalKwjAkun;
+
+  // Modal = akun modal + laba/rugi berjalan
+  const totalPend  = keuGetTotalByKelompok(akunMap, 'pendapatan');
+  const totalBeban = keuGetTotalByKelompok(akunMap, 'beban');
+  const labaRugi   = totalPend - totalBeban;
+  const totalModal = keuGetTotalByKelompok(akunMap, 'modal') + labaRugi;
+
+  // Net Worth = Total Aset − Total Kewajiban (definisi standar akuntansi)
+  const netWorth = totalAset - totalHutang;
+
   const totalCicilan = _keuHutangAll.filter(h => {
     const sisa=(h.pokok||0)-keuGetSudahBayar(h.id,bayar); return sisa>0;
   }).reduce((s,h) => s+(h.cicilan_per_bulan||0), 0);
 
-  // Net Worth
+  // Net Worth card
   document.getElementById('keu-rasio-aset').textContent   = fmtRp(totalAset);
   document.getElementById('keu-rasio-hutang').textContent = fmtRp(totalHutang);
   document.getElementById('keu-networth-val').textContent = (netWorth<0?'-':'') + fmtRp(netWorth);
   document.getElementById('keu-networth-val').style.color = netWorth>=0?'var(--ok)':'var(--danger)';
   document.getElementById('keu-networth-card').className  = 'rasio-item ' + (netWorth>=0?'r-ok':'r-danger');
 
-  // DTA
+  // DTA = Total Kewajiban ÷ Total Aset
   const dta = totalAset ? totalHutang / totalAset : 0;
   document.getElementById('keu-dta-val').textContent  = (dta*100).toFixed(1)+'%';
   document.getElementById('keu-dta-desc').textContent = `${fmtRp(totalHutang)} ÷ ${fmtRp(totalAset)}`;
   document.getElementById('keu-dta-card').className   = 'rasio-item ' + (dta<0.4?'r-ok':dta<0.6?'r-warn':'r-danger');
 
-  // DTE
-  const equity = totalModal + (netWorth>0?netWorth:0);
-  const dte    = equity ? totalHutang / equity : 0;
-  document.getElementById('keu-dte-val').textContent  = dte.toFixed(2)+'x';
-  document.getElementById('keu-dte-desc').textContent = `${fmtRp(totalHutang)} ÷ ${fmtRp(equity)}`;
+  // DTE = Total Kewajiban ÷ Ekuitas (Modal + Laba Berjalan)
+  // Equity = totalModal (bukan netWorth, agar tidak double-count aset)
+  const dte = totalModal > 0 ? totalHutang / totalModal : (totalHutang > 0 ? Infinity : 0);
+  document.getElementById('keu-dte-val').textContent  = isFinite(dte) ? dte.toFixed(2)+'x' : '∞';
+  document.getElementById('keu-dte-desc').textContent = `${fmtRp(totalHutang)} ÷ ${fmtRp(totalModal)}`;
   document.getElementById('keu-dte-card').className   = 'rasio-item ' + (dte<1?'r-ok':dte<2?'r-warn':'r-danger');
 
-  // Coverage
+  // Coverage Ratio = Total Aset Likuid ÷ Cicilan per Bulan
   const kasAset = Object.values(akunMap).filter(a=>a.kelompok==='aset').reduce((s,a)=>s+Math.max(0,a.saldoDebit-a.saldoKredit),0);
   const cr      = totalCicilan ? kasAset / totalCicilan : 0;
   document.getElementById('keu-cr-val').textContent  = cr ? cr.toFixed(1)+'x' : '∞';
