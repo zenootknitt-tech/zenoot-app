@@ -617,16 +617,7 @@ async function keuRenderNeraca() {
       kwjHtml += `<tr><td style="padding-left:12px">${h.kreditur||'Hutang'}</td><td style="text-align:right;color:var(--danger)">${fmtRp(sisa)}</td></tr>`;
     }
   });
-  // Sumber 2: akun jurnal kelompok kewajiban (hutang usaha supplier dll)
-  // Hanya tampil jika TIDAK ada nama yang sama di modul Hutang (hindari double count)
-  const hutangNamaSet = new Set(_keuHutangAll.map(h => (h.kreditur||'').toLowerCase()));
-  kwjAkun.forEach(a => {
-    const s = Math.max(0, a.saldoKredit - a.saldoDebit);
-    if (s > 0 && !hutangNamaSet.has((a.nama||'').toLowerCase())) {
-      totalKwj += s;
-      kwjHtml += `<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right;color:var(--danger)">${fmtRp(s)}</td></tr>`;
-    }
-  });
+  // Sumber kewajiban HANYA dari tabel hutang — tidak campur akun jurnal
   document.getElementById('keu-neraca-kewajiban').innerHTML = kwjHtml || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Tidak ada kewajiban</td></tr>`;
   document.getElementById('keu-neraca-total-kewajiban').textContent = fmtRp(totalKwj);
 
@@ -642,11 +633,7 @@ async function keuRenderNeraca() {
   const labaRugi   = totalPend - totalBeban;
   let totalModal = labaRugi;
   let modalHtml = '';
-  // Persediaan otomatis — tampil PERTAMA, tidak miring, sebagai informasi aset
-  if (nilaiPersediaan > 0) {
-    totalModal += nilaiPersediaan;
-    modalHtml += `<tr><td style="padding-left:12px;color:var(--ink3)">Modal dalam Persediaan <span style="font-size:10px">(otomatis dari stok)</span></td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
-  }
+  // Persediaan TIDAK masuk ke Modal — sudah tercatat di sisi Aset
   // Akun modal dari jurnal
   modalAkun.forEach(a => {
     const s = a.saldoKredit - a.saldoDebit;
@@ -659,22 +646,7 @@ async function keuRenderNeraca() {
     <td style="padding-left:12px;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi>=0?'Laba':'Rugi'} Berjalan</td>
     <td style="text-align:right;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi<0?'( ':''} ${fmtRp(Math.abs(labaRugi))} ${labaRugi<0?')':''}</td>
   </tr>`;
-  // Ekuitas Negatif — nilai real defisit = Aset - Kewajiban - Modal yg sudah dihitung
-  // Ini adalah nilai jujur: seberapa jauh hutang melampaui ekuitas pemilik
-  const gapModal = totalAset - totalKwj - totalModal;
-  if (Math.abs(gapModal) > 0) {
-    const isNegatif = gapModal < 0;
-    totalModal += gapModal;
-    const ekuitasVal = totalAset - totalKwj; // nilai ekuitas sesungguhnya
-    modalHtml += `<tr>
-      <td style="padding-left:12px;color:var(--ink3)">
-        Ekuitas Negatif <span style="font-size:10px">(otomatis)</span>
-      </td>
-      <td style="text-align:right;color:${isNegatif?'var(--danger)':'var(--ok)'}">
-        ${isNegatif ? '( '+fmtRp(Math.abs(gapModal))+' )' : fmtRp(gapModal)}
-      </td>
-    </tr>`;
-  }
+  // Tidak ada penyeimbang otomatis — neraca harus seimbang dari data yang benar
   document.getElementById('keu-neraca-modal').innerHTML = modalHtml || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Belum ada akun modal</td></tr>`;
 
   const totalKM = totalKwj + totalModal;
@@ -698,10 +670,8 @@ async function keuRenderRasio() {
   const persediaan      = await keuHitungNilaiPersediaan();
   const totalAset       = totalAsetJurnal + persediaan;
 
-  // Total Kewajiban = sisa hutang pinjaman + akun kewajiban dari jurnal
-  const sisaHutangPinjaman = _keuHutangAll.reduce((s,h) => s+Math.max(0,(h.pokok||0)-keuGetSudahBayar(h.id,bayar)), 0);
-  const totalKwjAkun       = keuGetTotalByKelompok(akunMap, 'kewajiban');
-  const totalHutang        = sisaHutangPinjaman + totalKwjAkun;
+  // Total Kewajiban = HANYA dari tabel hutang (satu sumber, tidak dobel)
+  const totalHutang = _keuHutangAll.reduce((s,h) => s+Math.max(0,(h.pokok||0)-keuGetSudahBayar(h.id,bayar)), 0);
 
   // Modal = akun modal + laba/rugi berjalan
   const totalPend  = keuGetTotalByKelompok(akunMap, 'pendapatan');
