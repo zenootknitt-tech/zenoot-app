@@ -1016,3 +1016,34 @@ input[type="month"]::-webkit-calendar-picker-indicator {
   z-index: 3;
   pointer-events: all;
 }
+
+/* ─── STOK TABLE — RESPONSIVE MOBILE ────────────────────────
+   Di HP (< 600px): sembunyikan kolom yang tidak penting
+   Tampilkan: SKU Variasi, Sisa, HPP, Nilai Stok, Aksi          */
+@media (max-width: 600px) {
+  /* Sembunyikan: Katalog, Boss, Sales, Status, Kategori */
+  #stok-tbody td:nth-child(2),
+  #stok-tbody td:nth-child(3),
+  #stok-tbody td:nth-child(5),
+  #stok-tbody td:nth-child(8),
+  #stok-tbody td:nth-child(9),
+  #page-stok .tbl thead tr th:nth-child(2),
+  #page-stok .tbl thead tr th:nth-child(3),
+  #page-stok .tbl thead tr th:nth-child(5),
+  #page-stok .tbl thead tr th:nth-child(8),
+  #page-stok .tbl thead tr th:nth-child(9) {
+    display: none;
+  }
+
+  /* SKU kolom lebih compact */
+  #stok-tbody td:nth-child(1) {
+    font-size: 11px;
+    max-width: 90px;
+    word-break: break-all;
+  }
+
+  /* Nilai stok bold */
+  #stok-tbody td:nth-child(7) {
+    font-weight: 700;
+  }
+}
