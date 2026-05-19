@@ -232,6 +232,12 @@ function showModal(id) {
     // Sketchy render
     var m = el.querySelector('.modal');
     if (m && typeof rerenderUI === 'function') setTimeout(function(){ rerenderUI(m); }, 30);
+    // Auto-aktifkan format IDR (titik ribuan) pada semua input numeric di modal ini
+    setTimeout(function() {
+      el.querySelectorAll('input[inputmode="numeric"]').forEach(function(inp) {
+        if (inp.id) idrInput(inp.id);
+      });
+    }, 60);
   }
 }
 function hideModal(id) {

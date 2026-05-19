@@ -382,6 +382,7 @@ function kasShowForm() {
   document.getElementById('kas-preview-entry').style.display = 'none';
   kasOnTipeChange();
   showModal('modal-kas-transaksi');
+  setTimeout(function() { if (typeof idrInput === 'function') idrInput('kas-jrn-nominal'); }, 50);
 }
 
 function kasCancelForm() { hideModal('modal-kas-transaksi'); }
@@ -515,6 +516,7 @@ async function kasEditJurnal(id) {
   document.getElementById('kas-jrn-tgl').value     = r.tanggal ? r.tanggal.split('T')[0] : '';
   document.getElementById('kas-jrn-tipe').value    = r.tipe || 'masuk';
   idrSet('kas-jrn-nominal', r.nominal || r.debit || 0);
+  setTimeout(function() { if (typeof idrInput === 'function') idrInput('kas-jrn-nominal'); }, 50);
   document.getElementById('kas-jrn-ket').value     = r.keterangan || '';
   document.getElementById('kas-jrn-ref').value     = r.referensi || '';
   kasOnTipeChange();
