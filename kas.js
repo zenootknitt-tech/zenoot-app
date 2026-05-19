@@ -583,41 +583,6 @@ function kasRenderNeraca(data) {
   });
   html += `<tr class="lap-total"><td colspan="3"><b>TOTAL</b></td><td style="text-align:right;font-weight:700;color:var(--ok)">Rp${totalD.toLocaleString('id-ID')}</td><td style="text-align:right;font-weight:700;color:var(--danger)">Rp${totalK.toLocaleString('id-ID')}</td><td></td></tr>`;
 
-  // ── INFORMASI KEWAJIBAN (dari Modul Hutang, tidak mempengaruhi jurnal) ──
-  // Ditampilkan terpisah di bawah neraca saldo sebagai referensi saja
-  if (_keuHutangAll && _keuHutangAll.length) {
-    const fmtRp2 = v => 'Rp' + Math.abs(v||0).toLocaleString('id-ID');
-    const bayarAll = window._keuBayarAll || [];
-    const keuGetSudah = (id) => bayarAll.filter(b=>String(b.hutang_id)===String(id)).reduce((s,b)=>s+(b.nominal||0),0);
-    let kwjHtml = '';
-    let totalKwj = 0;
-    _keuHutangAll.forEach(h => {
-      const sisa = Math.max(0, (h.pokok||0) - keuGetSudah(h.id));
-      if (sisa > 0) {
-        totalKwj += sisa;
-        kwjHtml += `<tr style="opacity:0.75">
-          <td style="font-family:monospace;font-size:12px;color:var(--ink3)">—</td>
-          <td style="color:var(--ink3)">${h.kreditur||'Hutang'}</td>
-          <td><span class="akun-badge akun-kewajiban" style="opacity:0.7">Kewajiban</span></td>
-          <td style="text-align:right;color:var(--ink3)">—</td>
-          <td style="text-align:right;color:var(--ink3)">—</td>
-          <td style="text-align:right;font-weight:700;color:var(--danger)">(${fmtRp2(sisa)})</td>
-        </tr>`;
-      }
-    });
-    if (kwjHtml) {
-      html += `<tr class="lap-head" style="opacity:0.6"><td colspan="6" style="font-size:11px;letter-spacing:1px">
-        ℹ INFORMASI KEWAJIBAN — dari Modul Hutang (tidak mempengaruhi jurnal)
-      </td></tr>`;
-      html += kwjHtml;
-      html += `<tr style="opacity:0.75;border-top:1px dashed var(--ink2)">
-        <td colspan="3" style="color:var(--ink3);font-size:12px"><b>Total Kewajiban</b></td>
-        <td colspan="2"></td>
-        <td style="text-align:right;font-weight:700;color:var(--danger)">(${fmtRp2(totalKwj)})</td>
-      </tr>`;
-    }
-  }
-
   tbody.innerHTML = html || `<tr><td colspan="6" style="color:var(--ink3);font-style:italic">Belum ada data</td></tr>`;
 }
 
