@@ -562,7 +562,14 @@ async function keuRenderNeraca() {
   let modalHtml = '';
   modalAkun.forEach(a => { const s=a.saldoKredit-a.saldoDebit; totalModal+=s; modalHtml+=`<tr><td style="padding-left:12px">${a.nama}</td><td style="text-align:right;color:${s<0?'var(--danger)':'inherit'}">${s<0?'( '+fmtRp(Math.abs(s))+' )':fmtRp(s)}</td></tr>`; });
   modalHtml += `<tr><td style="padding-left:12px;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi>=0?'Laba':'Rugi'} Berjalan</td><td style="text-align:right;color:${labaRugi>=0?'var(--ok)':'var(--danger)'}">${labaRugi<0?'(':''} ${fmtRp(Math.abs(labaRugi))} ${labaRugi<0?')':''}</td></tr>`;
-  // Persediaan TIDAK dimasukkan ke Modal — sudah tercatat di sisi Aset via jurnal
+  // Persediaan otomatis dari data stok (tidak dijurnal manual).
+  // Karena pembelian stok belum tercatat di jurnal keuangan, nilai persediaan ini
+  // merepresentasikan modal pemilik yang terkunci dalam bentuk barang (equity in inventory).
+  // Harus ditambahkan ke sisi Modal agar persamaan Aset = Kewajiban + Modal tetap seimbang.
+  if (nilaiPersediaan > 0) {
+    modalHtml += `<tr><td style="padding-left:12px;color:var(--ink3);font-style:italic">Modal dalam Persediaan <span style="font-size:10px">(otomatis dari stok)</span></td><td style="text-align:right;color:var(--ok)">${fmtRp(nilaiPersediaan)}</td></tr>`;
+    totalModal += nilaiPersediaan;
+  }
   document.getElementById('keu-neraca-modal').innerHTML = modalHtml || `<tr><td colspan="2" style="color:var(--ink3);font-style:italic">Belum ada akun modal</td></tr>`;
 
   const totalKM = totalKwj + totalModal;
