@@ -679,11 +679,18 @@ async function keuRenderRasio() {
   document.getElementById('keu-dte-desc').textContent = `${fmtRp(totalHutang)} ÷ ${fmtRp(totalModal)}`;
   document.getElementById('keu-dte-card').className   = 'rasio-item ' + (dte<1?'r-ok':dte<2?'r-warn':'r-danger');
 
-  // Coverage Ratio = Total Aset Likuid ÷ Cicilan per Bulan
-  const kasAset = Object.values(akunMap).filter(a=>a.kelompok==='aset').reduce((s,a)=>s+Math.max(0,a.saldoDebit-a.saldoKredit),0);
-  const cr      = totalCicilan ? kasAset / totalCicilan : 0;
-  document.getElementById('keu-cr-val').textContent  = cr ? cr.toFixed(1)+'x' : '∞';
-  document.getElementById('keu-cr-desc').textContent = totalCicilan ? `${fmtRp(kasAset)} ÷ ${fmtRp(totalCicilan)}/bln` : 'Tidak ada cicilan aktif';
+  // Coverage Ratio = Kas Likuid ÷ Cicilan per Bulan
+  // Kas likuid = hanya akun kas/bank (sub_kelompok 'kas' atau nama mengandung BANK/TUNAI/KAS)
+  // Bukan total aset — mesin & inventaris tidak bisa bayar cicilan bulan ini
+  const kasLikuid = Object.values(akunMap).filter(a => {
+    if (a.kelompok !== 'aset') return false;
+    const nm = (a.nama||'').toUpperCase();
+    const sk = (a.sub_kelompok||'').toLowerCase();
+    return sk === 'kas' || sk === 'bank' || nm.includes('BANK') || nm.includes('TUNAI') || nm.includes('KAS');
+  }).reduce((s,a) => s + Math.max(0, a.saldoDebit - a.saldoKredit), 0);
+  const cr = totalCicilan ? kasLikuid / totalCicilan : 0;
+  document.getElementById('keu-cr-val').textContent  = totalCicilan ? cr.toFixed(1)+'x' : '∞';
+  document.getElementById('keu-cr-desc').textContent = totalCicilan ? `${fmtRp(kasLikuid)} ÷ ${fmtRp(totalCicilan)}/bln` : 'Tidak ada cicilan aktif';
   document.getElementById('keu-cr-card').className   = 'rasio-item ' + (!totalCicilan?'r-ok':cr>=3?'r-ok':cr>=1?'r-warn':'r-danger');
 }
 
