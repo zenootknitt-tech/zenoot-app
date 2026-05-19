@@ -399,6 +399,7 @@ function keuShowFormHutang(data) {
   document.getElementById('keu-htg-jatuh-tempo').value   = data?.jatuh_tempo ? data.jatuh_tempo.split('T')[0] : '';
   document.getElementById('keu-htg-ket').value           = data?.keterangan || '';
   showModal('modal-keu-hutang');
+  idrInputAll(); // aktifkan auto-format titik ribuan pada field nominal
 }
 
 function keuCancelFormHutang() { hideModal('modal-keu-hutang'); }

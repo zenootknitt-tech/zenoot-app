@@ -309,9 +309,14 @@ function idrSet(id, v) {
   el.value = num > 0 ? num.toLocaleString('id-ID') : '';
 }
 
-// idrInputAll() — aktifkan semua input IDR yang ada di DOM saat ini
-// Dipanggil setiap kali form modal dibuka
+// idrInputAll() — aktifkan auto-format titik ribuan pada SEMUA input nominal di DOM
+// Auto-detect inputmode="numeric", tidak perlu daftar ID manual per form
 function idrInputAll() {
+  // 1. Auto-detect semua input[inputmode="numeric"] yang belum diinit
+  document.querySelectorAll('input[inputmode="numeric"]').forEach(function(el) {
+    if (el.id && !el.dataset.idrInit) idrInput(el.id);
+  });
+  // 2. Fallback: ID spesifik yang tidak pakai inputmode="numeric"
   var IDR_IDS = [
     'kas-jrn-nominal',
     'keu-bayar-nominal',
@@ -327,9 +332,8 @@ function idrInputAll() {
     'supplier-budget'
   ];
   IDR_IDS.forEach(function(id) { idrInput(id); });
-  // beban-ops dynamic inputs
-  var dynInputs = document.querySelectorAll('#beban-ops-rows input[data-field="nominal"]');
-  dynInputs.forEach(function(el) {
+  // 3. beban-ops dynamic inputs
+  document.querySelectorAll('#beban-ops-rows input[data-field="nominal"]').forEach(function(el) {
     if (!el.dataset.idrInit) {
       var fakeId = 'beban-ops-dyn-' + el.dataset.idx;
       el.id = fakeId;
