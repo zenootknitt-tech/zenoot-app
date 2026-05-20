@@ -1694,7 +1694,9 @@ async function loadDashboard() {
       const pri = r => r.sisa <= 0 ? 0 : r.sisa <= 3 ? 1 : r.sisa <= 8 ? 2 : 3;
       return pri(a) !== pri(b) ? pri(a) - pri(b) : a.sisa - b.sisa;
     };
-    const stokSorted = [..._dashStokData].sort(_sortByPriority);
+    const stokSorted = [..._dashStokData]
+      .filter(r => (r.kategori_produk || 'aktif') === 'aktif')
+      .sort(_sortByPriority);
     const stokTampil = stokSorted.slice(0, 5);
     const EMPTY_ROW  = '<tr><td colspan="7" style="color:var(--ink4);text-align:center">—</td></tr>';
 
