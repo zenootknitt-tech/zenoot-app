@@ -22,10 +22,10 @@ document.getElementById('page-dashboard').innerHTML = `
       <div class="m-delta">HPP × sisa stok</div>
       <div class="doodle"><i class="ti ti-coin"></i></div>
     </div>
-    <div class="metric">
+    <div class="metric" id="card-kritis" onclick="window._restockFilterKritis=true;var btn=document.querySelector('[data-page=restock]');gotoPage('restock',btn);" style="cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(224,82,82,0.08)'" onmouseout="this.style.background=''">
       <div class="m-label">SKU Kritis</div>
       <div class="m-value" id="d-kritis">—</div>
-      <div class="m-delta">stok ≤ 3</div>
+      <div class="m-delta">stok ≤ 3 · klik untuk restock</div>
       <div class="doodle"><i class="ti ti-alert-triangle"></i></div>
     </div>
     <div class="metric">

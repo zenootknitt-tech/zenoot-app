@@ -35,11 +35,34 @@ async function loadRestock() {
     const dari  = d14.toISOString().slice(0, 10);
 
     // 2. Ambil semua data paralel
-    const [penjualan, produkAll, supplierAll] = await Promise.all([
+    const isKritisMode = window._restockFilterKritis === true;
+    window._restockFilterKritis = false; // reset flag setelah dibaca
+
+    const [penjualan, produkAll, supplierAll, stokRaw, jpAllRaw] = await Promise.all([
       dbGet('jurnal_penjualan', '&tanggal=gte.' + dari + '&order=tanggal.desc'),
       dbGet('produk', '&order=katalog.asc'),
-      dbGet('restock_supplier', '&order=boss.asc').catch(() => [])
+      dbGet('restock_supplier', '&order=boss.asc').catch(() => []),
+      isKritisMode ? dbGet('stok') : Promise.resolve([]),
+      isKritisMode ? dbGet('jurnal_penjualan', '&select=sku,qty') : Promise.resolve([])
     ]);
+
+    // Hitung sisa per SKU jika mode kritis
+    const sisaMap = {};
+    if (isKritisMode) {
+      const masukMap = {};
+      (stokRaw || []).forEach(s => {
+        const key = (s.sku_variasi || '').trim().toUpperCase();
+        if (key) masukMap[key] = (masukMap[key] || 0) + (s.stok_masuk || 0);
+      });
+      const keluarMap2 = {};
+      (jpAllRaw || []).forEach(r => {
+        const key = (r.sku || '').trim().toUpperCase();
+        if (key) keluarMap2[key] = (keluarMap2[key] || 0) + (r.qty || 0);
+      });
+      Object.keys(masukMap).forEach(k => {
+        sisaMap[k] = (masukMap[k] || 0) - (keluarMap2[k] || 0);
+      });
+    }
 
     // 3. Map supplier: boss (uppercase) → { lead_time, min_order, kelipatan, budget }
     const supplierMap = {};
@@ -81,6 +104,9 @@ async function loadRestock() {
       const kat = (p.kategori_produk || 'aktif').toLowerCase();
       if (kat !== 'aktif') return;
 
+      // Filter kritis: hanya SKU dengan sisa <= 3
+      if (isKritisMode && sisaMap[sku] !== undefined && sisaMap[sku] > 3) return;
+
       const bossKey = (p.boss || '—').trim().toUpperCase();
       const sup     = supplierMap[bossKey] || DEFAULT_SUPPLIER;
 
@@ -119,7 +145,18 @@ async function loadRestock() {
     const totalSKU    = Object.values(bossList).reduce((s,b) => s + b.items.length, 0);
     const grandBudget = Object.values(bossList).reduce((s,b) => s + b.items.reduce((ss,r) => ss + r.nilai, 0), 0);
 
+    const kritisCount = Object.values(bossList).reduce((s,b) => s + b.items.length, 0);
+    const bannerKritis = isKritisMode ? `
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(224,82,82,0.1);border:1px solid var(--danger);border-radius:6px;padding:10px 14px;margin-bottom:14px">
+        <i class="ti ti-alert-triangle" style="color:var(--danger);font-size:16px"></i>
+        <span style="color:var(--danger);font-weight:700;font-size:13px">Mode SKU Kritis — ${kritisCount} SKU perlu restock segera</span>
+        <button onclick="loadRestock()" style="margin-left:auto;font-size:12px;padding:4px 10px;border-radius:4px;border:1px solid var(--ink3);background:transparent;color:var(--ink2);cursor:pointer">
+          Tampilkan Semua
+        </button>
+      </div>` : '';
+
     const html = `
+      ${bannerKritis}
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
         <div style="font-size:12px;color:var(--ink3)">
           Periode: <b style="color:var(--ink2)">${fmtTgl(d14)} – ${fmtTgl(today)}</b>
