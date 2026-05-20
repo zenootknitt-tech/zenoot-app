@@ -1511,14 +1511,15 @@ async function loadDashboard() {
       const keluar = keluarMap[skuKey] || 0;
       const sisa   = masuk - keluar;
       return {
-        sku_variasi:  p.sku_variasi,
-        katalog:      p.katalog,
-        boss:         p.boss,
-        hpp:          p.hpp || 0,
-        stok_masuk:   masuk,
-        stok_keluar:  keluar,
+        sku_variasi:     p.sku_variasi,
+        katalog:         p.katalog,
+        boss:            p.boss,
+        hpp:             p.hpp || 0,
+        kategori_produk: p.kategori_produk || 'aktif',
+        stok_masuk:      masuk,
+        stok_keluar:     keluar,
         sisa,
-        nilai_stok:   sisa > 0 ? sisa * (p.hpp || 0) : 0
+        nilai_stok:      sisa > 0 ? sisa * (p.hpp || 0) : 0
       };
     });
 
@@ -1528,7 +1529,7 @@ async function loadDashboard() {
     (channelData||[]).forEach(ch => { _dashChannelMap[ch.id] = ch; });
 
     // ─ Metric 1-4
-    const kritis    = _dashStokData.filter(r => r.sisa <= 3).length;
+    const kritis    = _dashStokData.filter(r => r.sisa <= 3 && (r.kategori_produk || 'aktif') === 'aktif').length;
     const nilaiStok = _dashStokData.reduce((s,r) => s + (r.nilai_stok || 0), 0);
     const saldo     = (jurnalAllData||[]).reduce((s,r) => s+(r.debit||0)-(r.kredit||0), 0);
 
