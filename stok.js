@@ -161,8 +161,7 @@ document.getElementById('page-stok').innerHTML = `
       <i class="ti ti-package"></i> Semua SKU
       <span id="stok-summary" style="font-size:12px;color:var(--ink3);font-weight:400;margin-left:auto"></span>
     </div>
-    <div id="stok-tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;">
-    <div class="tbl-wrap" style="overflow-x:auto;overflow-y:visible;"><table class="tbl">
+    <div id="stok-tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;"><table class="tbl">
       <thead><tr>
         <th>SKU Variasi</th><th>Katalog</th><th>Boss</th>
         <th onclick="stokToggleSort('sisa')" style="cursor:pointer;user-select:none;white-space:nowrap">Sisa <span id="sort-icon-sisa">⇅</span></th>
@@ -173,7 +172,7 @@ document.getElementById('page-stok').innerHTML = `
       <tbody id="stok-tbody">
         <tr><td colspan="10" style="color:var(--ink3);font-style:italic">Memuat...</td></tr>
       </tbody>
-    </table></div>
+    </table>
     </div>
   </div>
 `;
@@ -626,15 +625,11 @@ function stokOpenSub(type, e) {
   el.style.background = 'var(--ink)';
   el.style.color = 'var(--cream)';
 
-  // Posisi submenu pakai fixed + getBoundingClientRect agar tidak overlap
+  // Render isi submenu dulu, posisi dihitung setelah innerHTML diisi
   var sub = document.getElementById('dd-filter-' + type);
   if (!sub) return;
   var rect = el.getBoundingClientRect();
-  sub.style.position = 'fixed';
-  sub.style.left = rect.right + 'px';
-  sub.style.top  = rect.top + 'px';
 
-  // Render isi submenu
   var opsi = [];
   if (type === 'boss') {
     opsi = [{ val: null, label: 'Semua Supplier' }].concat(
@@ -665,8 +660,6 @@ function stokOpenSub(type, e) {
   }
 
   var currVal = type === 'boss' ? _filterBoss : type === 'katalog' ? _filterKatalog : type === 'kategori_produk' ? _filterKategoriProduk : _filterStatus;
-  var sub = document.getElementById('dd-filter-' + type);
-  if (!sub) return;
   sub.innerHTML = opsi.map(function(o) {
     var active = o.val === currVal;
     var valAttr = o.val === null ? '' : o.val;
@@ -677,7 +670,20 @@ function stokOpenSub(type, e) {
       'border-bottom:1px solid rgba(255,255,255,0.04);border-radius:4px;margin:1px 4px;transition:background .12s"' +
       ' onmouseover="this.style.background=\'var(--cream3)\'" onmouseout="this.style.background=\'' + (active ? 'var(--ink)' : 'transparent') + '\'">' + o.label + '</div>';
   }).join('');
+  // Posisi: hitung setelah innerHTML diisi agar bisa ukur lebar
+  sub.style.position = 'fixed';
+  sub.style.top = rect.top + 'px';
+  sub.style.left = '';
   sub.style.display = 'block';
+  var subW = sub.offsetWidth || 200;
+  var spaceRight = window.innerWidth - rect.right;
+  if (spaceRight >= subW + 4) {
+    sub.style.left = (rect.right + 4) + 'px';
+  } else {
+    var ddAll = document.getElementById('dd-filter-all');
+    var ddRect = ddAll ? ddAll.getBoundingClientRect() : rect;
+    sub.style.left = Math.max(4, ddRect.left - subW - 4) + 'px';
+  }
 
   // Event listener langsung (bukan inline onclick) agar tidak ada masalah escaping
   Array.from(sub.querySelectorAll('[data-filter-type]')).forEach(function(el) {
