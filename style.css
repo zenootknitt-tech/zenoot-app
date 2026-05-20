@@ -8,6 +8,7 @@ html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   --f:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
   --f2:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
   --warn:#e6a817;--danger:#e05252;--ok:#2ecc7a;
+  --active-nav:#8B6343;
   --sidebar-w:200px;
 }
 
@@ -270,8 +271,6 @@ body.sidebar-mini .sidebar-footer::before{
   position:relative;z-index:1;
   font-family:var(--f);
 }
-.nav-item.active .ni-label{color:var(--cream)}
-.nav-item.active .ni-icon i{color:var(--cream)}
 .nav-item canvas.rough-nav{position:absolute;top:0;left:0;pointer-events:none;z-index:0}
 /* Nav item clean style — sudut kotak */
 .nav-item{
@@ -281,11 +280,11 @@ body.sidebar-mini .sidebar-footer::before{
 }
 .nav-item:hover{background:rgba(255,255,255,0.04);}
 .nav-item.active{
-  background:var(--cream4);
+  background:var(--active-nav);
   border-radius:4px;
 }
-.nav-item.active .ni-label{color:var(--ink2);font-weight:700;}
-.nav-item.active .ni-icon i{color:var(--ink2);}
+.nav-item.active .ni-label{color:#fff;font-weight:700;}
+.nav-item.active .ni-icon i{color:#fff;}
 
 /* ─── CHANNEL SIDEBAR ────────────────────────────────────── */
 .ch-sidebar-section{padding:2px 6px 6px}
@@ -356,6 +355,7 @@ body.sidebar-mini .sidebar-footer::before{
   overflow-y:scroll;
   -webkit-overflow-scrolling:touch;
   overscroll-behavior-y:contain;
+  scroll-behavior:smooth;
   padding:16px;
   background-image:repeating-linear-gradient(to bottom,transparent,transparent 27px,var(--paper-line) 27px,var(--paper-line) 28px);
   background-attachment:local;
@@ -515,12 +515,15 @@ body.sidebar-mini .sidebar-footer::before{
 
 /* ─── TABLE ──────────────────────────────────────────────── */
 /* ─── FIX STICKY HEADER TABEL ────────────────────────────
-   overflow-x:auto di tbl-wrap memutus sticky context vertikal.
-   Solusi: tbl-wrap hanya overflow-x, sticky bekerja via .content
-   sebagai scroll container vertikal.                            */
+   Thead harus sticky di dalam container scroll-nya sendiri.
+   Baik di .content (vertikal) maupun .tbl-wrap (dengan overflow-y).
+   Solusi: tbl-wrap hanya overflow-x by default,
+   tapi jika ada overflow-y eksplisit (inline style), sticky
+   tetap bekerja karena thead mengikuti scroll container terdekat. */
 .tbl-wrap{
   overflow-x:auto;
   -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
   /* JANGAN tambah overflow-y — biarkan .content yang scroll vertikal */
 }
 .tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
@@ -536,6 +539,16 @@ body.sidebar-mini .sidebar-footer::before{
 .tbl td{padding:7px 8px;border-bottom:1px solid var(--cream3);white-space:nowrap;font-size:14px;font-weight:500}
 .tbl tr:last-child td{border:none}
 .tbl tr:hover td{background:rgba(255,255,255,0.03)}
+
+/* Semua container scroll pakai smooth + touch momentum */
+.content,
+.tbl-wrap,
+.sidebar-nav-scroll,
+[style*="overflow-y:auto"],
+[style*="overflow-y: auto"] {
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+}
 
 /* ─── BADGE ──────────────────────────────────────────────── */
 .badge{

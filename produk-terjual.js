@@ -122,7 +122,7 @@ document.getElementById('page-produk-terjual').innerHTML = `
   <!-- TABEL -->
   <div class="card">
     <div class="card-title"><i class="ti ti-chart-bar"></i> Produk Terjual</div>
-    <div class="tbl-wrap" id="pt-tbl-wrap" style="max-height:65vh;overflow-y:auto"><table class="tbl" style="min-width:520px">
+    <div class="tbl-wrap" id="pt-tbl-wrap" style="max-height:65vh;overflow-y:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth"><table class="tbl" style="min-width:520px">
       <thead>
         <tr>
           <th>SKU</th>

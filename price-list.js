@@ -53,7 +53,7 @@ document.getElementById('page-price-list').innerHTML = `
   <!-- TABEL PRICE LIST -->
   <div class="card" id="pl-card" style="display:none">
     <div class="card-title"><i class="ti ti-tag"></i> Price List</div>
-    <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:auto"><table class="tbl">
+    <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth"><table class="tbl">
       <thead>
         <tr>
           <th>Katalog</th>

@@ -53,7 +53,7 @@ document.getElementById('page-kas').innerHTML = `
 
   <div class="card">
     <div class="card-title"><i class="ti ti-list"></i> Buku Jurnal Harian</div>
-    <div class="tbl-wrap" style="max-height:60vh;overflow-y:auto;overflow-x:auto">
+    <div class="tbl-wrap" style="max-height:60vh;overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth">
       <table class="tbl">
         <thead><tr><th>Tanggal</th><th>Ref</th><th>Keterangan</th><th>Akun Debit</th><th>Akun Kredit</th><th style="text-align:right">Debit</th><th style="text-align:right">Kredit</th><th>Aksi</th></tr></thead>
         <tbody id="kas-jurnal-tbody"><tr><td colspan="8" style="color:var(--ink3);font-style:italic">Memuat...</td></tr></tbody>

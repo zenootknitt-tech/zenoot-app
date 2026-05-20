@@ -161,7 +161,7 @@ document.getElementById('page-stok').innerHTML = `
       <i class="ti ti-package"></i> Semua SKU
       <span id="stok-summary" style="font-size:12px;color:var(--ink3);font-weight:400;margin-left:auto"></span>
     </div>
-    <div id="stok-tbl-wrap" style="overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;">
+    <div id="stok-tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;">
     <div class="tbl-wrap" style="overflow-x:auto;overflow-y:visible;"><table class="tbl">
       <thead><tr>
         <th>SKU Variasi</th><th>Katalog</th><th>Boss</th>
