@@ -603,9 +603,13 @@ function stokToggleFilterAll() {
   dd.style.display = 'block';
 }
 
+function _miId(type) {
+  return type === 'kategori_produk' ? 'mi-kategori-produk' : 'mi-' + type;
+}
+
 function stokOpenSub(type, e) {
   if (e) e.stopPropagation();
-  var el = document.getElementById('mi-' + type);
+  var el = document.getElementById(_miId(type));
   if (!el) return;
 
   // Tutup semua submenu lain, reset highlight
@@ -613,7 +617,7 @@ function stokOpenSub(type, e) {
     if (t !== type) {
       var s = document.getElementById('dd-filter-' + t);
       if (s) s.style.display = 'none';
-      var m = document.getElementById('mi-' + t);
+      var m = document.getElementById(_miId(t));
       if (m) { m.style.background = ''; m.style.color = ''; }
     }
   });
@@ -660,7 +664,7 @@ function stokOpenSub(type, e) {
     ];
   }
 
-  var currVal = type === 'boss' ? _filterBoss : type === 'katalog' ? _filterKatalog : _filterStatus;
+  var currVal = type === 'boss' ? _filterBoss : type === 'katalog' ? _filterKatalog : type === 'kategori_produk' ? _filterKategoriProduk : _filterStatus;
   var sub = document.getElementById('dd-filter-' + type);
   if (!sub) return;
   sub.innerHTML = opsi.map(function(o) {
@@ -743,11 +747,9 @@ function stokSetFilter(type, val) {
   ['boss','katalog','status','kategori_produk'].forEach(function(t) {
     var s = document.getElementById('dd-filter-' + t);
     if (s) s.style.display = 'none';
-    var m = document.getElementById('mi-' + t) || document.getElementById('mi-kategori-produk');
-    if (m && t !== 'kategori_produk') { m.style.background = ''; m.style.color = ''; }
+    var m = document.getElementById(_miId(t));
+    if (m) { m.style.background = ''; m.style.color = ''; }
   });
-  var miKat = document.getElementById('mi-kategori-produk');
-  if (miKat) { miKat.style.background = ''; miKat.style.color = ''; }
   var dd = document.getElementById('dd-filter-all');
   if (dd) dd.style.display = 'none';
 
