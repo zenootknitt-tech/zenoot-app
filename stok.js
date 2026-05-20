@@ -740,12 +740,14 @@ function stokSetFilter(type, val) {
 
   // Tutup semua submenu dan main dropdown secara langsung
   // (jangan pakai stokToggleFilterAll() karena bisa toggle arah salah)
-  ['boss','katalog','status'].forEach(function(t) {
+  ['boss','katalog','status','kategori_produk'].forEach(function(t) {
     var s = document.getElementById('dd-filter-' + t);
     if (s) s.style.display = 'none';
-    var m = document.getElementById('mi-' + t);
-    if (m) { m.style.background = ''; m.style.color = ''; }
+    var m = document.getElementById('mi-' + t) || document.getElementById('mi-kategori-produk');
+    if (m && t !== 'kategori_produk') { m.style.background = ''; m.style.color = ''; }
   });
+  var miKat = document.getElementById('mi-kategori-produk');
+  if (miKat) { miKat.style.background = ''; miKat.style.color = ''; }
   var dd = document.getElementById('dd-filter-all');
   if (dd) dd.style.display = 'none';
 

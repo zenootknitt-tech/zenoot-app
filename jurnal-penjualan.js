@@ -632,7 +632,7 @@ async function loadJurnalPenjualan() {
       if (sampai) filter += '&tanggal=lte.' + sampai;
     }
 
-    const data = await dbGet('jurnal_penjualan', filter + '&order=tanggal.desc');
+    const data = await dbGet('jurnal_penjualan', filter + '&order=tanggal.desc,id.desc');
     _jpAllData = data || [];
     filterJP();
     jpLoadTargetHarian(); // progress bar target harian
@@ -848,7 +848,8 @@ async function jpLoadTargetHarian() {
     var nominal  = document.getElementById('jp-target-nominal');
     if (bar) {
       bar.style.width      = pct + '%';
-      bar.style.background = pct >= 100 ? 'var(--ok)' : pct >= 60 ? 'var(--warn)' : 'var(--danger)';
+      bar.style.background = pct >= 80 ? 'var(--ok)' : pct >= 40 ? 'var(--warn)' : 'var(--danger)';
+      bar.style.transition = 'width .6s ease, background .4s ease';
     }
     if (nominal) nominal.textContent = fmtFn(targetHarian);
     if (label) {
