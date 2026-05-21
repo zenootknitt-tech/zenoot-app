@@ -1,6 +1,11 @@
 // ─── RESTOCK.JS — tab per supplier ──────────────────────────
 // Logic: SKU aktif yang terjual 14 hari terakhir
 // Tab: Semua (grid 2 col) | per Supplier (1 tabel penuh)
+// Improvement v2:
+//   - Safety Stock = avg_harian × buffer_hari (default 3 hari)
+//   - Cover Hari = qty_order / avg_harian (visibilitas supply duration)
+//   - Indikator Tren: bandingkan 7 hari awal vs 7 hari akhir
+//   - Stok Saat Ini: tampil di tabel per-supplier
 
 document.getElementById('page-restock').innerHTML = `
   <div class="card" id="restock-wrap">
@@ -35,6 +40,11 @@ async function loadRestock() {
     d14.setDate(d14.getDate() - 13);
     const dari  = d14.toISOString().slice(0, 10);
 
+    // Midpoint untuk deteksi tren
+    const d7 = new Date(today);
+    d7.setDate(d7.getDate() - 6); // 7 hari terakhir
+    const dari7 = d7.toISOString().slice(0, 10);
+
     const isKritisMode = window._restockFilterKritis === true;
     window._restockFilterKritis = false;
 
@@ -42,41 +52,61 @@ async function loadRestock() {
       dbGet('jurnal_penjualan', '&tanggal=gte.' + dari + '&order=tanggal.desc'),
       dbGet('produk', '&order=katalog.asc'),
       dbGet('restock_supplier', '&order=boss.asc').catch(() => []),
-      isKritisMode ? dbGet('stok') : Promise.resolve([]),
-      isKritisMode ? dbGet('jurnal_penjualan', '&select=sku,qty') : Promise.resolve([])
+      // Selalu ambil stok untuk tampilkan sisa di tabel
+      dbGet('stok'),
+      dbGet('jurnal_penjualan', '&select=sku,qty')
     ]);
 
-    // Hitung sisa per SKU jika mode kritis
+    // ── Hitung sisa stok per SKU (selalu, bukan hanya mode kritis) ──
+    const masukMap = {};
+    (stokRaw || []).forEach(s => {
+      const key = (s.sku_variasi || '').trim().toUpperCase();
+      if (key) masukMap[key] = (masukMap[key] || 0) + (s.stok_masuk || 0);
+    });
+    const keluarMapAll = {};
+    (jpAllRaw || []).forEach(r => {
+      const key = (r.sku || '').trim().toUpperCase();
+      if (key) keluarMapAll[key] = (keluarMapAll[key] || 0) + (r.qty || 0);
+    });
     const sisaMap = {};
-    if (isKritisMode) {
-      const masukMap = {};
-      (stokRaw || []).forEach(s => {
-        const key = (s.sku_variasi || '').trim().toUpperCase();
-        if (key) masukMap[key] = (masukMap[key] || 0) + (s.stok_masuk || 0);
-      });
-      const keluarMap2 = {};
-      (jpAllRaw || []).forEach(r => {
-        const key = (r.sku || '').trim().toUpperCase();
-        if (key) keluarMap2[key] = (keluarMap2[key] || 0) + (r.qty || 0);
-      });
-      Object.keys(masukMap).forEach(k => {
-        sisaMap[k] = (masukMap[k] || 0) - (keluarMap2[k] || 0);
-      });
-    }
+    Object.keys(masukMap).forEach(k => {
+      sisaMap[k] = (masukMap[k] || 0) - (keluarMapAll[k] || 0);
+    });
+
+    // ── Hitung tren: qty 7 hari pertama vs 7 hari terakhir ──
+    // penjualan sudah difilter >= dari (14 hari), tinggal split
+    const qty7AkhirMap = {}; // 7 hari terakhir
+    const qty7AwalMap  = {}; // 7 hari pertama (14-8 hari lalu)
+    penjualan.forEach(row => {
+      const sku = (row.sku || '').trim().toUpperCase();
+      if (!sku) return;
+      if (row.tanggal >= dari7) {
+        qty7AkhirMap[sku] = (qty7AkhirMap[sku] || 0) + (row.qty || 0);
+      } else {
+        qty7AwalMap[sku] = (qty7AwalMap[sku] || 0) + (row.qty || 0);
+      }
+    });
+
+    // ── Mode kritis: filter hanya SKU dengan sisa <= 3 ──
+    const sisaFilterSet = isKritisMode ? new Set(
+      Object.entries(sisaMap).filter(([,v]) => v <= 3).map(([k]) => k)
+    ) : null;
 
     // Map supplier
     const supplierMap = {};
     (supplierAll || []).forEach(s => {
       const key = (s.boss || '').trim().toUpperCase();
       supplierMap[key] = {
-        lead_time : s.lead_time  || 7,
-        min_order : s.min_order  || 6,
-        kelipatan : s.kelipatan  || s.min_order || 6,
-        budget    : s.budget     || 0,
-        catatan   : s.catatan    || ''
+        lead_time    : s.lead_time    || 7,
+        min_order    : s.min_order    || 6,
+        kelipatan    : s.kelipatan    || s.min_order || 6,
+        budget       : s.budget       || 0,
+        catatan      : s.catatan      || '',
+        // Safety stock = buffer 3 hari (field opsional jika ada di masa depan)
+        buffer_hari  : s.buffer_hari  || 3
       };
     });
-    const DEFAULT_SUPPLIER = { lead_time: 7, min_order: 6, kelipatan: 6, budget: 0, catatan: '' };
+    const DEFAULT_SUPPLIER = { lead_time: 7, min_order: 6, kelipatan: 6, budget: 0, catatan: '', buffer_hari: 3 };
 
     // Map produk
     const produkMap = {};
@@ -85,7 +115,7 @@ async function loadRestock() {
       if (key) produkMap[key] = p;
     });
 
-    // Hitung qty terjual per SKU
+    // Hitung qty terjual per SKU (14 hari)
     const qtyMap = {};
     penjualan.forEach(row => {
       const sku = (row.sku || '').trim().toUpperCase();
@@ -93,32 +123,55 @@ async function loadRestock() {
       qtyMap[sku] = (qtyMap[sku] || 0) + (row.qty || 0);
     });
 
-    // Group by boss, hitung ROP
+    // Group by boss, hitung ROP + safety stock
     const bossList = {};
     Object.entries(qtyMap).forEach(([sku, qty14]) => {
       const p = produkMap[sku];
       if (!p) return;
       const kat = (p.kategori_produk || 'aktif').toLowerCase();
       if (kat !== 'aktif') return;
-      if (isKritisMode && sisaMap[sku] !== undefined && sisaMap[sku] > 3) return;
+      if (isKritisMode && sisaFilterSet && !sisaFilterSet.has(sku)) return;
 
-      const bossKey = (p.boss || '—').trim().toUpperCase();
-      const sup     = supplierMap[bossKey] || DEFAULT_SUPPLIER;
+      const bossKey    = (p.boss || '—').trim().toUpperCase();
+      const sup        = supplierMap[bossKey] || DEFAULT_SUPPLIER;
       const avg_harian = qty14 / 14;
-      const rop_raw    = avg_harian * sup.lead_time;
+
+      // ── Safety Stock = avg_harian × buffer_hari ──
+      const safety_stock = avg_harian * sup.buffer_hari;
+
+      // ── ROP dengan safety stock ──
+      const rop_raw    = (avg_harian * sup.lead_time) + safety_stock;
       const qty_order  = bulatkanKelipatan(rop_raw, sup.kelipatan, sup.min_order);
       const nilai      = (p.hpp || 0) * qty_order;
 
+      // ── Cover hari = qty_order / avg_harian ──
+      const cover_hari = avg_harian > 0 ? Math.round(qty_order / avg_harian) : null;
+
+      // ── Tren: bandingkan 7 hari awal vs akhir ──
+      const q_awal  = qty7AwalMap[sku]  || 0;
+      const q_akhir = qty7AkhirMap[sku] || 0;
+      let tren = 'flat'; // 'naik' | 'turun' | 'flat' | 'baru'
+      if (q_awal === 0 && q_akhir > 0)       tren = 'baru';
+      else if (q_akhir > q_awal * 1.3)       tren = 'naik';
+      else if (q_akhir < q_awal * 0.7)       tren = 'turun';
+
+      // ── Sisa stok saat ini ──
+      const sisa_stok = sisaMap[sku] !== undefined ? sisaMap[sku] : null;
+
       if (!bossList[bossKey]) bossList[bossKey] = { items: [], sup };
       bossList[bossKey].items.push({
-        katalog    : p.katalog || '—',
+        katalog      : p.katalog || '—',
         sku,
         qty14,
-        avg_harian : avg_harian.toFixed(2),
-        rop        : rop_raw.toFixed(1),
+        avg_harian   : avg_harian.toFixed(2),
+        safety_stock : safety_stock.toFixed(1),
+        rop          : rop_raw.toFixed(1),
         qty_order,
-        hpp        : p.hpp || 0,
-        nilai
+        hpp          : p.hpp || 0,
+        nilai,
+        cover_hari,
+        tren,
+        sisa_stok
       });
     });
 
@@ -218,10 +271,8 @@ function renderRestockTabs() {
   let content = '';
 
   if (_restockActiveTab === 'SEMUA') {
-    // Grid 2 kolom — tampilan lama
     content = `<div class="grid2">${bossSorted.map(boss => renderSupplierCard(boss, bossList[boss], fmtRp)).join('')}</div>`;
   } else {
-    // 1 supplier — full width, lebih detail
     const bossData = bossList[_restockActiveTab];
     if (!bossData) return;
     content = renderSupplierFull(_restockActiveTab, bossData, fmtRp);
@@ -236,6 +287,31 @@ function restockSwitchTab(boss) {
   renderRestockTabs();
 }
 
+// ── Helper: ikon tren ──
+function trenIcon(tren) {
+  if (tren === 'naik')  return '<span title="Tren naik 7 hari terakhir" style="color:var(--ok);font-size:13px">↑</span>';
+  if (tren === 'turun') return '<span title="Tren turun 7 hari terakhir" style="color:var(--danger);font-size:13px">↓</span>';
+  if (tren === 'baru')  return '<span title="Mulai terjual 7 hari terakhir" style="color:var(--warn);font-size:11px">★</span>';
+  return '<span style="color:var(--ink3);font-size:11px">→</span>';
+}
+
+// ── Helper: warna cover hari ──
+function coverHariStyle(cover, lead_time) {
+  if (cover === null) return 'color:var(--ink3)';
+  if (cover <= lead_time + 3) return 'color:var(--danger);font-weight:700';
+  if (cover <= lead_time + 10) return 'color:var(--warn);font-weight:600';
+  return 'color:var(--ok)';
+}
+
+// ── Helper: badge sisa stok ──
+function sisaBadge(sisa) {
+  if (sisa === null)  return '<span style="color:var(--ink3);font-size:10px">—</span>';
+  if (sisa <= 0)      return `<span style="color:var(--danger);font-weight:700">${sisa} ⚠️</span>`;
+  if (sisa <= 3)      return `<span style="color:var(--danger)">${sisa}</span>`;
+  if (sisa <= 8)      return `<span style="color:var(--warn)">${sisa}</span>`;
+  return `<span style="color:var(--ink2)">${sisa}</span>`;
+}
+
 // ── Card compact untuk tab Semua (grid 2 kolom) ──
 function renderSupplierCard(boss, { items, sup }, fmtRp) {
   const totalQty   = items.reduce((s,r) => s + r.qty_order, 0);
@@ -247,7 +323,7 @@ function renderSupplierCard(boss, { items, sup }, fmtRp) {
       <div class="card-title" style="font-size:15px;cursor:pointer" onclick="restockSwitchTab('${boss}')">
         <i class="ti ti-user"></i> ${boss}
         <span style="margin-left:8px;font-size:11px;font-weight:400;color:var(--ink3)">
-          LT ${sup.lead_time}h · min ${sup.min_order}pcs · ×${sup.kelipatan}
+          LT ${sup.lead_time}h · SS ${sup.buffer_hari}h · min ${sup.min_order}pcs · ×${sup.kelipatan}
         </span>
         <span style="margin-left:auto;font-size:11px;font-weight:400;color:var(--ink3)">${items.length} SKU</span>
       </div>
@@ -266,10 +342,12 @@ function renderSupplierCard(boss, { items, sup }, fmtRp) {
           <tr>
             <th>Katalog</th>
             <th>Variant</th>
+            <th style="text-align:center">Tren</th>
+            <th style="text-align:center">Sisa</th>
             <th style="text-align:center">Qty 14hr</th>
-            <th style="text-align:center">Avg/hari</th>
-            <th style="text-align:center">ROP</th>
+            <th style="text-align:center">ROP+SS</th>
             <th style="text-align:center">Order</th>
+            <th style="text-align:center">Cover</th>
             <th style="text-align:right">Nilai HPP</th>
           </tr>
         </thead>
@@ -278,18 +356,23 @@ function renderSupplierCard(boss, { items, sup }, fmtRp) {
             <tr>
               <td style="color:var(--ink3)">${r.katalog}</td>
               <td><b style="color:var(--ink)">${r.sku}</b></td>
+              <td style="text-align:center">${trenIcon(r.tren)}</td>
+              <td style="text-align:center">${sisaBadge(r.sisa_stok)}</td>
               <td style="text-align:center">${r.qty14}</td>
-              <td style="text-align:center;color:var(--ink3)">${r.avg_harian}</td>
               <td style="text-align:center;color:var(--ink2)">${r.rop}</td>
               <td style="text-align:center;font-weight:700;font-size:15px;color:var(--warn)">${r.qty_order}</td>
+              <td style="text-align:center;font-size:12px;${coverHariStyle(r.cover_hari, sup.lead_time)}">
+                ${r.cover_hari !== null ? r.cover_hari + 'h' : '—'}
+              </td>
               <td style="text-align:right;color:${r.nilai ? 'var(--ok)' : 'var(--ink3)'}">
                 ${fmtRp(r.nilai)}
               </td>
             </tr>
           `).join('')}
           <tr style="font-weight:700;border-top:1px solid rgba(255,255,255,0.08)">
-            <td colspan="5" style="color:var(--ink2)">Total</td>
+            <td colspan="6" style="color:var(--ink2)">Total</td>
             <td style="text-align:center;color:var(--warn)">${totalQty}</td>
+            <td></td>
             <td style="text-align:right;color:var(--ok)">${fmtRp(totalNilai)}</td>
           </tr>
         </tbody>
@@ -312,6 +395,18 @@ function renderSupplierFull(boss, { items, sup }, fmtRp) {
   const totalNilai = items.reduce((s,r) => s + r.nilai, 0);
   const budgetSisa = sup.budget ? sup.budget - totalNilai : null;
 
+  // Hitung ringkasan tren
+  const trenNaik  = items.filter(r => r.tren === 'naik').length;
+  const trenTurun = items.filter(r => r.tren === 'turun').length;
+  const trenBaru  = items.filter(r => r.tren === 'baru').length;
+
+  const trenSummary = (trenNaik || trenTurun || trenBaru) ? `
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:12px">
+      ${trenNaik  ? `<span style="color:var(--ok)">↑ ${trenNaik} SKU tren naik</span>` : ''}
+      ${trenTurun ? `<span style="color:var(--danger)">↓ ${trenTurun} SKU tren turun</span>` : ''}
+      ${trenBaru  ? `<span style="color:var(--warn)">★ ${trenBaru} SKU mulai laku</span>` : ''}
+    </div>` : '';
+
   return `
     <div class="card" style="margin-bottom:0">
 
@@ -321,6 +416,10 @@ function renderSupplierFull(boss, { items, sup }, fmtRp) {
         <div style="font-size:13px">
           <span style="color:var(--ink3)">Lead Time:</span>
           <b style="color:var(--ink);margin-left:4px">${sup.lead_time} hari</b>
+        </div>
+        <div style="font-size:13px">
+          <span style="color:var(--ink3)">Safety Stock:</span>
+          <b style="color:var(--ink2);margin-left:4px">${sup.buffer_hari} hari buffer</b>
         </div>
         <div style="font-size:13px">
           <span style="color:var(--ink3)">Min Order:</span>
@@ -340,6 +439,13 @@ function renderSupplierFull(boss, { items, sup }, fmtRp) {
           </div>
         ` : ''}
         ${sup.catatan ? `<div style="width:100%;font-size:11px;color:var(--ink3)"><i class="ti ti-note"></i> ${sup.catatan}</div>` : ''}
+        ${trenSummary}
+      </div>
+
+      <!-- Legenda -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;font-size:11px;color:var(--ink3)">
+        <span>Cover: <span style="color:var(--danger)">merah</span> = supply pendek, <span style="color:var(--warn)">kuning</span> = cukup, <span style="color:var(--ok)">hijau</span> = aman</span>
+        <span>Tren: ↑ naik · ↓ turun · → stabil · ★ baru</span>
       </div>
 
       <!-- Tabel full width -->
@@ -350,10 +456,13 @@ function renderSupplierFull(boss, { items, sup }, fmtRp) {
               <th>#</th>
               <th>Katalog</th>
               <th>Variant (SKU)</th>
+              <th style="text-align:center">Tren</th>
+              <th style="text-align:center">Sisa</th>
               <th style="text-align:center">Qty 14hr</th>
               <th style="text-align:center">Avg/hari</th>
-              <th style="text-align:center">ROP</th>
+              <th style="text-align:center">ROP+SS</th>
               <th style="text-align:center;color:var(--warn)">Order</th>
+              <th style="text-align:center">Cover</th>
               <th style="text-align:right">HPP</th>
               <th style="text-align:right;color:var(--ok)">Nilai HPP</th>
             </tr>
@@ -364,10 +473,15 @@ function renderSupplierFull(boss, { items, sup }, fmtRp) {
                 <td style="color:var(--ink3);font-size:11px">${i + 1}</td>
                 <td style="color:var(--ink3)">${r.katalog}</td>
                 <td><b style="color:var(--ink)">${r.sku}</b></td>
+                <td style="text-align:center">${trenIcon(r.tren)}</td>
+                <td style="text-align:center">${sisaBadge(r.sisa_stok)}</td>
                 <td style="text-align:center">${r.qty14}</td>
                 <td style="text-align:center;color:var(--ink3)">${r.avg_harian}</td>
                 <td style="text-align:center;color:var(--ink2)">${r.rop}</td>
                 <td style="text-align:center;font-weight:700;font-size:16px;color:var(--warn)">${r.qty_order}</td>
+                <td style="text-align:center;font-size:12px;${coverHariStyle(r.cover_hari, sup.lead_time)}">
+                  ${r.cover_hari !== null ? r.cover_hari + ' hr' : '—'}
+                </td>
                 <td style="text-align:right;color:var(--ink3);font-size:12px">${fmtRp(r.hpp)}</td>
                 <td style="text-align:right;font-weight:600;color:${r.nilai ? 'var(--ok)' : 'var(--ink3)'}">
                   ${fmtRp(r.nilai)}
@@ -375,8 +489,9 @@ function renderSupplierFull(boss, { items, sup }, fmtRp) {
               </tr>
             `).join('')}
             <tr style="font-weight:700;border-top:2px solid var(--ink3)">
-              <td colspan="6" style="color:var(--ink2)">Total</td>
+              <td colspan="8" style="color:var(--ink2)">Total</td>
               <td style="text-align:center;font-size:18px;color:var(--warn)">${totalQty}</td>
+              <td></td>
               <td></td>
               <td style="text-align:right;color:var(--ok);font-size:15px">${fmtRp(totalNilai)}</td>
             </tr>
