@@ -1,6 +1,6 @@
 // ─── CLEARANCE.JS — monitor SKU non-aktif yang masih ada stok ──
-// Standalone page, navigasi dari Re-Stock > Summary
-// Kategori: discontinued, seasonal, clearance
+// Filter: nested submenu (Kategori / Supplier / Katalog) — pola stok.js
+// Navigasi: dari Re-Stock header atau Summary
 
 document.getElementById('page-clearance').innerHTML = `
   <div class="card">
@@ -8,39 +8,71 @@ document.getElementById('page-clearance').innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span><i class="ti ti-tag"></i> Clearance Monitor</span>
 
-        <!-- Filter Kategori -->
-        <button class="btn btn-sm" id="cl-kat-btn" onclick="clToggleKat()"
-          style="display:flex;align-items:center;gap:4px;font-size:12px">
-          <i class="ti ti-filter"></i>
-          <span id="cl-kat-label">Semua Kategori</span>
-          <span id="cl-kat-badge" style="display:none;background:var(--accent);color:#fff;font-size:9px;padding:1px 4px;border-radius:8px;font-weight:700">●</span>
-          <span style="font-size:10px">&#9662;</span>
-        </button>
+        <!-- Filter button — nested submenu -->
+        <div style="position:relative">
+          <button class="btn btn-sm" id="cl-filter-btn" onclick="clToggleFilterAll()"
+            style="min-width:90px;text-align:left;padding-right:24px;display:inline-flex;align-items:center;gap:6px">
+            <i class="ti ti-adjustments-horizontal"></i>
+            <span id="cl-filter-label">Filter</span>
+            <span id="cl-filter-arrow" style="position:absolute;right:8px;font-size:10px">&#9662;</span>
+          </button>
 
-        <!-- Filter Supplier -->
-        <button class="btn btn-sm" id="cl-sup-btn" onclick="clToggleSup()"
-          style="display:flex;align-items:center;gap:4px;font-size:12px">
-          <i class="ti ti-user"></i>
-          <span id="cl-sup-label">Semua Supplier</span>
-          <span id="cl-sup-badge" style="display:none;background:var(--accent);color:#fff;font-size:9px;padding:1px 4px;border-radius:8px;font-weight:700">●</span>
-          <span style="font-size:10px">&#9662;</span>
-        </button>
+          <!-- Main dropdown -->
+          <div id="cl-filter-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:9999;
+               background:var(--cream2);border-radius:10px;min-width:180px;
+               box-shadow:0 8px 32px rgba(0,0,0,0.6),0 2px 8px rgba(0,0,0,0.4);padding:8px 6px">
+
+            <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;
+                        margin-bottom:6px;padding:0 8px;letter-spacing:.5px">Filter</div>
+
+            <!-- Kategori -->
+            <div id="cl-mi-kat" onclick="clOpenSub('kat',event)"
+              style="padding:9px 12px;cursor:pointer;font-size:13px;font-weight:500;border-radius:6px;
+                     margin:1px 4px;display:flex;justify-content:space-between;align-items:center"
+              onmouseover="this.style.background='var(--cream3)'" onmouseout="this.style.background=''">
+              <span><i class="ti ti-tag" style="font-size:12px;margin-right:6px"></i>Kategori
+                <span id="cl-badge-kat" style="font-size:10px;color:var(--ink3)"></span></span>
+              <span style="font-size:11px">›</span>
+            </div>
+
+            <!-- Supplier -->
+            <div id="cl-mi-sup" onclick="clOpenSub('sup',event)"
+              style="padding:9px 12px;cursor:pointer;font-size:13px;font-weight:500;border-radius:6px;
+                     margin:1px 4px;display:flex;justify-content:space-between;align-items:center"
+              onmouseover="this.style.background='var(--cream3)'" onmouseout="this.style.background=''">
+              <span><i class="ti ti-user" style="font-size:12px;margin-right:6px"></i>Supplier
+                <span id="cl-badge-sup" style="font-size:10px;color:var(--ink3)"></span></span>
+              <span style="font-size:11px">›</span>
+            </div>
+
+            <!-- Katalog -->
+            <div id="cl-mi-katalog" onclick="clOpenSub('katalog',event)"
+              style="padding:9px 12px;cursor:pointer;font-size:13px;font-weight:500;border-radius:6px;
+                     margin:1px 4px;display:flex;justify-content:space-between;align-items:center"
+              onmouseover="this.style.background='var(--cream3)'" onmouseout="this.style.background=''">
+              <span><i class="ti ti-box" style="font-size:12px;margin-right:6px"></i>Katalog
+                <span id="cl-badge-katalog" style="font-size:10px;color:var(--ink3)"></span></span>
+              <span style="font-size:11px">›</span>
+            </div>
+
+          </div>
+        </div>
 
         <!-- Reset -->
         <button class="btn btn-sm" id="cl-reset-btn" onclick="clResetFilter()"
           style="display:none;align-items:center;gap:4px;font-size:12px;border-color:var(--danger);color:var(--danger)">
-          <i class="ti ti-x"></i> Reset
+          <i class="ti ti-x"></i> Reset Filter
         </button>
       </div>
 
-      <!-- Kanan: tombol kembali ke restock -->
+      <!-- Kanan: kembali -->
       <button class="btn btn-sm" onclick="gotoPage('restock',null)" style="font-size:12px">
         <i class="ti ti-arrow-left"></i> Kembali ke Re-Stock
       </button>
     </div>
 
     <!-- Metric strip -->
-    <div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px" id="cl-metrics">
+    <div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
       <div class="metric">
         <div class="m-label">SKU Non-Aktif</div>
         <div class="m-value" id="cl-total-sku">—</div>
@@ -49,7 +81,7 @@ document.getElementById('page-clearance').innerHTML = `
       <div class="metric">
         <div class="m-label">Total Sisa Pcs</div>
         <div class="m-value" id="cl-total-pcs">—</div>
-        <div class="m-delta">semua kategori</div>
+        <div class="m-delta">hasil filter</div>
       </div>
       <div class="metric">
         <div class="m-label">Nilai Stok Tertahan</div>
@@ -82,16 +114,20 @@ document.getElementById('page-clearance').innerHTML = `
   </div>
 `;
 
+// Submenu panels — mount ke body saat pertama dibuka
+let _clSubPanels = {};
+
 setTimeout(() => {
   if (typeof rerenderUI === 'function') rerenderUI(document.getElementById('page-clearance'));
   loadClearance();
 }, 80);
 
 // ─── STATE ───────────────────────────────────────────────────
-let _clAllData  = [];
-let _clFilterKat = '';
-let _clFilterSup = '';
-let _clSort     = { col: 'nilai', dir: 'desc' };
+let _clAllData    = [];
+let _clFilterKat    = '';
+let _clFilterSup    = '';
+let _clFilterKatalog = '';
+let _clSort       = { col: 'nilai', dir: 'desc' };
 
 const _clKatLabel = {
   discontinued : '🚫 Discontinued',
@@ -129,8 +165,6 @@ async function loadClearance() {
       const k = (r.sku || '').trim().toUpperCase();
       if (k) keluarMap[k] = (keluarMap[k] || 0) + (r.qty || 0);
     });
-
-    // Hitung qty terjual 14 hari per SKU
     const qty14Map = {};
     (jp14Raw || []).forEach(r => {
       const k = (r.sku || '').trim().toUpperCase();
@@ -146,10 +180,8 @@ async function loadClearance() {
       const skuKey = (p.sku_variasi || p.sku || '').trim().toUpperCase();
       if (!skuKey) return;
 
-      const masuk = masukMap[skuKey] || 0;
-      const keluar = keluarMap[skuKey] || 0;
-      const sisa  = masuk - keluar;
-      if (sisa <= 0) return; // sudah habis, tidak perlu monitor
+      const sisa = (masukMap[skuKey] || 0) - (keluarMap[skuKey] || 0);
+      if (sisa <= 0) return;
 
       _clAllData.push({
         kat,
@@ -174,10 +206,10 @@ async function loadClearance() {
 
 // ─── RENDER ──────────────────────────────────────────────────
 function clRenderAll() {
-  // Filter
   let data = _clAllData.filter(r => {
-    if (_clFilterKat && r.kat  !== _clFilterKat) return false;
-    if (_clFilterSup && r.boss !== _clFilterSup) return false;
+    if (_clFilterKat     && r.kat     !== _clFilterKat)     return false;
+    if (_clFilterSup     && r.boss    !== _clFilterSup)     return false;
+    if (_clFilterKatalog && r.katalog !== _clFilterKatalog) return false;
     return true;
   });
 
@@ -187,9 +219,7 @@ function clRenderAll() {
     let va = a[col]; let vb = b[col];
     if (typeof va === 'string') {
       va = va.toLowerCase(); vb = vb.toLowerCase();
-      if (va < vb) return dir === 'asc' ? -1 : 1;
-      if (va > vb) return dir === 'asc' ?  1 : -1;
-      return 0;
+      return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
     }
     return dir === 'asc' ? va - vb : vb - va;
   });
@@ -199,10 +229,11 @@ function clRenderAll() {
   const footer = document.getElementById('cl-footer');
 
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="color:var(--ink3);font-style:italic;padding:20px">Tidak ada SKU non-aktif yang masih memiliki stok.</td></tr>';
-    footer.textContent = '';
-    clUpdateMetrics([]);
+    tbody.innerHTML = '<tr><td colspan="8" style="color:var(--ink3);font-style:italic;padding:20px">Tidak ada SKU yang cocok dengan filter.</td></tr>';
+    if (footer) footer.textContent = '';
+    clUpdateMetrics(data);
     clUpdateSortIcons();
+    clUpdateFilterLabel();
     return;
   }
 
@@ -220,30 +251,28 @@ function clRenderAll() {
     </tr>`;
   }).join('');
 
-  // Total row
   const totalPcs   = data.reduce((s, r) => s + r.sisa,  0);
   const totalNilai = data.reduce((s, r) => s + r.nilai, 0);
   tbody.innerHTML += `
     <tr style="font-weight:700;border-top:2px solid var(--ink3)">
       <td colspan="4" style="color:var(--ink2)">Total</td>
       <td style="text-align:center;color:var(--ink2)">${totalPcs}</td>
-      <td></td>
-      <td></td>
+      <td></td><td></td>
       <td style="text-align:right;color:var(--warn)">${fmtRp(totalNilai)}</td>
     </tr>`;
 
-  footer.textContent = `Menampilkan ${data.length} SKU`;
+  if (footer) footer.textContent = `Menampilkan ${data.length} dari ${_clAllData.length} SKU`;
   clUpdateMetrics(data);
   clUpdateSortIcons();
+  clUpdateFilterLabel();
 }
 
 function clUpdateMetrics(data) {
-  const fmtRp = v => v ? 'Rp' + Number(v).toLocaleString('id-ID') : 'Rp0';
+  const fmtRp = v => 'Rp' + Number(v || 0).toLocaleString('id-ID');
   const el = id => document.getElementById(id);
-  const base = data;
-  if (el('cl-total-sku'))   el('cl-total-sku').textContent   = base.length + ' SKU';
-  if (el('cl-total-pcs'))   el('cl-total-pcs').textContent   = base.reduce((s,r) => s + r.sisa, 0).toLocaleString('id-ID') + ' pcs';
-  if (el('cl-total-nilai')) el('cl-total-nilai').textContent = fmtRp(base.reduce((s,r) => s + r.nilai, 0));
+  if (el('cl-total-sku'))   el('cl-total-sku').textContent   = data.length + ' SKU';
+  if (el('cl-total-pcs'))   el('cl-total-pcs').textContent   = data.reduce((s,r) => s + r.sisa, 0).toLocaleString('id-ID') + ' pcs';
+  if (el('cl-total-nilai')) el('cl-total-nilai').textContent = fmtRp(data.reduce((s,r) => s + r.nilai, 0));
 }
 
 // ─── SORT ────────────────────────────────────────────────────
@@ -261,144 +290,153 @@ function clUpdateSortIcons() {
   });
 }
 
-// ─── FILTER KATEGORI PANEL ───────────────────────────────────
-function clToggleKat() {
-  let panel = document.getElementById('cl-kat-panel');
+// ─── FILTER LABEL & BADGE ────────────────────────────────────
+function clUpdateFilterLabel() {
+  const parts = [];
+  if (_clFilterKat)     parts.push(_clFilterKat);
+  if (_clFilterSup)     parts.push(_clFilterSup);
+  if (_clFilterKatalog) parts.push(_clFilterKatalog);
+
+  const lbl = document.getElementById('cl-filter-label');
+  if (lbl) lbl.textContent = parts.length ? parts.join(', ') : 'Filter';
+
+  const resetBtn = document.getElementById('cl-reset-btn');
+  if (resetBtn) resetBtn.style.display = parts.length ? 'inline-flex' : 'none';
+
+  // Badge per submenu item
+  const bKat     = document.getElementById('cl-badge-kat');
+  const bSup     = document.getElementById('cl-badge-sup');
+  const bKatalog = document.getElementById('cl-badge-katalog');
+  if (bKat)     bKat.textContent     = _clFilterKat     ? '· ' + _clFilterKat     : '';
+  if (bSup)     bSup.textContent     = _clFilterSup     ? '· ' + _clFilterSup     : '';
+  if (bKatalog) bKatalog.textContent = _clFilterKatalog ? '· ' + _clFilterKatalog : '';
+}
+
+// ─── NESTED SUBMENU SYSTEM ───────────────────────────────────
+function clToggleFilterAll() {
+  const menu = document.getElementById('cl-filter-menu');
+  if (!menu) return;
+  const isOpen = menu.style.display !== 'none';
+  // Tutup semua submenu dulu
+  ['kat','sup','katalog'].forEach(t => {
+    const p = document.getElementById('cl-sub-' + t);
+    if (p) p.style.display = 'none';
+  });
+  menu.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    setTimeout(() => document.addEventListener('click', clCloseAllOutside), 50);
+  } else {
+    document.removeEventListener('click', clCloseAllOutside);
+  }
+}
+
+function clCloseAllOutside(e) {
+  const menu = document.getElementById('cl-filter-menu');
+  const btn  = document.getElementById('cl-filter-btn');
+  const subs = ['cl-sub-kat','cl-sub-sup','cl-sub-katalog'].map(id => document.getElementById(id));
+
+  const inMenu = menu && menu.contains(e.target);
+  const inBtn  = btn  && btn.contains(e.target);
+  const inSub  = subs.some(s => s && s.contains(e.target));
+  const inMi   = ['cl-mi-kat','cl-mi-sup','cl-mi-katalog'].some(id => {
+    const el = document.getElementById(id);
+    return el && el.contains(e.target);
+  });
+
+  if (!inMenu && !inBtn && !inSub && !inMi) {
+    if (menu) menu.style.display = 'none';
+    subs.forEach(s => { if (s) s.style.display = 'none'; });
+    document.removeEventListener('click', clCloseAllOutside);
+  }
+}
+
+function clOpenSub(type, event) {
+  event.stopPropagation();
+
+  // Tutup submenu lain
+  ['kat','sup','katalog'].filter(t => t !== type).forEach(t => {
+    const p = document.getElementById('cl-sub-' + t);
+    if (p) p.style.display = 'none';
+  });
+
+  const panelId = 'cl-sub-' + type;
+  let panel = document.getElementById(panelId);
+
+  // Build opsi
+  let opsi = [];
+  if (type === 'kat') {
+    opsi = [
+      { val: '', label: 'Semua Kategori' },
+      { val: 'clearance',    label: '🏷️ Clearance'   },
+      { val: 'discontinued', label: '🚫 Discontinued' },
+      { val: 'seasonal',     label: '🌙 Seasonal'     }
+    ];
+  } else if (type === 'sup') {
+    const uniq = [...new Set(_clAllData.map(r => r.boss).filter(Boolean))].sort();
+    opsi = [{ val: '', label: 'Semua Supplier' }, ...uniq.map(v => ({ val: v, label: v }))];
+  } else if (type === 'katalog') {
+    const uniq = [...new Set(_clAllData.map(r => r.katalog).filter(k => k && k !== '—'))].sort();
+    opsi = [{ val: '', label: 'Semua Katalog' }, ...uniq.map(v => ({ val: v, label: v }))];
+  }
+
+  const currVal = type === 'kat' ? _clFilterKat : type === 'sup' ? _clFilterSup : _clFilterKatalog;
+  const innerHtml = '<div style="padding:6px 4px;max-height:260px;overflow-y:auto">'
+    + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;'
+    + 'margin-bottom:4px;padding:0 8px;letter-spacing:.5px">'
+    + (type === 'kat' ? 'Kategori' : type === 'sup' ? 'Supplier' : 'Katalog')
+    + '</div>'
+    + opsi.map(o => {
+        const active = o.val === currVal;
+        return `<div onclick="clPilihFilter('${type}','${o.val.replace(/'/g,"\\'")}')"
+          style="padding:9px 12px;cursor:pointer;font-size:13px;font-weight:${active?'700':'500'};
+                 border-radius:6px;margin:1px 4px;background:${active?'var(--cream3)':'transparent'};
+                 white-space:nowrap"
+          onmouseover="this.style.background='var(--cream3)'"
+          onmouseout="this.style.background='${active?'var(--cream3)':'transparent'}'">
+          ${o.label}
+          ${active ? ' <span style="color:var(--accent);font-size:11px">✓</span>' : ''}
+        </div>`;
+      }).join('')
+    + '</div>';
+
   if (!panel) {
-    // Build panel sekali, mount ke body (sama seperti JP)
     panel = document.createElement('div');
-    panel.id = 'cl-kat-panel';
-    panel.style.cssText = 'display:none;position:fixed;top:0;left:0;z-index:99999;'
+    panel.id = panelId;
+    panel.style.cssText = 'display:none;position:fixed;z-index:99999;'
       + 'background:var(--cream2);border-radius:10px;min-width:190px;'
       + 'box-shadow:0 8px 32px rgba(0,0,0,0.6),0 2px 8px rgba(0,0,0,0.4)';
-
-    const opts = [
-      { val: '',              label: 'Semua Kategori' },
-      { val: 'clearance',    label: '🏷️ Clearance'    },
-      { val: 'discontinued', label: '🚫 Discontinued'  },
-      { val: 'seasonal',     label: '🌙 Seasonal'      }
-    ];
-    panel.innerHTML = '<div style="padding:8px 6px">'
-      + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;padding:0 8px;letter-spacing:.5px">Filter Kategori</div>'
-      + opts.map(o => `
-          <div onclick="clPilihKat('${o.val}')"
-            style="padding:9px 12px;cursor:pointer;font-size:13px;font-weight:500;border-radius:6px;margin:1px 4px;
-                   transition:background .1s"
-            onmouseover="this.style.background='var(--cream3)'"
-            onmouseout="this.style.background=''"
-            data-val="${o.val}">
-            ${o.label}
-          </div>`).join('')
-      + '</div>';
     document.body.appendChild(panel);
   }
+  panel.innerHTML = innerHtml;
 
-  const isOpen = panel.style.display !== 'none';
-  if (!isOpen) {
-    const btn  = document.getElementById('cl-kat-btn');
-    const rect = btn.getBoundingClientRect();
-    panel.style.top  = (rect.bottom + 4) + 'px';
-    panel.style.left = rect.left + 'px';
-    panel.style.display = 'block';
-    setTimeout(() => document.addEventListener('click', clCloseKatOutside), 50);
-  } else {
-    panel.style.display = 'none';
-    document.removeEventListener('click', clCloseKatOutside);
-  }
+  // Posisi: sejajar dengan menu item yang diklik
+  const miEl = document.getElementById('cl-mi-' + type);
+  const rect = miEl ? miEl.getBoundingClientRect() : { top: 100, right: 200 };
+  panel.style.top  = rect.top + 'px';
+  panel.style.left = (rect.right + 6) + 'px';
+  panel.style.display = 'block';
 }
 
-function clCloseKatOutside(e) {
-  const panel = document.getElementById('cl-kat-panel');
-  const btn   = document.getElementById('cl-kat-btn');
-  if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
-    panel.style.display = 'none';
-    document.removeEventListener('click', clCloseKatOutside);
-  }
-}
+function clPilihFilter(type, val) {
+  if (type === 'kat')     _clFilterKat     = val;
+  if (type === 'sup')     _clFilterSup     = val;
+  if (type === 'katalog') _clFilterKatalog = val;
 
-function clPilihKat(val) {
-  _clFilterKat = val;
-  // Update label tombol
-  const labels = { '': 'Semua Kategori', clearance: 'Clearance', discontinued: 'Discontinued', seasonal: 'Seasonal' };
-  const lblEl  = document.getElementById('cl-kat-label');
-  if (lblEl) lblEl.textContent = labels[val] || 'Semua Kategori';
-  // Badge
-  const badge = document.getElementById('cl-kat-badge');
-  if (badge) badge.style.display = val ? 'inline' : 'none';
-  // Reset btn — tampil kalau ada filter aktif (kat atau sup)
-  const resetBtn = document.getElementById('cl-reset-btn');
-  if (resetBtn) resetBtn.style.display = (val || _clFilterSup) ? 'inline-flex' : 'none';
-  // Tutup panel
-  const panel = document.getElementById('cl-kat-panel');
-  if (panel) panel.style.display = 'none';
-  document.removeEventListener('click', clCloseKatOutside);
+  // Tutup semua panel
+  const menu = document.getElementById('cl-filter-menu');
+  if (menu) menu.style.display = 'none';
+  ['kat','sup','katalog'].forEach(t => {
+    const p = document.getElementById('cl-sub-' + t);
+    if (p) p.style.display = 'none';
+  });
+  document.removeEventListener('click', clCloseAllOutside);
+
   clRenderAll();
 }
 
 function clResetFilter() {
-  clPilihKat('');
-  clPilihSup('');
-}
-
-// ─── FILTER SUPPLIER PANEL ───────────────────────────────────
-function clToggleSup() {
-  let panel = document.getElementById('cl-sup-panel');
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = 'cl-sup-panel';
-    panel.style.cssText = 'display:none;position:fixed;top:0;left:0;z-index:99999;'
-      + 'background:var(--cream2);border-radius:10px;min-width:190px;'
-      + 'box-shadow:0 8px 32px rgba(0,0,0,0.6),0 2px 8px rgba(0,0,0,0.4)';
-    document.body.appendChild(panel);
-  }
-
-  const isOpen = panel.style.display !== 'none';
-  if (!isOpen) {
-    // Build opsi dinamis dari data
-    const bossList = ['', ...new Set(_clAllData.map(r => r.boss).filter(Boolean)).values()].sort((a,b) => a.localeCompare(b));
-    panel.innerHTML = '<div style="padding:8px 6px">'
-      + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;padding:0 8px;letter-spacing:.5px">Filter Supplier</div>'
-      + bossList.map(b => `
-          <div onclick="clPilihSup('${b}')"
-            style="padding:9px 12px;cursor:pointer;font-size:13px;font-weight:${b === _clFilterSup ? '700' : '500'};border-radius:6px;margin:1px 4px;
-                   ${b === _clFilterSup ? 'background:var(--cream3);' : ''}transition:background .1s"
-            onmouseover="this.style.background='var(--cream3)'"
-            onmouseout="this.style.background='${b === _clFilterSup ? 'var(--cream3)' : ''}'">
-            ${b === '' ? '<i class="ti ti-users" style="font-size:11px;margin-right:4px"></i> Semua Supplier' : '<i class="ti ti-user" style="font-size:11px;margin-right:4px"></i> ' + b}
-          </div>`).join('')
-      + '</div>';
-
-    const btn  = document.getElementById('cl-sup-btn');
-    const rect = btn.getBoundingClientRect();
-    panel.style.top  = (rect.bottom + 4) + 'px';
-    panel.style.left = rect.left + 'px';
-    panel.style.display = 'block';
-    setTimeout(() => document.addEventListener('click', clCloseSupOutside), 50);
-  } else {
-    panel.style.display = 'none';
-    document.removeEventListener('click', clCloseSupOutside);
-  }
-}
-
-function clCloseSupOutside(e) {
-  const panel = document.getElementById('cl-sup-panel');
-  const btn   = document.getElementById('cl-sup-btn');
-  if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
-    panel.style.display = 'none';
-    document.removeEventListener('click', clCloseSupOutside);
-  }
-}
-
-function clPilihSup(val) {
-  _clFilterSup = val;
-  const lblEl = document.getElementById('cl-sup-label');
-  if (lblEl) lblEl.textContent = val || 'Semua Supplier';
-  const badge = document.getElementById('cl-sup-badge');
-  if (badge) badge.style.display = val ? 'inline' : 'none';
-  const resetBtn = document.getElementById('cl-reset-btn');
-  if (resetBtn) resetBtn.style.display = (val || _clFilterKat) ? 'inline-flex' : 'none';
-  const panel = document.getElementById('cl-sup-panel');
-  if (panel) panel.style.display = 'none';
-  document.removeEventListener('click', clCloseSupOutside);
+  _clFilterKat     = '';
+  _clFilterSup     = '';
+  _clFilterKatalog = '';
   clRenderAll();
 }
