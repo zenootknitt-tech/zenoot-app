@@ -201,7 +201,30 @@ async function loadRestock() {
       </div>` : '';
 
     // Simpan data ke window untuk dipakai saat ganti tab
-    window._restockData = { bossList, bossSorted, fmtRp, d14, today, totalSKU, grandBudget, bannerKritis };
+    // ── Clearance Monitor: non-aktif yang masih ada sisa stok ──
+    const clearanceList = [];
+    produkAll.forEach(p => {
+      const kat = (p.kategori_produk || 'aktif').toLowerCase();
+      if (kat === 'aktif') return; // hanya non-aktif
+      const skuKey = (p.sku_variasi || p.sku || '').trim().toUpperCase();
+      if (!skuKey) return;
+      const sisa = sisaMap[skuKey];
+      if (sisa === undefined || sisa <= 0) return; // sudah habis, skip
+      const qty14 = qtyMap[skuKey] || 0;
+      clearanceList.push({
+        sku    : skuKey,
+        katalog: p.katalog || '—',
+        boss   : p.boss    || '—',
+        kat,
+        sisa,
+        qty14,
+        hpp    : p.hpp || 0,
+        nilai  : sisa * (p.hpp || 0)
+      });
+    });
+    clearanceList.sort((a, z) => z.nilai - a.nilai); // sort by nilai stok tertinggi
+
+    window._restockData = { bossList, bossSorted, fmtRp, d14, today, totalSKU, grandBudget, bannerKritis, clearanceList };
 
     // Pastikan tab aktif valid
     if (_restockActiveTab !== 'SUMMARY' && !bossSorted.includes(_restockActiveTab)) {
@@ -220,7 +243,7 @@ function renderRestockTabs() {
   const wrap = document.getElementById('restock-body');
   if (!wrap || !window._restockData) return;
 
-  const { bossList, bossSorted, fmtRp, d14, today, totalSKU, grandBudget, bannerKritis } = window._restockData;
+  const { bossList, bossSorted, fmtRp, d14, today, totalSKU, grandBudget, bannerKritis, clearanceList } = window._restockData;
 
   // ── Build tab bar ──
   const tabBar = `
@@ -271,7 +294,7 @@ function renderRestockTabs() {
   let content = '';
 
   if (_restockActiveTab === 'SUMMARY') {
-    content = renderSummary(bossList, bossSorted, fmtRp);
+    content = renderSummary(bossList, bossSorted, fmtRp, clearanceList);
   } else {
     const bossData = bossList[_restockActiveTab];
     if (!bossData) return;
@@ -314,7 +337,7 @@ function sisaBadge(sisa) {
 
 
 // ── Tab Summary — ringkasan eksekutif per supplier ──
-function renderSummary(bossList, bossSorted, fmtRp) {
+function renderSummary(bossList, bossSorted, fmtRp, clearanceList) {
   const grandBudget  = bossSorted.reduce((s,b) => s + bossList[b].items.reduce((ss,r) => ss + r.nilai, 0), 0);
   const grandQty     = bossSorted.reduce((s,b) => s + bossList[b].items.reduce((ss,r) => ss + r.qty_order, 0), 0);
   const grandSKU     = bossSorted.reduce((s,b) => s + bossList[b].items.length, 0);
@@ -420,7 +443,50 @@ function renderSummary(bossList, bossSorted, fmtRp) {
           ${totalRow}
         </tbody>
       </table>
-    </div>`;
+    </div>
+    ${(clearanceList && clearanceList.length) ? `
+    <div style="margin-top:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:8px;display:flex;align-items:center;gap:8px">
+        <i class="ti ti-tag"></i> Clearance Monitor
+        <span style="font-size:11px;font-weight:400;color:var(--ink3)">${clearanceList.length} SKU non-aktif masih ada stok</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Kategori</th>
+              <th>Katalog</th>
+              <th>SKU</th>
+              <th>Boss</th>
+              <th style="text-align:center">Sisa</th>
+              <th style="text-align:center">Terjual 14hr</th>
+              <th style="text-align:right">HPP/pcs</th>
+              <th style="text-align:right">Nilai Stok</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${clearanceList.map(r => {
+              const katLabel = { discontinued:'🚫 Discontinued', seasonal:'🌙 Seasonal', clearance:'🏷️ Clearance' }[r.kat] || r.kat;
+              return `<tr style="opacity:0.75">
+                <td style="font-size:11px;color:var(--ink3)">${katLabel}</td>
+                <td style="color:var(--ink3)">${r.katalog}</td>
+                <td><b style="color:var(--ink2)">${r.sku}</b></td>
+                <td style="color:var(--ink3);font-size:12px">${r.boss}</td>
+                <td style="text-align:center;color:var(--warn);font-weight:700">${r.sisa}</td>
+                <td style="text-align:center;color:${r.qty14 > 0 ? 'var(--ok)' : 'var(--ink3)'}">${r.qty14 || '—'}</td>
+                <td style="text-align:right;color:var(--ink3);font-size:12px">${fmtRp(r.hpp)}</td>
+                <td style="text-align:right;color:var(--warn);font-weight:600">${fmtRp(r.nilai)}</td>
+              </tr>`;
+            }).join('')}
+            <tr style="font-weight:700;border-top:1px solid var(--ink3)">
+              <td colspan="6" style="color:var(--ink3)">Total nilai stok tertahan</td>
+              <td></td>
+              <td style="text-align:right;color:var(--warn)">${fmtRp(clearanceList.reduce((s,r) => s + r.nilai, 0))}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>` : ''}`;
 }
 
 
