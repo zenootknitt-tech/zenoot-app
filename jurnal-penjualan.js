@@ -269,12 +269,12 @@ document.getElementById('page-jurnal-penjualan').innerHTML = `
     <div class="tbl-wrap" style="max-height:65vh;overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth"><table class="tbl">
       <thead style="position:sticky;top:0;z-index:10;box-shadow:0 2px 0 0 var(--ink3)">
         <tr>
-          <th onclick="sortJP('tanggal')" style="cursor:pointer;user-select:none;position:sticky;top:0;background:var(--cream3);z-index:10">Tgl &amp; Waktu <span id="sort-tanggal">&#8597;</span></th>
+          <th style="position:sticky;top:0;background:var(--cream3);z-index:10">Tgl &amp; Waktu ↓</th>
           <th style="position:sticky;top:0;background:var(--cream3);z-index:10">Channel</th>
-          <th onclick="sortJP('sku')" style="cursor:pointer;user-select:none;position:sticky;top:0;background:var(--cream3);z-index:10">SKU <span id="sort-sku">&#8597;</span></th>
-          <th onclick="sortJP('qty')" style="cursor:pointer;user-select:none;position:sticky;top:0;background:var(--cream3);z-index:10">Qty <span id="sort-qty">&#8597;</span></th>
+          <th style="position:sticky;top:0;background:var(--cream3);z-index:10">SKU</th>
+          <th style="position:sticky;top:0;background:var(--cream3);z-index:10">Qty</th>
           <th style="position:sticky;top:0;background:var(--cream3);z-index:10">Harga Sat.</th>
-          <th onclick="sortJP('total')" style="cursor:pointer;user-select:none;position:sticky;top:0;background:var(--cream3);z-index:10">Total <span id="sort-total">&#8597;</span></th>
+          <th style="position:sticky;top:0;background:var(--cream3);z-index:10">Total</th>
           <th style="position:sticky;top:0;background:var(--cream3);z-index:10">Aksi</th>
         </tr>
       </thead>
@@ -295,7 +295,6 @@ setTimeout(() => {
 let _jpAllData    = [];
 let _jpChannelMap = {};
 let _jpProdukList = [];
-let _jpSort       = { col: 'tanggal', dir: 'desc' };
 let _jpSkuIndex   = -1;
 let _jpDdMode     = 'suggest';
 
@@ -882,32 +881,8 @@ function filterJP() {
     const cocokCh = !kat || String(r.channel_id) === String(kat);
     return cocokQ && cocokCh;
   });
-  const { col, dir } = _jpSort;
-  hasil.sort((a, b) => {
-    let va = a[col] || (col==='tanggal'?'':'0');
-    let vb = b[col] || (col==='tanggal'?'':'0');
-    if (col !== 'tanggal') { va = Number(va)||0; vb = Number(vb)||0; }
-    if (va < vb) return dir==='asc'?-1:1;
-    if (va > vb) return dir==='asc'?1:-1;
-    return 0;
-  });
   renderTabelJP(hasil);
   updateMetricsJP(hasil);
-  updateSortIcons();
-}
-
-function sortJP(col) {
-  if (_jpSort.col === col) _jpSort.dir = _jpSort.dir==='asc'?'desc':'asc';
-  else { _jpSort.col = col; _jpSort.dir = 'asc'; }
-  filterJP();
-}
-function updateSortIcons() {
-  ['tanggal','sku','qty','total'].forEach(c => {
-    const el = document.getElementById('sort-' + c);
-    if (!el) return;
-    el.textContent = _jpSort.col===c ? (_jpSort.dir==='asc'?'↑':'↓') : '↕';
-    el.style.color = _jpSort.col===c ? 'var(--accent)' : 'var(--ink3)';
-  });
 }
 
 // ─── RENDER TABEL ────────────────────────────────────────────

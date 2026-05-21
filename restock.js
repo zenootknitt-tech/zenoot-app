@@ -11,9 +11,14 @@ document.getElementById('page-restock').innerHTML = `
   <div class="card" id="restock-wrap">
     <div class="card-title">
       <i class="ti ti-refresh"></i> Re-Stock — Penjualan 14 Hari Terakhir
-      <button class="btn btn-sm" onclick="loadRestock()" style="margin-left:auto">
-        <i class="ti ti-refresh"></i> Refresh
-      </button>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <button class="btn btn-sm" onclick="loadRestock()">
+          <i class="ti ti-refresh"></i> Refresh
+        </button>
+        <button class="btn btn-sm" onclick="gotoPage('clearance',null)" style="display:inline-flex;align-items:center;gap:5px">
+          <i class="ti ti-tag"></i> Produk Clearance
+        </button>
+      </div>
     </div>
     <div id="restock-body" style="color:var(--ink3);font-style:italic;padding:12px 0">
       <i class="ti ti-loader"></i> Memuat data...

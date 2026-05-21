@@ -17,6 +17,15 @@ document.getElementById('page-clearance').innerHTML = `
           <span style="font-size:10px">&#9662;</span>
         </button>
 
+        <!-- Filter Supplier -->
+        <button class="btn btn-sm" id="cl-sup-btn" onclick="clToggleSup()"
+          style="display:flex;align-items:center;gap:4px;font-size:12px">
+          <i class="ti ti-user"></i>
+          <span id="cl-sup-label">Semua Supplier</span>
+          <span id="cl-sup-badge" style="display:none;background:var(--accent);color:#fff;font-size:9px;padding:1px 4px;border-radius:8px;font-weight:700">●</span>
+          <span style="font-size:10px">&#9662;</span>
+        </button>
+
         <!-- Reset -->
         <button class="btn btn-sm" id="cl-reset-btn" onclick="clResetFilter()"
           style="display:none;align-items:center;gap:4px;font-size:12px;border-color:var(--danger);color:var(--danger)">
@@ -81,6 +90,7 @@ setTimeout(() => {
 // ─── STATE ───────────────────────────────────────────────────
 let _clAllData  = [];
 let _clFilterKat = '';
+let _clFilterSup = '';
 let _clSort     = { col: 'nilai', dir: 'desc' };
 
 const _clKatLabel = {
@@ -165,9 +175,11 @@ async function loadClearance() {
 // ─── RENDER ──────────────────────────────────────────────────
 function clRenderAll() {
   // Filter
-  let data = _clFilterKat
-    ? _clAllData.filter(r => r.kat === _clFilterKat)
-    : _clAllData;
+  let data = _clAllData.filter(r => {
+    if (_clFilterKat && r.kat  !== _clFilterKat) return false;
+    if (_clFilterSup && r.boss !== _clFilterSup) return false;
+    return true;
+  });
 
   // Sort
   const { col, dir } = _clSort;
@@ -228,7 +240,7 @@ function clRenderAll() {
 function clUpdateMetrics(data) {
   const fmtRp = v => v ? 'Rp' + Number(v).toLocaleString('id-ID') : 'Rp0';
   const el = id => document.getElementById(id);
-  const base = _clFilterKat ? data : _clAllData;
+  const base = data;
   if (el('cl-total-sku'))   el('cl-total-sku').textContent   = base.length + ' SKU';
   if (el('cl-total-pcs'))   el('cl-total-pcs').textContent   = base.reduce((s,r) => s + r.sisa, 0).toLocaleString('id-ID') + ' pcs';
   if (el('cl-total-nilai')) el('cl-total-nilai').textContent = fmtRp(base.reduce((s,r) => s + r.nilai, 0));
@@ -313,9 +325,9 @@ function clPilihKat(val) {
   // Badge
   const badge = document.getElementById('cl-kat-badge');
   if (badge) badge.style.display = val ? 'inline' : 'none';
-  // Reset btn
+  // Reset btn — tampil kalau ada filter aktif (kat atau sup)
   const resetBtn = document.getElementById('cl-reset-btn');
-  if (resetBtn) resetBtn.style.display = val ? 'inline-flex' : 'none';
+  if (resetBtn) resetBtn.style.display = (val || _clFilterSup) ? 'inline-flex' : 'none';
   // Tutup panel
   const panel = document.getElementById('cl-kat-panel');
   if (panel) panel.style.display = 'none';
@@ -325,4 +337,68 @@ function clPilihKat(val) {
 
 function clResetFilter() {
   clPilihKat('');
+  clPilihSup('');
+}
+
+// ─── FILTER SUPPLIER PANEL ───────────────────────────────────
+function clToggleSup() {
+  let panel = document.getElementById('cl-sup-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'cl-sup-panel';
+    panel.style.cssText = 'display:none;position:fixed;top:0;left:0;z-index:99999;'
+      + 'background:var(--cream2);border-radius:10px;min-width:190px;'
+      + 'box-shadow:0 8px 32px rgba(0,0,0,0.6),0 2px 8px rgba(0,0,0,0.4)';
+    document.body.appendChild(panel);
+  }
+
+  const isOpen = panel.style.display !== 'none';
+  if (!isOpen) {
+    // Build opsi dinamis dari data
+    const bossList = ['', ...new Set(_clAllData.map(r => r.boss).filter(Boolean)).values()].sort((a,b) => a.localeCompare(b));
+    panel.innerHTML = '<div style="padding:8px 6px">'
+      + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;padding:0 8px;letter-spacing:.5px">Filter Supplier</div>'
+      + bossList.map(b => `
+          <div onclick="clPilihSup('${b}')"
+            style="padding:9px 12px;cursor:pointer;font-size:13px;font-weight:${b === _clFilterSup ? '700' : '500'};border-radius:6px;margin:1px 4px;
+                   ${b === _clFilterSup ? 'background:var(--cream3);' : ''}transition:background .1s"
+            onmouseover="this.style.background='var(--cream3)'"
+            onmouseout="this.style.background='${b === _clFilterSup ? 'var(--cream3)' : ''}'">
+            ${b === '' ? '<i class="ti ti-users" style="font-size:11px;margin-right:4px"></i> Semua Supplier' : '<i class="ti ti-user" style="font-size:11px;margin-right:4px"></i> ' + b}
+          </div>`).join('')
+      + '</div>';
+
+    const btn  = document.getElementById('cl-sup-btn');
+    const rect = btn.getBoundingClientRect();
+    panel.style.top  = (rect.bottom + 4) + 'px';
+    panel.style.left = rect.left + 'px';
+    panel.style.display = 'block';
+    setTimeout(() => document.addEventListener('click', clCloseSupOutside), 50);
+  } else {
+    panel.style.display = 'none';
+    document.removeEventListener('click', clCloseSupOutside);
+  }
+}
+
+function clCloseSupOutside(e) {
+  const panel = document.getElementById('cl-sup-panel');
+  const btn   = document.getElementById('cl-sup-btn');
+  if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
+    panel.style.display = 'none';
+    document.removeEventListener('click', clCloseSupOutside);
+  }
+}
+
+function clPilihSup(val) {
+  _clFilterSup = val;
+  const lblEl = document.getElementById('cl-sup-label');
+  if (lblEl) lblEl.textContent = val || 'Semua Supplier';
+  const badge = document.getElementById('cl-sup-badge');
+  if (badge) badge.style.display = val ? 'inline' : 'none';
+  const resetBtn = document.getElementById('cl-reset-btn');
+  if (resetBtn) resetBtn.style.display = (val || _clFilterKat) ? 'inline-flex' : 'none';
+  const panel = document.getElementById('cl-sup-panel');
+  if (panel) panel.style.display = 'none';
+  document.removeEventListener('click', clCloseSupOutside);
+  clRenderAll();
 }
