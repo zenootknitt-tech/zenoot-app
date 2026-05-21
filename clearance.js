@@ -17,46 +17,7 @@ document.getElementById('page-clearance').innerHTML = `
             <span id="cl-filter-arrow" style="position:absolute;right:8px;font-size:10px">&#9662;</span>
           </button>
 
-          <!-- Main dropdown -->
-          <div id="cl-filter-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:9999;
-               background:var(--cream2);border-radius:10px;min-width:180px;
-               box-shadow:0 8px 32px rgba(0,0,0,0.6),0 2px 8px rgba(0,0,0,0.4);padding:8px 6px">
-
-            <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;
-                        margin-bottom:6px;padding:0 8px;letter-spacing:.5px">Filter</div>
-
-            <!-- Kategori -->
-            <div id="cl-mi-kat" onclick="clOpenSub('kat',event)"
-              style="padding:9px 12px;cursor:pointer;font-size:13px;font-weight:500;border-radius:6px;
-                     margin:1px 4px;display:flex;justify-content:space-between;align-items:center"
-              onmouseover="this.style.background='var(--cream3)'" onmouseout="this.style.background=''">
-              <span><i class="ti ti-tag" style="font-size:12px;margin-right:6px"></i>Kategori
-                <span id="cl-badge-kat" style="font-size:10px;color:var(--ink3)"></span></span>
-              <span style="font-size:11px">›</span>
-            </div>
-
-            <!-- Supplier -->
-            <div id="cl-mi-sup" onclick="clOpenSub('sup',event)"
-              style="padding:9px 12px;cursor:pointer;font-size:13px;font-weight:500;border-radius:6px;
-                     margin:1px 4px;display:flex;justify-content:space-between;align-items:center"
-              onmouseover="this.style.background='var(--cream3)'" onmouseout="this.style.background=''">
-              <span><i class="ti ti-user" style="font-size:12px;margin-right:6px"></i>Supplier
-                <span id="cl-badge-sup" style="font-size:10px;color:var(--ink3)"></span></span>
-              <span style="font-size:11px">›</span>
-            </div>
-
-            <!-- Katalog -->
-            <div id="cl-mi-katalog" onclick="clOpenSub('katalog',event)"
-              style="padding:9px 12px;cursor:pointer;font-size:13px;font-weight:500;border-radius:6px;
-                     margin:1px 4px;display:flex;justify-content:space-between;align-items:center"
-              onmouseover="this.style.background='var(--cream3)'" onmouseout="this.style.background=''">
-              <span><i class="ti ti-box" style="font-size:12px;margin-right:6px"></i>Katalog
-                <span id="cl-badge-katalog" style="font-size:10px;color:var(--ink3)"></span></span>
-              <span style="font-size:11px">›</span>
-            </div>
-
           </div>
-        </div>
 
         <!-- Reset -->
         <button class="btn btn-sm" id="cl-reset-btn" onclick="clResetFilter()"
@@ -314,18 +275,50 @@ function clUpdateFilterLabel() {
 
 // ─── NESTED SUBMENU SYSTEM ───────────────────────────────────
 function clToggleFilterAll() {
-  const menu = document.getElementById('cl-filter-menu');
-  if (!menu) return;
+  let menu = document.getElementById('cl-filter-menu');
+  if (!menu) {
+    // Build menu, mount ke body (fixed positioning — tidak terpotong card)
+    menu = document.createElement('div');
+    menu.id = 'cl-filter-menu';
+    menu.style.cssText = 'display:none;position:fixed;z-index:99999;'
+      + 'background:var(--cream2);border-radius:10px;min-width:180px;'
+      + 'box-shadow:0 8px 32px rgba(0,0,0,0.6),0 2px 8px rgba(0,0,0,0.4);padding:8px 6px';
+    menu.innerHTML = ''
+      + '<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;'
+      + 'margin-bottom:6px;padding:0 8px;letter-spacing:.5px">Filter</div>'
+      + ['kat','sup','katalog'].map(t => {
+          const icons = { kat:'ti-tag', sup:'ti-user', katalog:'ti-box' };
+          const titles = { kat:'Kategori', sup:'Supplier', katalog:'Katalog' };
+          return `<div id="cl-mi-${t}" onclick="clOpenSub('${t}',event)"
+            style="padding:9px 12px;cursor:pointer;font-size:13px;font-weight:500;border-radius:6px;
+                   margin:1px 4px;display:flex;justify-content:space-between;align-items:center"
+            onmouseover="this.style.background='var(--cream3)'" onmouseout="this.style.background=''">
+            <span><i class="ti ${icons[t]}" style="font-size:12px;margin-right:6px"></i>${titles[t]}
+              <span id="cl-badge-${t}" style="font-size:10px;color:var(--ink3)"></span></span>
+            <span style="font-size:11px">›</span>
+          </div>`;
+        }).join('');
+    document.body.appendChild(menu);
+  }
+
   const isOpen = menu.style.display !== 'none';
   // Tutup semua submenu dulu
   ['kat','sup','katalog'].forEach(t => {
     const p = document.getElementById('cl-sub-' + t);
     if (p) p.style.display = 'none';
   });
-  menu.style.display = isOpen ? 'none' : 'block';
+
   if (!isOpen) {
+    const btn  = document.getElementById('cl-filter-btn');
+    const rect = btn.getBoundingClientRect();
+    menu.style.top  = (rect.bottom + 4) + 'px';
+    menu.style.left = rect.left + 'px';
+    menu.style.display = 'block';
+    // Update badges setelah mount
+    clUpdateFilterLabel();
     setTimeout(() => document.addEventListener('click', clCloseAllOutside), 50);
   } else {
+    menu.style.display = 'none';
     document.removeEventListener('click', clCloseAllOutside);
   }
 }
