@@ -445,47 +445,12 @@ function renderSummary(bossList, bossSorted, fmtRp, clearanceList) {
       </table>
     </div>
     ${(clearanceList && clearanceList.length) ? `
-    <div style="margin-top:20px">
-      <div style="font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:8px;display:flex;align-items:center;gap:8px">
-        <i class="ti ti-tag"></i> Clearance Monitor
-        <span style="font-size:11px;font-weight:400;color:var(--ink3)">${clearanceList.length} SKU non-aktif masih ada stok</span>
+    <div style="margin-top:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 16px;background:var(--cream2);border-radius:6px;border-left:3px solid var(--ink3)">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:3px"><i class="ti ti-tag"></i> Clearance Monitor</div>
+        <div style="font-size:12px;color:var(--ink3)">${clearanceList.length} SKU non-aktif &nbsp;·&nbsp; Nilai tertahan: <b style="color:var(--warn)">${fmtRp(clearanceList.reduce((s,r) => s + r.nilai, 0))}</b></div>
       </div>
-      <div class="tbl-wrap">
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th>Kategori</th>
-              <th>Katalog</th>
-              <th>SKU</th>
-              <th>Boss</th>
-              <th style="text-align:center">Sisa</th>
-              <th style="text-align:center">Terjual 14hr</th>
-              <th style="text-align:right">HPP/pcs</th>
-              <th style="text-align:right">Nilai Stok</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${clearanceList.map(r => {
-              const katLabel = { discontinued:'🚫 Discontinued', seasonal:'🌙 Seasonal', clearance:'🏷️ Clearance' }[r.kat] || r.kat;
-              return `<tr style="opacity:0.75">
-                <td style="font-size:11px;color:var(--ink3)">${katLabel}</td>
-                <td style="color:var(--ink3)">${r.katalog}</td>
-                <td><b style="color:var(--ink2)">${r.sku}</b></td>
-                <td style="color:var(--ink3);font-size:12px">${r.boss}</td>
-                <td style="text-align:center;color:var(--warn);font-weight:700">${r.sisa}</td>
-                <td style="text-align:center;color:${r.qty14 > 0 ? 'var(--ok)' : 'var(--ink3)'}">${r.qty14 || '—'}</td>
-                <td style="text-align:right;color:var(--ink3);font-size:12px">${fmtRp(r.hpp)}</td>
-                <td style="text-align:right;color:var(--warn);font-weight:600">${fmtRp(r.nilai)}</td>
-              </tr>`;
-            }).join('')}
-            <tr style="font-weight:700;border-top:1px solid var(--ink3)">
-              <td colspan="6" style="color:var(--ink3)">Total nilai stok tertahan</td>
-              <td></td>
-              <td style="text-align:right;color:var(--warn)">${fmtRp(clearanceList.reduce((s,r) => s + r.nilai, 0))}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <button class="btn btn-sm" onclick="gotoPage('clearance',null)" style="display:inline-flex;align-items:center;gap:5px;font-size:12px"><i class="ti ti-tag"></i> Lihat Clearance Monitor</button>
     </div>` : ''}`;
 }
 

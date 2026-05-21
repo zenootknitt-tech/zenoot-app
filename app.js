@@ -144,6 +144,7 @@ var pageMap = {
   'channel':            { title:'Channel',             sub:'master data channel toko'       },
   'beban-operasional':  { title:'Beban Operasional',   sub:'acuan % beban & target NPM'     },
   'keuangan':           { title:'Keuangan Operasional', sub:'hutang, neraca, rasio & valuasi' },
+  'clearance':          { title:'Clearance Monitor',    sub:'SKU non-aktif yang masih ada stok' },
 };
 
 // ─── NAVIGASI ────────────────────────────────────────────────
