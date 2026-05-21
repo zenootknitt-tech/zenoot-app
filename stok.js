@@ -1,6 +1,11 @@
 // ─── STOK.JS v3 — basis dari produk, keluar dari jurnal ───────
 
-function statusBadge(sisa) {
+function statusBadge(sisa, kat) {
+  // SKU non-aktif: tidak perlu alarm, cukup info redup
+  if (kat && kat !== 'aktif') {
+    if (sisa <= 0) return '<span style="font-size:10px;font-weight:700;color:var(--ink3);padding:2px 6px;border:1.5px solid var(--ink3);border-radius:2px;opacity:0.5">Habis</span>';
+    return '<span style="font-size:10px;color:var(--ink3);opacity:0.5">—</span>';
+  }
   if (sisa <= 0)  return '<span class="badge badge-crit">Habis!</span>';
   if (sisa <= 3)  return '<span class="badge badge-crit">Kritis!</span>';
   if (sisa <= 8)  return '<span class="badge badge-warn">Ati2</span>';
@@ -304,7 +309,10 @@ function renderStok(data) {
     const hpp   = row.hpp   ? `Rp${row.hpp.toLocaleString('id-ID')}` : 'Rp—';
     const nilai = row.nilai_stok > 0 ? `Rp${row.nilai_stok.toLocaleString('id-ID')}` : '—';
     const safeSku = (row.sku_variasi || '').replace(/"/g, '&quot;');
-    return `<tr>
+    const kat = row.kategori_produk || 'aktif';
+    const isNonAktif = kat !== 'aktif';
+    const rowStyle = isNonAktif ? ' style="opacity:0.42"' : '';
+    return `<tr${rowStyle}>
       <td><b>${row.sku_variasi || '—'}</b></td>
       <td>${row.katalog || '—'}</td>
       <td>${row.boss || '—'}</td>
@@ -312,10 +320,10 @@ function renderStok(data) {
       <td style="text-align:center;color:var(--ok)">${row.stok_keluar}</td>
       <td>${hpp}</td>
       <td style="color:var(--ok);font-weight:700">${nilai}</td>
-      <td>${statusBadge(row.sisa)}</td>
-      <td>${katBadgeStok(row.kategori_produk)}</td>
+      <td>${statusBadge(row.sisa, kat)}</td>
+      <td>${katBadgeStok(kat)}</td>
       <td>
-        <button class="btn btn-sm" data-action="ganti-kat" data-id="${row.produk_id}" data-sku="${safeSku}" data-kat="${row.kategori_produk||'aktif'}" style="margin-right:4px" title="Ganti Kategori"><i class="ti ti-tag"></i></button>
+        <button class="btn btn-sm" data-action="ganti-kat" data-id="${row.produk_id}" data-sku="${safeSku}" data-kat="${kat}" style="margin-right:4px" title="Ganti Kategori"><i class="ti ti-tag"></i></button>
         <button class="btn btn-sm" data-action="edit-stok" data-sku="${safeSku}" title="Edit stok masuk"><i class="ti ti-edit"></i></button>
       </td>
     </tr>`;

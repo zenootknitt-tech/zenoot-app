@@ -1,6 +1,6 @@
 // ─── RESTOCK.JS — tab per supplier ──────────────────────────
 // Logic: SKU aktif yang terjual 14 hari terakhir
-// Tab: Semua (grid 2 col) | per Supplier (1 tabel penuh)
+// Tab: Summary (ringkasan eksekutif) | per Supplier (1 tabel penuh)
 // Improvement v2:
 //   - Safety Stock = avg_harian × buffer_hari (default 3 hari)
 //   - Cover Hari = qty_order / avg_harian (visibilitas supply duration)
@@ -27,7 +27,7 @@ setTimeout(() => {
 }, 80);
 
 // Tab aktif saat ini
-let _restockActiveTab = 'SEMUA';
+let _restockActiveTab = 'SUMMARY';
 
 async function loadRestock() {
   const wrap = document.getElementById('restock-body');
@@ -204,8 +204,8 @@ async function loadRestock() {
     window._restockData = { bossList, bossSorted, fmtRp, d14, today, totalSKU, grandBudget, bannerKritis };
 
     // Pastikan tab aktif valid
-    if (_restockActiveTab !== 'SEMUA' && !bossSorted.includes(_restockActiveTab)) {
-      _restockActiveTab = 'SEMUA';
+    if (_restockActiveTab !== 'SUMMARY' && !bossSorted.includes(_restockActiveTab)) {
+      _restockActiveTab = 'SUMMARY';
     }
 
     renderRestockTabs();
@@ -226,13 +226,13 @@ function renderRestockTabs() {
   const tabBar = `
     <div style="display:flex;gap:0;margin-bottom:16px;border-bottom:2px solid var(--ink);flex-wrap:wrap">
       <button
-        onclick="restockSwitchTab('SEMUA')"
+        onclick="restockSwitchTab('SUMMARY')"
         style="padding:7px 16px;font-family:var(--f);font-size:12px;font-weight:700;
                border:2px solid var(--ink);border-bottom:none;cursor:pointer;margin-bottom:-2px;
-               background:${_restockActiveTab === 'SEMUA' ? 'var(--ink)' : 'var(--cream)'};
-               color:${_restockActiveTab === 'SEMUA' ? 'var(--cream)' : 'var(--ink)'}">
-        <i class="ti ti-layout-grid"></i> Semua
-        <span style="margin-left:4px;font-size:10px;opacity:0.7">${totalSKU} SKU</span>
+               background:${_restockActiveTab === 'SUMMARY' ? 'var(--ink)' : 'var(--cream)'};
+               color:${_restockActiveTab === 'SUMMARY' ? 'var(--cream)' : 'var(--ink)'}">
+        <i class="ti ti-clipboard-list"></i> Summary
+        <span style="margin-left:4px;font-size:10px;opacity:0.7">${bossSorted.length} supplier</span>
       </button>
       ${bossSorted.map(boss => {
         const { items, sup } = bossList[boss];
@@ -270,8 +270,8 @@ function renderRestockTabs() {
   // ── Content berdasarkan tab aktif ──
   let content = '';
 
-  if (_restockActiveTab === 'SEMUA') {
-    content = `<div class="grid2">${bossSorted.map(boss => renderSupplierCard(boss, bossList[boss], fmtRp)).join('')}</div>`;
+  if (_restockActiveTab === 'SUMMARY') {
+    content = renderSummary(bossList, bossSorted, fmtRp);
   } else {
     const bossData = bossList[_restockActiveTab];
     if (!bossData) return;
@@ -312,82 +312,117 @@ function sisaBadge(sisa) {
   return `<span style="color:var(--ink2)">${sisa}</span>`;
 }
 
-// ── Card compact untuk tab Semua (grid 2 kolom) ──
-function renderSupplierCard(boss, { items, sup }, fmtRp) {
-  const totalQty   = items.reduce((s,r) => s + r.qty_order, 0);
-  const totalNilai = items.reduce((s,r) => s + r.nilai, 0);
-  const budgetSisa = sup.budget ? sup.budget - totalNilai : null;
+
+// ── Tab Summary — ringkasan eksekutif per supplier ──
+function renderSummary(bossList, bossSorted, fmtRp) {
+  const grandBudget  = bossSorted.reduce((s,b) => s + bossList[b].items.reduce((ss,r) => ss + r.nilai, 0), 0);
+  const grandQty     = bossSorted.reduce((s,b) => s + bossList[b].items.reduce((ss,r) => ss + r.qty_order, 0), 0);
+  const grandSKU     = bossSorted.reduce((s,b) => s + bossList[b].items.length, 0);
+
+  // Alert global
+  const allItems     = bossSorted.flatMap(b => bossList[b].items);
+  const skuKritis    = allItems.filter(r => r.sisa_stok !== null && r.sisa_stok <= 3);
+  const skuNaik      = allItems.filter(r => r.tren === 'naik');
+  const skuTurun     = allItems.filter(r => r.tren === 'turun');
+  const skuCoverPendek = allItems.filter(r => {
+    const sup = bossSorted.map(b => bossList[b]).find(b => b.items.includes(r));
+    return r.cover_hari !== null && r.cover_hari <= (sup ? sup.sup.lead_time + 3 : 10);
+  });
+
+  // Banner alert — hanya tampil kalau ada yang perlu diperhatikan
+  const alerts = [];
+  if (skuKritis.length)      alerts.push(`<span style="color:var(--danger)"><b>${skuKritis.length} SKU</b> stok kritis (≤3 pcs)</span>`);
+  if (skuCoverPendek.length) alerts.push(`<span style="color:var(--warn)"><b>${skuCoverPendek.length} SKU</b> cover pendek</span>`);
+  if (skuNaik.length)        alerts.push(`<span style="color:var(--ok)"><b>${skuNaik.length} SKU</b> tren naik ↑</span>`);
+  if (skuTurun.length)       alerts.push(`<span style="color:var(--ink3)"><b>${skuTurun.length} SKU</b> tren turun ↓</span>`);
+
+  const alertBar = alerts.length ? `
+    <div style="display:flex;flex-wrap:wrap;gap:16px;padding:10px 14px;margin-bottom:14px;
+                background:var(--cream2);border-radius:6px;border-left:3px solid var(--warn);font-size:13px">
+      ${alerts.join('<span style="color:var(--ink3)">·</span>')}
+    </div>` : '';
+
+  // Tabel per supplier
+  const rows = bossSorted.map(boss => {
+    const { items, sup } = bossList[boss];
+    const totalQty   = items.reduce((s,r) => s + r.qty_order, 0);
+    const totalNilai = items.reduce((s,r) => s + r.nilai, 0);
+    const budgetSisa = sup.budget ? sup.budget - totalNilai : null;
+    const skuKritisN = items.filter(r => r.sisa_stok !== null && r.sisa_stok <= 3).length;
+    const trenNaikN  = items.filter(r => r.tren === 'naik').length;
+    const trenTurunN = items.filter(r => r.tren === 'turun').length;
+
+    const budgetCell = sup.budget
+      ? `<div style="font-size:12px;color:var(--warn)">${fmtRp(sup.budget)}</div>
+         <div style="font-size:11px;color:${budgetSisa >= 0 ? 'var(--ok)' : 'var(--danger)'}">
+           ${budgetSisa >= 0 ? 'sisa ' + fmtRp(budgetSisa) : 'over ' + fmtRp(Math.abs(budgetSisa))}
+         </div>`
+      : `<span style="color:var(--ink3);font-size:12px">—</span>`;
+
+    const trenCell = [
+      trenNaikN  ? `<span style="color:var(--ok)">↑${trenNaikN}</span>` : '',
+      trenTurunN ? `<span style="color:var(--danger)">↓${trenTurunN}</span>` : '',
+    ].filter(Boolean).join(' ') || '<span style="color:var(--ink3)">→</span>';
+
+    const kritisCell = skuKritisN
+      ? `<span style="color:var(--danger);font-weight:700">⚠ ${skuKritisN}</span>`
+      : `<span style="color:var(--ink3)">—</span>`;
+
+    return `
+      <tr>
+        <td>
+          <b style="font-size:14px;cursor:pointer;color:var(--ink)" onclick="restockSwitchTab('${boss}')">${boss}</b>
+          <div style="font-size:11px;color:var(--ink3)">LT ${sup.lead_time}h · SS ${sup.buffer_hari}h · min ${sup.min_order}pcs</div>
+          ${sup.catatan ? `<div style="font-size:10px;color:var(--ink3);margin-top:2px"><i class="ti ti-note"></i> ${sup.catatan}</div>` : ''}
+        </td>
+        <td style="text-align:center">${items.length}</td>
+        <td style="text-align:center;font-size:18px;font-weight:700;color:var(--warn)">${totalQty}</td>
+        <td style="text-align:right;font-weight:700;color:var(--ok)">${fmtRp(totalNilai)}</td>
+        <td style="text-align:center">${budgetCell}</td>
+        <td style="text-align:center;font-size:13px">${trenCell}</td>
+        <td style="text-align:center">${kritisCell}</td>
+        <td style="text-align:center">
+          <button class="btn btn-sm" onclick="restockSwitchTab('${boss}')" style="font-size:11px">
+            Detail →
+          </button>
+        </td>
+      </tr>`;
+  }).join('');
+
+  // Total row
+  const totalRow = `
+    <tr style="font-weight:700;border-top:2px solid var(--ink3)">
+      <td style="color:var(--ink2)">TOTAL — ${bossSorted.length} supplier</td>
+      <td style="text-align:center;color:var(--ink2)">${grandSKU} SKU</td>
+      <td style="text-align:center;font-size:20px;color:var(--warn)">${grandQty}</td>
+      <td style="text-align:right;font-size:15px;color:var(--ok)">${fmtRp(grandBudget)}</td>
+      <td colspan="4"></td>
+    </tr>`;
 
   return `
-    <div class="card" style="margin-bottom:0">
-      <div class="card-title" style="font-size:15px;cursor:pointer" onclick="restockSwitchTab('${boss}')">
-        <i class="ti ti-user"></i> ${boss}
-        <span style="margin-left:8px;font-size:11px;font-weight:400;color:var(--ink3)">
-          LT ${sup.lead_time}h · SS ${sup.buffer_hari}h · min ${sup.min_order}pcs · ×${sup.kelipatan}
-        </span>
-        <span style="margin-left:auto;font-size:11px;font-weight:400;color:var(--ink3)">${items.length} SKU</span>
-      </div>
-
-      ${sup.budget ? `
-        <div style="margin-bottom:10px;padding:6px 10px;background:var(--cream3);border-radius:6px;font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px">
-          <span style="color:var(--ink3)">Budget: <b style="color:var(--warn)">${fmtRp(sup.budget)}</b></span>
-          <span style="color:${budgetSisa >= 0 ? 'var(--ok)' : 'var(--danger)'}">
-            ${budgetSisa >= 0 ? 'Sisa: ' + fmtRp(budgetSisa) : 'Over: ' + fmtRp(Math.abs(budgetSisa))}
-          </span>
-        </div>
-      ` : ''}
-
+    ${alertBar}
+    <div class="tbl-wrap">
       <table class="tbl">
         <thead>
           <tr>
-            <th>Katalog</th>
-            <th>Variant</th>
+            <th>Supplier</th>
+            <th style="text-align:center">SKU</th>
+            <th style="text-align:center;color:var(--warn)">Total Order</th>
+            <th style="text-align:right;color:var(--ok)">Nilai HPP</th>
+            <th style="text-align:center">Budget</th>
             <th style="text-align:center">Tren</th>
-            <th style="text-align:center">Sisa</th>
-            <th style="text-align:center">Qty 14hr</th>
-            <th style="text-align:center">ROP+SS</th>
-            <th style="text-align:center">Order</th>
-            <th style="text-align:center">Cover</th>
-            <th style="text-align:right">Nilai HPP</th>
+            <th style="text-align:center">Kritis</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          ${items.map(r => `
-            <tr>
-              <td style="color:var(--ink3)">${r.katalog}</td>
-              <td><b style="color:var(--ink)">${r.sku}</b></td>
-              <td style="text-align:center">${trenIcon(r.tren)}</td>
-              <td style="text-align:center">${sisaBadge(r.sisa_stok)}</td>
-              <td style="text-align:center">${r.qty14}</td>
-              <td style="text-align:center;color:var(--ink2)">${r.rop}</td>
-              <td style="text-align:center;font-weight:700;font-size:15px;color:var(--warn)">${r.qty_order}</td>
-              <td style="text-align:center;font-size:12px;${coverHariStyle(r.cover_hari, sup.lead_time)}">
-                ${r.cover_hari !== null ? r.cover_hari + 'h' : '—'}
-              </td>
-              <td style="text-align:right;color:${r.nilai ? 'var(--ok)' : 'var(--ink3)'}">
-                ${fmtRp(r.nilai)}
-              </td>
-            </tr>
-          `).join('')}
-          <tr style="font-weight:700;border-top:1px solid rgba(255,255,255,0.08)">
-            <td colspan="6" style="color:var(--ink2)">Total</td>
-            <td style="text-align:center;color:var(--warn)">${totalQty}</td>
-            <td></td>
-            <td style="text-align:right;color:var(--ok)">${fmtRp(totalNilai)}</td>
-          </tr>
+          ${rows}
+          ${totalRow}
         </tbody>
       </table>
-
-      ${sup.catatan ? `<div style="margin-top:8px;font-size:11px;color:var(--ink3)"><i class="ti ti-note"></i> ${sup.catatan}</div>` : ''}
-
-      <div style="margin-top:10px">
-        <button class="btn btn-sm" onclick="restockSwitchTab('${boss}')" style="font-size:11px">
-          <i class="ti ti-arrow-right"></i> Lihat Detail
-        </button>
-      </div>
-    </div>
-  `;
+    </div>`;
 }
+
 
 // ── Tampilan full 1 supplier (tab individual) ──
 function renderSupplierFull(boss, { items, sup }, fmtRp) {
